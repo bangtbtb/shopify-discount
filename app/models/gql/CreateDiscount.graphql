@@ -1,0 +1,9 @@
+mutation createCodeDiscount($discount: DiscountCodeAppInput!) {
+  discountCodeAppCreate(codeAppDiscount: $discount) {
+    userErrors {
+      code
+      message
+      field
+    }
+  }
+}
