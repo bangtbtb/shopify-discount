@@ -13,12 +13,15 @@ const EMPTY_DISCOUNT: FunctionRunResult = {
   discounts: [],
 };
 
+type VDApplyType = "collection" | "products";
+
 type Configuration = {
   minQuantity: number;
   maxQuantity: number;
   percent: number;
-  applyType: "all" | "collection";
-  colId: string;
+  applyType: VDApplyType;
+  colId?: string;
+  productIds?: Array<string>;
 };
 
 interface ProductSum {
@@ -75,6 +78,10 @@ export function run(input: RunInput): FunctionRunResult {
     if (config.applyType === "collection") {
       var idx = ps.collections.findIndex((v) => v.collectionId == config.colId);
       if (idx >= 0) {
+        return;
+      }
+    } else if (config.applyType == "products") {
+      if ((config.productIds?.indexOf(ps.id) ?? -1) < 0) {
         return;
       }
     }

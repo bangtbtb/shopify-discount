@@ -22,20 +22,6 @@ type LoaderData = {};
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
-  const resp = await admin.graphql(
-    `#graphql
-    query getFunctions{
-        shopifyFunctions(first: 10) {
-          nodes {
-            id
-            title
-            apiType
-          }
-        }
-    }`,
-    {},
-  );
-  const respJson = await resp.json();
 
   return null;
 };

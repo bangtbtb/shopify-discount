@@ -2,7 +2,9 @@ import {
   BlockStack,
   Box,
   Card,
+  Grid,
   InlineGrid,
+  InlineStack,
   Select,
   Text,
   TextField,
@@ -15,18 +17,20 @@ import {
   SelectCollectionProp,
 } from "./SelectCollection";
 import {
+  ProductInfo,
   SelectMultipleProductProp,
   SelectMultipleProducts,
 } from "./SelectProduct";
+import { VDApplyType } from "~/defs";
 
 interface VBConfigCardProps {
   label?: string;
   minQuantity: Field<string>;
   maxQuantity: Field<string>;
   percent: Field<string>;
-  applyType: Field<"collection" | "all">;
-  collection: Field<CollectionInfo>;
-  // products: SelectMultipleProductProp;
+  applyType: Field<VDApplyType>;
+  collection: Field<CollectionInfo | null>;
+  products: Field<Array<ProductInfo>>;
 }
 
 export default function VDConfigCard({
@@ -36,6 +40,7 @@ export default function VDConfigCard({
   percent,
   applyType,
   collection,
+  products,
 }: VBConfigCardProps) {
   const [delta, setDelta] = useState<Array<string>>([]);
 
@@ -67,7 +72,9 @@ export default function VDConfigCard({
           {label ?? "Discount config"}
         </Text>
 
-        <InlineGrid columns={["oneThird", "oneThird", "oneThird"]}>
+        <InlineGrid columns={2}></InlineGrid>
+
+        <InlineStack aria-rowcount={3} align="space-between">
           <TextField
             label={"Minimum quantity"}
             autoComplete="on"
@@ -82,31 +89,39 @@ export default function VDConfigCard({
             type="number"
             {...maxQuantity}
           />
-        </InlineGrid>
+          <TextField
+            label="Discount percentage"
+            autoComplete="on"
+            type="number"
+            {...percent}
+            suffix="%"
+          />
+        </InlineStack>
 
-        <TextField
-          label="Discount percentage"
-          autoComplete="on"
-          type="number"
-          {...percent}
-          suffix="%"
-        />
+        <InlineStack aria-rowcount={2}>
+          <Select
+            label="Apply for"
+            value={applyType.value}
+            options={[
+              // { label: "All", value: "all" },
+              { label: "Products", value: "products" },
+              { label: "Collections", value: "collection" },
+            ]}
+            onChange={(v) => applyType.onChange(v as VDApplyType)}
+          />
 
-        <Select
-          label="Apply for"
-          value={applyType.value}
-          options={[
-            { label: "All", value: "all" },
-            // { label: "Products", value: "products" },
-            { label: "Collections", value: "collection" },
-          ]}
-        />
-        {applyType.value === "all" ? (
-          <></>
-        ) : (
-          <SelectCollection {...collection} />
-        )}
+          {applyType.value === "products" ? (
+            <SelectMultipleProducts
+              products={products.value}
+              onChange={products.onChange}
+            />
+          ) : (
+            <SelectCollection {...collection} />
+          )}
+        </InlineStack>
       </BlockStack>
+      <Box minHeight="24" />
+
       <BlockStack>
         <Text as="h4">Example</Text>
         {delta.map((v, idx) => (

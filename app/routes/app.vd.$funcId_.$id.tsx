@@ -22,7 +22,7 @@ import {
   DiscountAutomaticAppInput,
   Metafield,
   UserError,
-} from "../types/admin.types";
+} from "~/types/admin.types";
 import { useEffect, useMemo } from "react";
 import { useField, useForm } from "@shopify/react-form";
 import {
@@ -34,15 +34,16 @@ import {
 } from "@shopify/discount-app-components";
 import VDConfigCard from "~/components/VDConfigCard";
 import { CollectionInfo } from "~/components/SelectCollection";
+import { getVolumeDiscount, updateVolumeDiscount } from "~/models/vd_model";
+import { VDApplyType, VDConfigValue } from "~/defs";
+import { ProductInfo } from "~/components/SelectProduct";
+import { getSimleProductInfo, getSimpleCollection } from "~/models/sfont";
 
-interface VDConfig extends Metafield {
-  minQuantity: number;
-  maxQuantity: number;
-  percent: number;
-  applyType: "all" | "collection";
-  colId?: string;
-  collection: CollectionInfo;
-}
+type VDConfig = VDConfigValue &
+  Metafield & {
+    products: Array<ProductInfo>;
+    collection: CollectionInfo | null;
+  };
 
 interface AciontDataResponse {
   id: string;
@@ -52,91 +53,56 @@ interface AciontDataResponse {
 }
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  const funcId = params.funcId;
   const discountId = params.id;
+  // const funcId = params.funcId;
   // console.log(`funcId:${funcId}  discountid:${discountId}`);
 
   const { admin, session } = await authenticate.admin(request);
+  const { storefront } = await unauthenticated.storefront(session.shop);
 
-  var resp = await admin.graphql(
-    `#graphql
-query getDiscountDetail($id: ID!) {
-  discountNode(id: $id) {
-    __typename
-    id
-    discount {
-      ... on DiscountAutomaticApp {
-        title
-        status
-        appDiscountType {
-          title
-          targetType
-          functionId
-          discountClass
-        }
-        combinesWith {
-          orderDiscounts
-          productDiscounts
-          shippingDiscounts
-        }
-        startsAt
-        endsAt
-        createdAt
-      }
-    }
-    metafields(first: 10, namespace: "$app:vol_discount") {
-      nodes {
-        id
-        key
-        type 
-        value
-        namespace
-      }
-    }
-  }
-}`,
-    {
-      variables: { id: `gid://shopify/DiscountAutomaticNode/${discountId}` },
-    },
-  );
-  var respJson = await resp.json();
+  const data = await getVolumeDiscount(admin.graphql, {
+    discountId: discountId ?? "",
+  });
 
-  var config = {};
-  var metafield = respJson.data?.discountNode?.metafields?.nodes[0] ?? {};
-  if (respJson.data?.discountNode?.metafields.nodes?.length) {
-    console.log(
-      "metafields: ",
-      respJson.data?.discountNode?.metafields?.nodes[0],
+  var config: VDConfig = { ...data.config, collection: null, products: [] };
+  if (data.config.applyType === "collection" && config.colId) {
+    var colResp = await getSimpleCollection(
+      admin.graphql,
+      data.config.colId ?? "",
     );
-    config = JSON.parse(
-      respJson.data?.discountNode?.metafields?.nodes[0].value ?? "{}",
-    );
+
+    config.collection = colResp;
+    console.log("Collection: ", colResp);
   }
 
-  // console.log("config:  ", { ...config, ...metafield });
+  if (data.config.applyType === "products" && data.config.productIds?.length) {
+    var products: Array<ProductInfo> = [];
+    for (let i = 0; i < data.config.productIds.length; i++) {
+      const pid = data.config.productIds[i];
+      var product = await getSimleProductInfo(admin.graphql, pid);
+      product && products.push(product);
+      console.log("Product: ", product);
+    }
+    config.products = products;
+  }
 
-  return {
-    id: respJson.data?.discountNode?.id,
-    config: { ...config, ...metafield },
-    discount: respJson.data?.discountNode?.discount,
-  };
+  return { ...data, config: config };
 };
 
 export const action = async ({ params, request }: ActionFunctionArgs) => {
-  const { funcId, id } = params;
+  const { id } = params;
   const { admin } = await authenticate.admin(request);
   const formData = await request.formData();
 
   const discount: DiscountAutomaticApp = JSON.parse(
     formData.get("discount")?.toString() || "{}",
   );
+
   const config: Metafield = JSON.parse(
     formData.get("config")?.toString() ?? "{}",
   );
   var data: DiscountAutomaticAppInput = { ...discount };
 
-  // console.log("Raw config: ", formData.get("config")?.toString() ?? "{}");
-  // console.log("Config parse: ", config);
   if (config.id && config.value) {
     data.metafields = [
       {
@@ -150,33 +116,17 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   } else {
     data.metafields = undefined;
   }
-  // console.log("Update with data: ", JSON.stringify(data));
 
-  const resp = await admin.graphql(
-    `#graphql
-mutation updateDiscount($id: ID!, $data: DiscountAutomaticAppInput!){
-  discountAutomaticAppUpdate(
-    id: $id,
-    automaticAppDiscount: $data
-  ) {
-      userErrors {
-      code
-      field
-      message
-    }
-  }
-}`,
-    {
-      variables: {
-        id: `gid://shopify/DiscountAutomaticNode/${id}`,
-        data: data,
-      },
-    },
-  );
-  const respJson = await resp.json();
-  // const errors = respJson?.data?.userErrors;
+  var resp = await updateVolumeDiscount(admin.graphql, {
+    discountId: id ?? "",
+    data,
+    configId: config?.id,
+    configValue: config?.value,
+  });
 
-  return json({});
+  const errors = resp?.discountAutomaticAppUpdate?.userErrors;
+
+  return json({ errors });
 };
 
 export default function VolumeDiscountDetail() {
@@ -207,13 +157,14 @@ export default function VolumeDiscountDetail() {
         minQuantity: useField("0"),
         maxQuantity: useField("0"),
         percent: useField("0"),
-        applyType: useField<"all" | "collection">("collection"),
-        collection: useField({
+        applyType: useField<VDApplyType>("collection"),
+        collection: useField<CollectionInfo | null>({
           id: "",
           title: "",
           image: "",
           imageAlt: "",
         }),
+        products: useField<Array<ProductInfo>>([]),
       },
     },
     onSubmit: async (form) => {
@@ -230,6 +181,15 @@ export default function VolumeDiscountDetail() {
         startsAt: form.startDate,
         endsAt: form.endDate,
       };
+      var colId =
+        form.config.applyType == "collection"
+          ? parseFloat(form.config.collection?.id ?? "")
+          : null;
+      var productIds =
+        form.config.applyType == "products"
+          ? form.config.products.map((v) => v.id)
+          : [];
+
       var fcg = {
         id: loaderData.config.id,
         key: loaderData.config.key,
@@ -239,6 +199,8 @@ export default function VolumeDiscountDetail() {
           minQuantity: parseInt(form.config.minQuantity),
           maxQuantity: parseInt(form.config.maxQuantity),
           percent: parseFloat(form.config.percent),
+          colId: colId ?? "",
+          productIds: productIds,
         }),
       };
 
@@ -271,6 +233,7 @@ export default function VolumeDiscountDetail() {
     config.percent.onChange(srcConfig.percent.toString());
     config.applyType.onChange(srcConfig.applyType);
     config.collection.onChange(srcConfig.collection);
+    config.products.onChange(srcConfig.products ?? []);
 
     console.log("Loader data: ", loaderData);
   }, [loaderData]);
@@ -311,6 +274,7 @@ export default function VolumeDiscountDetail() {
                 percent={config.percent}
                 applyType={config.applyType}
                 collection={config.collection}
+                products={config.products}
               />
 
               <CombinationCard

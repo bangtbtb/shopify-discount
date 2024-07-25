@@ -17,20 +17,23 @@ import { ImageIcon, XIcon, PlusIcon } from "@shopify/polaris-icons";
 //   imageAlt?: string;
 // }
 
+export interface ProductInfo {
+  id: string;
+  title: string;
+  image: string;
+  imageAlt: string;
+}
+
 export interface SelectProductProp {
   disableSelect?: boolean;
-  productId: Field<string>;
-  productTitle: Field<string>;
-  image: Field<string>;
-  imageAlt: Field<string>;
+  product: ProductInfo;
+  onChange: (v: ProductInfo) => void;
 }
 
 export function SelectProduct({
   disableSelect,
-  productId,
-  productTitle,
-  image,
-  imageAlt,
+  product,
+  onChange,
 }: SelectProductProp) {
   const onSelectProduct = async () => {
     const products = await window.shopify.resourcePicker({
@@ -39,35 +42,29 @@ export function SelectProduct({
       multiple: false,
     });
     if (products?.length) {
-      productId.onChange(products[0].id);
-      productTitle.onChange(products[0].title);
-      image.onChange(products[0].images[0]?.originalSrc);
-      imageAlt.onChange(products[0].images[0]?.altText ?? "");
+      onChange({
+        id: products[0].id,
+        title: products[0].title,
+        image: products[0].images[0]?.originalSrc,
+        imageAlt: products[0].images[0]?.altText ?? "",
+      });
     }
   };
 
-  if (!productId.value && !disableSelect) {
+  if (!product.id && !disableSelect) {
     return <Button onClick={onSelectProduct}>Select Product</Button>;
   }
 
   return (
     <InlineStack blockAlign="center" gap="500">
-      <Thumbnail source={image.value || ImageIcon} alt={imageAlt.value} />
+      <Thumbnail source={product.image || ImageIcon} alt={product.image} />
       <InlineGrid alignItems="start">
         <Text as="span" variant="headingMd" fontWeight="semibold">
-          {productTitle.value}
+          {product.title}
         </Text>
       </InlineGrid>
     </InlineStack>
   );
-}
-
-export interface ProductInfo {
-  disableSelect?: boolean;
-  productId: string;
-  productTitle: string;
-  image: string;
-  imageAlt: string;
 }
 
 export interface SelectMultipleProductProp {
@@ -82,11 +79,15 @@ export function SelectMultipleProducts({
   onChange,
 }: SelectMultipleProductProp) {
   const selectProducts = async () => {
+    var ids = products.map((v) => ({
+      id: v.id,
+    }));
+
     const selecteds = await window.shopify.resourcePicker({
       type: "product",
       action: "select",
       multiple: true,
-      // selectionIds: [{id: ""}],
+      selectionIds: ids,
       // selectionIds: products,
     });
     if (!selecteds) {
@@ -95,8 +96,8 @@ export function SelectMultipleProducts({
 
     var pforms: Array<ProductInfo> =
       selecteds?.map((v) => ({
-        productId: v.id,
-        productTitle: v.title,
+        id: v.id,
+        title: v.title,
         image: v.images[0]?.originalSrc,
         imageAlt: v.images[0]?.altText ?? "",
       })) ?? [];
@@ -135,7 +136,7 @@ export function SelectMultipleProducts({
 
               <InlineGrid alignItems="start" gap={"1200"}>
                 <Text as="span" variant="headingMd" fontWeight="semibold">
-                  {pInfo.productTitle}
+                  {pInfo.title}
                 </Text>
               </InlineGrid>
             </InlineStack>

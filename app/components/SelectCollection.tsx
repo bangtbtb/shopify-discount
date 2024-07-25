@@ -20,7 +20,7 @@ export interface CollectionInfo {
 
 export interface SelectCollectionProp {
   disableSelect?: boolean;
-  value: CollectionInfo;
+  value: CollectionInfo | null;
   onChange: (val: CollectionInfo) => void;
 }
 
@@ -52,10 +52,13 @@ export function SelectCollection({
 
   return (
     <InlineStack blockAlign="center" gap="500">
-      <Thumbnail source={value?.image || ImageIcon} alt={value?.imageAlt} />
+      <Thumbnail
+        source={value?.image || ImageIcon}
+        alt={value?.imageAlt ?? ""}
+      />
       <InlineGrid alignItems="start">
         <Text as="span" variant="headingMd" fontWeight="semibold">
-          {value.title}
+          {value?.title}
         </Text>
       </InlineGrid>
     </InlineStack>
@@ -64,12 +67,14 @@ export function SelectCollection({
 
 export interface SelectMultipleProductProp {
   // selectVariant?: boolean;
+  label: string;
   colls: Array<CollectionInfo>;
   onChange: (val: CollectionInfo[]) => void;
 }
 
 export function SelectMultipleProducts({
   // selectVariant,
+  label,
   colls,
   onChange,
 }: SelectMultipleProductProp) {
@@ -108,7 +113,7 @@ export function SelectMultipleProducts({
     <InlineGrid>
       {/* Controller */}
       <InlineStack>
-        <Button onClick={selectProducts}>Select Multiple Product</Button>
+        <Button onClick={selectProducts}>{"Browse"}</Button>
       </InlineStack>
 
       {/* Products */}

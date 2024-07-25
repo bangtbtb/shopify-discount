@@ -1,7 +1,7 @@
 # Run tunnel
 
 ```shell
-cloudflared.exe tunnel -url http://localhost:56815/
+cloudflared.exe tunnel -url http://localhost:56365/
 ```
 
 # Shopify App Template - Remix

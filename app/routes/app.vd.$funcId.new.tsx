@@ -22,6 +22,9 @@ import { useField, useForm } from "@shopify/react-form";
 import { useEffect, useMemo } from "react";
 import { authenticate } from "~/shopify.server";
 import VDConfigCard from "~/components/VDConfigCard";
+import { createVolumeDiscount } from "~/models/vd_model";
+import { VDApplyType } from "~/defs";
+import { ProductInfo } from "~/components/SelectProduct";
 
 export const action = async ({ params, request }: ActionFunctionArgs) => {
   const { funcId } = params;
@@ -40,47 +43,11 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     endsAt: endsAt && new Date(endsAt),
   };
 
-  const resp = await admin.graphql(
-    `#graphql
-      mutation createAutomaticDiscount($discount: DiscountAutomaticAppInput!) {
-        discountAutomaticAppCreate(automaticAppDiscount: $discount) {
-          automaticAppDiscount {
-            discountId
-          }
-          userErrors {
-            code
-            message
-            field
-          }
-        }
-      }
-      `,
-    {
-      variables: {
-        discount: {
-          ...baseDiscount,
-          metafields: [
-            {
-              namespace: "$app:vol_discount",
-              key: "func_config",
-              type: "json",
-              value: JSON.stringify({
-                label: baseDiscount.title,
-                minQuantity: config.minQuantity,
-                maxQuantity: config.maxQuantity,
-                percent: config.percent,
-                applyType: config.applyType,
-                colId: config.colId,
-              }),
-            },
-          ],
-        },
-      },
-    },
-  );
-
-  const respJson = await resp.json();
-  const errors = respJson.data?.discountAutomaticAppCreate?.userErrors;
+  var resp = await createVolumeDiscount(admin.graphql, {
+    discount: baseDiscount,
+    config: config,
+  });
+  const errors = resp?.discountAutomaticAppCreate?.userErrors;
   return json({ errors });
 };
 
@@ -108,13 +75,6 @@ export default function VolDiscountCreate() {
     console.log("Create success");
   }, [actionData]);
 
-  const x = useForm({
-    fields: {},
-    onSubmit: async (form) => {
-      return { status: "success" };
-    },
-  });
-
   const {
     fields: { discountTitle, combinesWith, startDate, endDate, config },
     submit,
@@ -132,18 +92,25 @@ export default function VolDiscountCreate() {
         minQuantity: useField("1"),
         maxQuantity: useField("2"),
         percent: useField("0"),
-        applyType: useField<"all" | "collection">("collection"),
+        applyType: useField<VDApplyType>("collection"),
         collection: useField({
           id: "",
           title: "",
           image: "",
           imageAlt: "",
         }),
+        products: useField<Array<ProductInfo>>([]),
       },
     },
     onSubmit: async (form) => {
       var colId =
-        form.config.applyType == "all" ? null : form.config.collection.id;
+        form.config.applyType == "collection"
+          ? form.config.collection.id
+          : null;
+      var productIds =
+        form.config.applyType == "products"
+          ? form.config.products.map((v) => v.id)
+          : [];
       const discount = {
         title: form.discountTitle,
         combinesWith: form.combinesWith,
@@ -155,8 +122,13 @@ export default function VolDiscountCreate() {
           percent: parseFloat(form.config.percent),
           applyType: form.config.applyType,
           colId: colId,
+          productIds: productIds,
         },
       };
+      console.log("Product: ", productIds);
+      console.log("Collection: ", colId);
+      console.log("Discount: ", discount);
+
       submitForm({ discount: JSON.stringify(discount) }, { method: "post" });
       return { status: "success" };
     },
@@ -181,7 +153,6 @@ export default function VolDiscountCreate() {
   return (
     <Page
       title="Create volume discount"
-      // backAction={{ content: "Discounts", onAction: () => onBrea }}
       primaryAction={{
         content: "Save",
         onAction: submit,
@@ -208,6 +179,7 @@ export default function VolDiscountCreate() {
                 percent={config.percent}
                 applyType={config.applyType}
                 collection={config.collection}
+                products={config.products}
               />
 
               <CombinationCard
