@@ -1,15 +1,18 @@
 import {
+  BlockStack,
   Box,
   Button,
   Icon,
   InlineGrid,
   InlineStack,
   Text,
+  TextField,
   Thumbnail,
 } from "@shopify/polaris";
 import { Field, useField, useForm } from "@shopify/react-form";
 
-import { ImageIcon, XIcon, PlusIcon } from "@shopify/polaris-icons";
+import { ImageIcon, SearchIcon } from "@shopify/polaris-icons";
+import { Removeable } from "./Removeable";
 
 export interface CollectionInfo {
   id: string;
@@ -19,13 +22,13 @@ export interface CollectionInfo {
 }
 
 export interface SelectCollectionProp {
-  disableSelect?: boolean;
+  label: string;
   value: CollectionInfo | null;
   onChange: (val: CollectionInfo) => void;
 }
 
 export function SelectCollection({
-  disableSelect,
+  label,
   value,
   onChange,
 }: SelectCollectionProp) {
@@ -46,38 +49,54 @@ export function SelectCollection({
     }
   };
 
-  if (!value?.id && !disableSelect) {
-    return <Button onClick={onSelectCollection}>Select Collection</Button>;
-  }
-
   return (
-    <InlineStack blockAlign="center" gap="500">
-      <Thumbnail
-        source={value?.image || ImageIcon}
-        alt={value?.imageAlt ?? ""}
-      />
-      <InlineGrid alignItems="start">
-        <Text as="span" variant="headingMd" fontWeight="semibold">
-          {value?.title}
-        </Text>
+    <BlockStack>
+      <InlineGrid columns={["twoThirds", "oneThird"]}>
+        <TextField
+          label={label}
+          value=""
+          autoComplete=""
+          onChange={() => {}}
+          onFocus={onSelectCollection}
+          placeholder="Select target collection"
+          prefix={<Icon source={SearchIcon} />}
+          connectedRight={
+            <Button variant="primary" onClick={onSelectCollection}>
+              Search
+            </Button>
+          }
+        />
       </InlineGrid>
-    </InlineStack>
+      {value?.id && (
+        <InlineStack blockAlign="center" gap="500">
+          <Thumbnail
+            source={value?.image || ImageIcon}
+            alt={value?.imageAlt ?? ""}
+          />
+          <InlineGrid alignItems="start">
+            <Text as="span" variant="headingMd" fontWeight="semibold">
+              {value?.title}
+            </Text>
+          </InlineGrid>
+        </InlineStack>
+      )}
+    </BlockStack>
   );
 }
 
-export interface SelectMultipleProductProp {
+export interface SelectCollectionsProp {
   // selectVariant?: boolean;
   label: string;
   colls: Array<CollectionInfo>;
   onChange: (val: CollectionInfo[]) => void;
 }
 
-export function SelectMultipleProducts({
+export function SelectCollections({
   // selectVariant,
   label,
   colls,
   onChange,
-}: SelectMultipleProductProp) {
+}: SelectCollectionsProp) {
   const selectProducts = async () => {
     const selecteds = await window.shopify.resourcePicker({
       type: "collection",
@@ -96,12 +115,10 @@ export function SelectMultipleProducts({
         imageAlt: v.image?.altText ?? "",
       })) ?? [];
 
-    // products.value.push(p);
-    console.log("Add product: ", pforms);
     onChange(pforms);
   };
 
-  const onRemoveProduct = (index: number) => {
+  const onRemove = (index: number) => {
     console.log("Remove index: ", index);
 
     var newProducts = [...colls];
@@ -112,15 +129,29 @@ export function SelectMultipleProducts({
   return (
     <InlineGrid>
       {/* Controller */}
-      <InlineStack>
-        <Button onClick={selectProducts}>{"Browse"}</Button>
-      </InlineStack>
+      <BlockStack>
+        <InlineGrid columns={["twoThirds", "oneThird"]}>
+          <TextField
+            label={label}
+            value=""
+            autoComplete=""
+            onChange={() => {}}
+            onFocus={selectProducts}
+            placeholder="Select collections"
+            prefix={<Icon source={SearchIcon} />}
+            connectedRight={
+              <Button variant="primary" onClick={selectProducts}>
+                Search
+              </Button>
+            }
+          />
+        </InlineGrid>
+      </BlockStack>
 
-      {/* Products */}
+      {/* Selected collections */}
       <InlineGrid>
-        {/* Products {products.length} */}
         {colls?.map((pInfo, index) => (
-          <Removeable key={index} index={index} onRemove={onRemoveProduct}>
+          <Removeable key={index} index={index} onRemove={onRemove}>
             <InlineStack key={index} blockAlign="center" gap="500">
               <Thumbnail
                 source={pInfo.image || ImageIcon}
@@ -138,27 +169,5 @@ export function SelectMultipleProducts({
         ))}
       </InlineGrid>
     </InlineGrid>
-  );
-}
-
-interface RemoveableProps {
-  index: number;
-  children: any;
-  onRemove: (index: number) => void;
-}
-
-export function Removeable({ index, children, onRemove }: RemoveableProps) {
-  return (
-    <InlineStack align="space-between">
-      <Box key={`content-${index}`}>{children}</Box>
-      <InlineGrid alignItems="center">
-        <Button
-          key={`btn-rm-${index}`}
-          tone="critical"
-          onClick={() => onRemove(index)}
-          icon={XIcon}
-        ></Button>
-      </InlineGrid>
-    </InlineStack>
   );
 }

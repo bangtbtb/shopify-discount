@@ -3,11 +3,11 @@ import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/s
 import { DiscountAutomaticAppInput, Metafield } from "~/types/admin.types";
 import { getDiscounts } from "./discount";
 import { DiscountStatus } from "@shopify/discount-app-components";
-import { VDConfigValue } from "~/defs";
+import { VDConfig } from "~/defs";
 
 export type CreateVDRequest = {
   discount: DiscountAutomaticAppInput;
-  config: VDConfigValue;
+  config: VDConfig;
 };
 
 export type UpdateVDRequest = {
@@ -53,16 +53,14 @@ export async function createVolumeDiscount(
           ...discount,
           metafields: [
             {
-              namespace: "$app:vol_discount",
-              key: "func_config",
+              namespace: "$app:vd",
+              key: "vd_config",
               type: "json",
               value: JSON.stringify({
-                label: discount.title,
-                minQuantity: config.minQuantity,
-                maxQuantity: config.maxQuantity,
-                percent: config.percent,
+                label: config.label,
                 applyType: config.applyType,
-                colId: config.colId,
+                steps: config.steps,
+                colIds: config.colId,
                 productIds: config.productIds,
               }),
             },
@@ -150,7 +148,7 @@ export async function getVolumeDiscount(
               createdAt
             }
           }
-          metafields(first: 10, namespace: "$app:vol_discount") {
+          metafields(first: 10, namespace: "$app:vd") {
             nodes {
               id
               value
@@ -166,7 +164,7 @@ export async function getVolumeDiscount(
   var respJson = await resp.json();
 
   var metafield = respJson.data?.discountNode?.metafields?.nodes[0] ?? {};
-  var config: Metafield & VDConfigValue = JSON.parse(
+  var config: Metafield & VDConfig = JSON.parse(
     respJson.data?.discountNode?.metafields?.nodes[0].value ?? "{}",
   );
   // if (respJson.data?.discountNode?.metafields.nodes?.length) {
@@ -198,7 +196,7 @@ export async function findVolumeDiscount(
   while (!done) {
     var resp = await getDiscounts(graphql, {
       limit,
-      namespace: "$app:vol_discount",
+      namespace: "$app:vd",
       after: after,
     });
 
@@ -208,10 +206,6 @@ export async function findVolumeDiscount(
         const d = discounts[i].discount;
         const m = discounts[i].metafields.edges;
 
-        // console.log("Func id: ", funcId);
-        // console.log("Discount: ", d);
-        // console.log("Discount type: ", d.appDiscountType);
-
         if (
           d.appDiscountType?.functionId !== funcId ||
           d.status !== DiscountStatus.Active
@@ -220,7 +214,7 @@ export async function findVolumeDiscount(
         }
 
         if (d.appDiscountType.functionId == funcId && m.length) {
-          var config: VDConfigValue = JSON.parse(m[0].node.value);
+          var config: VDConfig = JSON.parse(m[0].node.value);
           if (config.applyType === "products") {
             if ((config.productIds ?? []).indexOf(productId) >= 0) {
               return discounts[i];

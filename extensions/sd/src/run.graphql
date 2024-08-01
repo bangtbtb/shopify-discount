@@ -1,4 +1,9 @@
 query RunInput {
+  localization {
+    country {
+      isoCode
+    }
+  }
   cart {
     lines {
       id
@@ -14,13 +19,26 @@ query RunInput {
           id
           product {
             id
+            inCollections {
+              collectionId
+            }
           }
         }
       }
     }
+    deliveryGroups {
+      id
+    }
+    deliverableLines {
+      id
+      merchandise {
+        __typename
+      }
+      quantity
+    }
   }
   discountNode {
-    metafield(namespace: "$app:od", key: "func_config") {
+    metafield(namespace: "$app:sd", key: "sd_config") {
       value
     }
   }

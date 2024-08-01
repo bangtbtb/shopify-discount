@@ -1,0 +1,11 @@
+<div id="sd_aabbdf" product="{{ product.id }}" cols="{{ col_ids | join: "," }}"></div>
+
+<script src="{{ "load_sd.js" | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Shipping discount",
+  "target": "section",
+  "settings": [{ "type": "product", "id": "product", "label": "product", "autofill": true }]
+}
+{% endschema %}

@@ -1,15 +1,18 @@
 import {
+  BlockStack,
   Box,
   Button,
   Icon,
   InlineGrid,
   InlineStack,
   Text,
+  TextField,
   Thumbnail,
 } from "@shopify/polaris";
 import { Field, useField, useForm } from "@shopify/react-form";
 
-import { ImageIcon, XIcon, PlusIcon } from "@shopify/polaris-icons";
+import { ImageIcon, SearchIcon } from "@shopify/polaris-icons";
+import { Removeable } from "./Removeable";
 
 // export interface SelectProductInfo {
 //   productId?: string;
@@ -69,12 +72,14 @@ export function SelectProduct({
 
 export interface SelectMultipleProductProp {
   // selectVariant?: boolean;
+  label?: string;
   products: Array<ProductInfo>;
   onChange: (val: ProductInfo[]) => void;
 }
 
 export function SelectMultipleProducts({
   // selectVariant,
+  label,
   products,
   onChange,
 }: SelectMultipleProductProp) {
@@ -88,6 +93,9 @@ export function SelectMultipleProducts({
       action: "select",
       multiple: true,
       selectionIds: ids,
+      filter: {
+        variants: false,
+      },
       // selectionIds: products,
     });
     if (!selecteds) {
@@ -118,12 +126,27 @@ export function SelectMultipleProducts({
   return (
     <InlineGrid>
       {/* Controller */}
-      <InlineStack>
-        <Button onClick={selectProducts}>Select Multiple Product</Button>
-      </InlineStack>
+      <BlockStack>
+        <InlineGrid columns={["twoThirds", "oneThird"]}>
+          <TextField
+            label={label}
+            value=""
+            autoComplete=""
+            onChange={() => {}}
+            onFocus={selectProducts}
+            placeholder="Select product"
+            prefix={<Icon source={SearchIcon} />}
+            connectedRight={
+              <Button variant="primary" onClick={selectProducts}>
+                Search
+              </Button>
+            }
+          />
+        </InlineGrid>
+      </BlockStack>
 
       {/* Products */}
-      <InlineGrid>
+      <BlockStack>
         {/* Products {products.length} */}
         {products?.map((pInfo, index) => (
           <Removeable key={index} index={index} onRemove={onRemoveProduct}>
@@ -142,29 +165,7 @@ export function SelectMultipleProducts({
             </InlineStack>
           </Removeable>
         ))}
-      </InlineGrid>
+      </BlockStack>
     </InlineGrid>
-  );
-}
-
-interface RemoveableProps {
-  index: number;
-  children: any;
-  onRemove: (index: number) => void;
-}
-
-export function Removeable({ index, children, onRemove }: RemoveableProps) {
-  return (
-    <InlineStack align="space-between">
-      <Box key={`content-${index}`}>{children}</Box>
-      <InlineGrid alignItems="center">
-        <Button
-          key={`btn-rm-${index}`}
-          tone="critical"
-          onClick={() => onRemove(index)}
-          icon={XIcon}
-        ></Button>
-      </InlineGrid>
-    </InlineStack>
   );
 }

@@ -1,0 +1,30 @@
+query RunInput {
+  cart {
+    lines {
+      id
+      quantity
+      cost {
+        amountPerQuantity {
+          amount
+          currencyCode
+        }
+      }
+      merchandise {
+        ... on ProductVariant {
+          id
+          product {
+            id
+            inCollections {
+              collectionId
+            }
+          }
+        }
+      }
+    }
+  }
+  discountNode {
+    metafield(namespace: "$app:vd", key: "vd_config") {
+      value
+    }
+  }
+}

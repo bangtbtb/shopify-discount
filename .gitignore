@@ -14,5 +14,6 @@ database.sqlite
 
 /app/types
 /extensions/*/dist
+/www
 
 notes

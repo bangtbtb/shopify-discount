@@ -18,6 +18,7 @@ datasource db {
 enum ADT {
   Volume
   Bundle
+  Shipping
 }
 
 model Session {
@@ -38,19 +39,47 @@ model Session {
   emailVerified Boolean?  @default(false)
 }
 
-model DiscountApplied {
-  id            String   @id @default(uuid())
+model Discount {
+  id            String    @id
   shop          String
-  discountId    String
-  functionId    String
-  orderId       String
-  discountValue Float
-  totalValue    Float
-  createdAt     DateTime @default(now())
+  status        String
+  title         String
+  metafield     String
+  startAt       DateTime
+  endAt         DateTime?
+  type          ADT
+  createdAt     DateTime? @default(now())
+  productIds    String[]
+  collectionIds String[]
+
+  // products    DiscountProduct[]
+  // collections DiscountCollection[]
+
+  @@index([shop, createdAt])
 }
 
-model Discount {
-  id   String @id
-  shop String
-  type ADT
-}
+// model DiscountApplied {
+//   id            String   @id @default(uuid())
+//   shop          String
+//   discountId    String
+//   functionId    String
+//   orderId       String
+//   discountValue Float
+//   totalValue    Float
+//   createdAt     DateTime @default(now())
+// }
+
+// model DiscountProduct {
+//   id         String   @id
+//   shop       String
+//   value      String
+//   discountId String
+//   discount   Discount @relation(fields: [discountId], references: [id])
+// }
+
+// model DiscountCollection {
+//   id         String   @id
+//   shop       String
+//   discountId String
+//   discount   Discount @relation(fields: [discountId], references: [id])
+// }

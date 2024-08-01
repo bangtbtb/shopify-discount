@@ -1,59 +1,109 @@
 import { ActionFunctionArgs, json } from "@remix-run/node";
-import { useActionData, useNavigation, useSubmit } from "@remix-run/react";
+import {
+  useActionData,
+  useNavigate,
+  useNavigation,
+  useSubmit,
+} from "@remix-run/react";
 import {
   ActiveDatesCard,
   CombinationCard,
   DiscountClass,
   CombinableDiscountTypes,
   DateTime,
+  DiscountStatus,
 } from "@shopify/discount-app-components";
 import {
   Banner,
   BlockStack,
   Card,
   Form,
+  Icon,
   Layout,
   Page,
   PageActions,
   TextField,
 } from "@shopify/polaris";
-
+import { XIcon } from "@shopify/polaris-icons";
 import { useField, useForm } from "@shopify/react-form";
 import { useEffect, useMemo } from "react";
 import { authenticate } from "~/shopify.server";
-import VDConfigCard from "~/components/VDConfigCard";
+import VDConfigCard, { VDStepConfigComponent } from "~/components/VDConfigCard";
 import { createVolumeDiscount } from "~/models/vd_model";
-import { VDApplyType } from "~/defs";
+import { VDApplyType, VDConfig, VDStep } from "~/defs";
 import { ProductInfo } from "~/components/SelectProduct";
-
-export const action = async ({ params, request }: ActionFunctionArgs) => {
-  const { funcId } = params;
-  const { admin } = await authenticate.admin(request);
-  const formData = await request.formData();
-
-  const { title, combinesWith, startsAt, endsAt, config } = JSON.parse(
-    formData.get("discount")?.toString() || "{}",
-  );
-
-  const baseDiscount = {
-    functionId: funcId,
-    title,
-    combinesWith,
-    startsAt: new Date(startsAt),
-    endsAt: endsAt && new Date(endsAt),
-  };
-
-  var resp = await createVolumeDiscount(admin.graphql, {
-    discount: baseDiscount,
-    config: config,
-  });
-  const errors = resp?.discountAutomaticAppCreate?.userErrors;
-  return json({ errors });
-};
+import { getFunction } from "~/models/func_models";
+import { StepData } from "~/components/ConfigStep";
+import { createPrismaDiscount } from "~/models/db_models";
 
 interface ActionData {
+  status: string;
   errors: Array<{ code: number; message: string; field: [string] }>;
 }
+
+type ActionPayload = {
+  title: string;
+  combinesWith: CombinableDiscountTypes;
+  startsAt: Date;
+  endsAt: Date | undefined;
+  config: VDConfig;
+};
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { admin, session } = await authenticate.admin(request);
+  const formData = await request.formData();
+
+  const { title, combinesWith, startsAt, endsAt, config }: ActionPayload =
+    JSON.parse(formData.get("discount")?.toString() || "{}");
+
+  var vdFunc = await getFunction(admin.graphql, {
+    apiType: "product_discounts",
+  });
+
+  console.log("Call action create vol discount: ", vdFunc);
+  if (!vdFunc?.length) {
+    console.log("Discount function is empty");
+
+    return json({
+      status: "failed",
+      errors: { message: "Volume discount function not found" },
+    });
+  }
+  console.log("Function: ", vdFunc[0]);
+
+  var resp = await createVolumeDiscount(admin.graphql, {
+    discount: {
+      title,
+      functionId: vdFunc[0].id,
+      combinesWith,
+      startsAt: new Date(startsAt),
+      endsAt: endsAt && new Date(endsAt),
+    },
+    config: config,
+  });
+
+  const errors = resp?.discountAutomaticAppCreate?.userErrors;
+  if (resp?.discountAutomaticAppCreate?.automaticAppDiscount) {
+    await createPrismaDiscount({
+      id: resp.discountAutomaticAppCreate.automaticAppDiscount.discountId,
+      shop: session.shop,
+      metafield: JSON.stringify(config),
+      status: DiscountStatus.Active,
+      title: title,
+      type: "Volume",
+      startAt: new Date(startsAt),
+      endAt: endsAt ? new Date(endsAt) : null,
+      createdAt: new Date(),
+      productIds: config.productIds ? config.productIds : [],
+      collectionIds: config.colId ? [config.colId] : [],
+    });
+  }
+  if (errors) {
+    console.log("Create discount error: ", errors);
+  }
+
+  return json({ status: "success", errors });
+};
 
 export default function VolDiscountCreate() {
   const submitForm = useSubmit();
@@ -64,6 +114,8 @@ export default function VolDiscountCreate() {
   const isLoading = navigation.state == "submitting";
   const submitErrors = actionData?.errors ?? [];
 
+  const nav = useNavigate();
+
   // const redirect = Redirect.create(app);
 
   useEffect(() => {
@@ -72,26 +124,33 @@ export default function VolDiscountCreate() {
     //     name: Redirect.ResourceType.Discount,
     //   });
     // }
-    console.log("Create success");
+
+    if (actionData?.status === "success") {
+      nav("/app");
+    }
+    console.log("Navigation State: ", navigation, actionData);
   }, [actionData]);
 
   const {
-    fields: { discountTitle, combinesWith, startDate, endDate, config },
+    fields: { title, combinesWith, startDate, endDate, config },
     submit,
   } = useForm({
     fields: {
-      discountTitle: useField(""),
+      title: useField(""),
       combinesWith: useField<CombinableDiscountTypes>({
         orderDiscounts: false,
         productDiscounts: false,
-        shippingDiscounts: false,
+        shippingDiscounts: true,
       }),
       startDate: useField<DateTime>(todaysDate),
       endDate: useField<DateTime | null>(null),
       config: {
-        minQuantity: useField("1"),
-        maxQuantity: useField("2"),
-        percent: useField("0"),
+        label: useField(""),
+        steps: useField<Array<StepData>>([
+          { type: "percent", value: "5", require: "2" },
+          { type: "percent", value: "15", require: "3" },
+          { type: "percent", value: "15", require: "4" },
+        ]),
         applyType: useField<VDApplyType>("collection"),
         collection: useField({
           id: "",
@@ -111,15 +170,22 @@ export default function VolDiscountCreate() {
         form.config.applyType == "products"
           ? form.config.products.map((v) => v.id)
           : [];
+      var steps: VDStep[] = form.config.steps.map((v) => ({
+        require: Number.parseInt(v.require),
+        value: {
+          type: v.type,
+          value: Number.parseInt(v.value),
+        },
+      }));
+
       const discount = {
-        title: form.discountTitle,
+        title: form.title,
         combinesWith: form.combinesWith,
         startsAt: form.startDate,
         endsAt: form.endDate,
         config: {
-          minQuantity: parseInt(form.config.minQuantity),
-          maxQuantity: parseInt(form.config.maxQuantity),
-          percent: parseFloat(form.config.percent),
+          label: form.config.label,
+          steps,
           applyType: form.config.applyType,
           colId: colId,
           productIds: productIds,
@@ -133,6 +199,8 @@ export default function VolDiscountCreate() {
       return { status: "success" };
     },
   });
+
+  // console.log("Step on vd new: ", config.steps);
 
   const errorBanner =
     submitErrors?.length > 0 ? (
@@ -165,18 +233,16 @@ export default function VolDiscountCreate() {
           <Form method="post" onSubmit={() => {}}>
             <BlockStack align="space-around" gap={"200"}>
               <Card>
+                <TextField label={"Title"} autoComplete="off" {...title} />
                 <TextField
-                  label={"Title"}
+                  label={"Label"}
                   autoComplete="off"
-                  {...discountTitle}
+                  {...config.label}
                 />
               </Card>
+              <VDStepConfigComponent steps={config.steps} />
 
               <VDConfigCard
-                label=""
-                minQuantity={config.minQuantity}
-                maxQuantity={config.maxQuantity}
-                percent={config.percent}
                 applyType={config.applyType}
                 collection={config.collection}
                 products={config.products}

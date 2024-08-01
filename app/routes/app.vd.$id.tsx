@@ -32,14 +32,17 @@ import {
   DateTime,
   DiscountClass,
 } from "@shopify/discount-app-components";
-import VDConfigCard from "~/components/VDConfigCard";
+import VDConfigCard, { VDStepConfigComponent } from "~/components/VDConfigCard";
 import { CollectionInfo } from "~/components/SelectCollection";
 import { getVolumeDiscount, updateVolumeDiscount } from "~/models/vd_model";
-import { VDApplyType, VDConfigValue } from "~/defs";
+import { VDApplyType, VDConfig, VDStep } from "~/defs";
 import { ProductInfo } from "~/components/SelectProduct";
 import { getSimleProductInfo, getSimpleCollection } from "~/models/sfont";
+import { updatePrismaDiscount } from "~/models/db_models";
+import { title } from "process";
+import { StepData } from "~/components/ConfigStep";
 
-type VDConfig = VDConfigValue &
+type VDConfigExt = VDConfig &
   Metafield & {
     products: Array<ProductInfo>;
     collection: CollectionInfo | null;
@@ -48,7 +51,7 @@ type VDConfig = VDConfigValue &
 interface AciontDataResponse {
   id: string;
   discount: DiscountAutomaticApp;
-  config: VDConfig;
+  config: VDConfigExt;
   errors: [UserError];
 }
 
@@ -58,21 +61,17 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   // console.log(`funcId:${funcId}  discountid:${discountId}`);
 
   const { admin, session } = await authenticate.admin(request);
-  const { storefront } = await unauthenticated.storefront(session.shop);
-
   const data = await getVolumeDiscount(admin.graphql, {
     discountId: discountId ?? "",
   });
 
-  var config: VDConfig = { ...data.config, collection: null, products: [] };
+  var config: VDConfigExt = { ...data.config, collection: null, products: [] };
   if (data.config.applyType === "collection" && config.colId) {
     var colResp = await getSimpleCollection(
       admin.graphql,
       data.config.colId ?? "",
     );
-
     config.collection = colResp;
-    console.log("Collection: ", colResp);
   }
 
   if (data.config.applyType === "products" && data.config.productIds?.length) {
@@ -116,6 +115,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   } else {
     data.metafields = undefined;
   }
+  var cValue: VDConfig = JSON.parse(config.value);
 
   var resp = await updateVolumeDiscount(admin.graphql, {
     discountId: id ?? "",
@@ -125,6 +125,19 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   });
 
   const errors = resp?.discountAutomaticAppUpdate?.userErrors;
+  if (!errors) {
+    await updatePrismaDiscount(discount.discountId, {
+      id: discount.discountId,
+      title: discount.title,
+      type: "Volume",
+      status: discount.status,
+      metafield: config.value,
+      collectionIds: cValue.colId ? [cValue.colId] : [],
+      productIds: cValue.productIds ? cValue.productIds : [],
+      startAt: new Date(discount.startsAt),
+      endAt: discount.endsAt ? new Date(discount.endsAt) : null,
+    });
+  }
 
   return json({ errors });
 };
@@ -154,9 +167,8 @@ export default function VolumeDiscountDetail() {
       startDate: useField<DateTime>(todaysDate),
       endDate: useField<DateTime | null>(null),
       config: {
-        minQuantity: useField("0"),
-        maxQuantity: useField("0"),
-        percent: useField("0"),
+        label: useField(""),
+        steps: useField<Array<StepData>>([]),
         applyType: useField<VDApplyType>("collection"),
         collection: useField<CollectionInfo | null>({
           id: "",
@@ -168,13 +180,6 @@ export default function VolumeDiscountDetail() {
       },
     },
     onSubmit: async (form) => {
-      console.log(
-        `Update with config: min:${config.minQuantity.value} max:${config.maxQuantity.value}`,
-      );
-      console.log(
-        `Update with config in form: min:${form.config.minQuantity} max:${form.config.maxQuantity}`,
-      );
-
       const discount = {
         title: form.discountTitle,
         combinesWith: form.combinesWith,
@@ -189,16 +194,22 @@ export default function VolumeDiscountDetail() {
         form.config.applyType == "products"
           ? form.config.products.map((v) => v.id)
           : [];
-
+      var steps: VDStep[] = form.config.steps.map((v) => ({
+        require: Number.parseInt(v.require),
+        value: {
+          type: v.type,
+          value: Number.parseInt(v.value),
+        },
+      }));
       var fcg = {
         id: loaderData.config.id,
         key: loaderData.config.key,
         namespace: loaderData.config.namespace,
         type: loaderData.config.type,
         value: JSON.stringify({
-          minQuantity: parseInt(form.config.minQuantity),
-          maxQuantity: parseInt(form.config.maxQuantity),
-          percent: parseFloat(form.config.percent),
+          label: form.config.label,
+          steps,
+          applyType: form.config.applyType,
           colId: colId ?? "",
           productIds: productIds,
         }),
@@ -228,9 +239,15 @@ export default function VolumeDiscountDetail() {
     startDate.onChange(srcDis.startsAt);
     endDate.onChange(srcDis.endsAt);
 
-    config.minQuantity.onChange(srcConfig.minQuantity.toString());
-    config.maxQuantity.onChange(srcConfig.maxQuantity.toString());
-    config.percent.onChange(srcConfig.percent.toString());
+    config.label.onChange(srcConfig.label);
+    config.steps.onChange(
+      srcConfig.steps.map((v) => ({
+        require: v.require.toString(),
+        type: v.value.type,
+        value: v.value.value.toString(),
+      })),
+    );
+
     config.applyType.onChange(srcConfig.applyType);
     config.collection.onChange(srcConfig.collection);
     config.products.onChange(srcConfig.products ?? []);
@@ -253,6 +270,7 @@ export default function VolumeDiscountDetail() {
         </Banner>
       </Layout.Section>
     ) : null;
+
   return (
     <Page title="Detail of volume discount">
       <Layout>
@@ -266,12 +284,16 @@ export default function VolumeDiscountDetail() {
                   autoComplete="off"
                   {...discountTitle}
                 />
+
+                <TextField
+                  label={"Label"}
+                  autoComplete="off"
+                  {...config.label}
+                />
               </Card>
 
+              <VDStepConfigComponent steps={config.steps} />
               <VDConfigCard
-                minQuantity={config.minQuantity}
-                maxQuantity={config.maxQuantity}
-                percent={config.percent}
                 applyType={config.applyType}
                 collection={config.collection}
                 products={config.products}
@@ -282,6 +304,7 @@ export default function VolumeDiscountDetail() {
                 discountClass={DiscountClass.Product}
                 discountDescriptor="Discount"
               />
+
               <ActiveDatesCard
                 startDate={startDate}
                 endDate={endDate}

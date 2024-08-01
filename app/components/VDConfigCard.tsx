@@ -1,10 +1,12 @@
 import {
   BlockStack,
   Box,
+  Button,
   Card,
   Grid,
   InlineGrid,
   InlineStack,
+  Layout,
   Select,
   Text,
   TextField,
@@ -22,93 +24,38 @@ import {
   SelectMultipleProducts,
 } from "./SelectProduct";
 import { VDApplyType } from "~/defs";
+import { StepComponent, StepData } from "./ConfigStep";
+import { Removeable } from "./Removeable";
 
 interface VBConfigCardProps {
-  label?: string;
-  minQuantity: Field<string>;
-  maxQuantity: Field<string>;
-  percent: Field<string>;
   applyType: Field<VDApplyType>;
   collection: Field<CollectionInfo | null>;
   products: Field<Array<ProductInfo>>;
 }
 
 export default function VDConfigCard({
-  label,
-  minQuantity,
-  maxQuantity,
-  percent,
   applyType,
   collection,
   products,
 }: VBConfigCardProps) {
-  const [delta, setDelta] = useState<Array<string>>([]);
-
-  useEffect(() => {
-    var min = parseInt(minQuantity.value);
-    var max = parseInt(maxQuantity.value);
-    var percentVal = parseFloat(percent.value);
-
-    if (!percentVal) {
-      return;
-    }
-
-    var newDelta = [];
-    if (min) {
-      newDelta.push(`Buy ${min} products, sell off ${percentVal}%`);
-    }
-    if (max) {
-      newDelta.push(
-        `Buy ${max} products, sell off ${percentVal * (max - min + 1)}%`,
-      );
-    }
-    setDelta(newDelta);
-  }, [minQuantity.value, maxQuantity.value]);
-
   return (
     <Card>
-      <BlockStack gap={"300"}>
-        <Text variant="headingMd" as="h2">
-          {label ?? "Discount config"}
-        </Text>
+      <Text as="h3" fontWeight="bold">
+        Discount target
+      </Text>
 
-        <InlineGrid columns={2}></InlineGrid>
-
-        <InlineStack aria-rowcount={3} align="space-between">
-          <TextField
-            label={"Minimum quantity"}
-            autoComplete="on"
-            type="number"
-            {...minQuantity}
-          />
-          <Box minWidth="16px" />
-
-          <TextField
-            label="Max quantity"
-            autoComplete="on"
-            type="number"
-            {...maxQuantity}
-          />
-          <TextField
-            label="Discount percentage"
-            autoComplete="on"
-            type="number"
-            {...percent}
-            suffix="%"
-          />
-        </InlineStack>
-
+      <Layout.Section>
         <InlineStack aria-rowcount={2}>
           <Select
             label="Apply for"
             value={applyType.value}
             options={[
-              // { label: "All", value: "all" },
               { label: "Products", value: "products" },
               { label: "Collections", value: "collection" },
             ]}
             onChange={(v) => applyType.onChange(v as VDApplyType)}
           />
+          <Box minWidth="16px" />
 
           {applyType.value === "products" ? (
             <SelectMultipleProducts
@@ -116,20 +63,84 @@ export default function VDConfigCard({
               onChange={products.onChange}
             />
           ) : (
-            <SelectCollection {...collection} />
+            <SelectCollection label="Select target" {...collection} />
           )}
         </InlineStack>
-      </BlockStack>
-      <Box minHeight="24" />
+      </Layout.Section>
+    </Card>
+  );
+}
 
-      <BlockStack>
-        <Text as="h4">Example</Text>
-        {delta.map((v, idx) => (
-          <Text as="p" key={idx}>
-            {v}
-          </Text>
-        ))}
-      </BlockStack>
+type VDStepConfigComponentProps = {
+  steps: Field<Array<StepData>>;
+};
+
+export function VDStepConfigComponent({ steps }: VDStepConfigComponentProps) {
+  const onAddStep = () => {
+    var newArr = [...steps.value];
+    if (steps.value.length) {
+      const latest = steps.value[steps.value.length - 1];
+      newArr.push({
+        require: (Number.parseInt(latest.require) + 1).toString(),
+        type: latest.type,
+        value:
+          latest.type == "percent"
+            ? (Number.parseFloat(latest.value) + 5).toString()
+            : latest.value,
+      });
+    } else {
+      newArr.push({
+        require: "1",
+        type: "percent",
+        value: "5",
+      });
+    }
+
+    steps.onChange(newArr);
+  };
+
+  const onRemove = (idx: number) => {
+    var newArr = [...steps.value];
+    newArr.splice(idx, 1);
+
+    steps.onChange(newArr);
+  };
+
+  return (
+    <Card>
+      <InlineStack align="space-between">
+        <Text as={"h3"} fontWeight="bold">
+          Discount volume condition
+        </Text>
+        <Button onClick={onAddStep}>Add step</Button>
+      </InlineStack>
+      <Box minHeight="16px"></Box>
+      <Layout.Section>
+        <InlineGrid columns={["oneHalf", "twoThirds"]}>
+          <Text as="p">Require volume </Text>
+          <Text as="p">Discount value</Text>
+        </InlineGrid>
+        <InlineGrid>
+          {steps &&
+            steps.value.map((v, idx) => (
+              <Box key={idx} padding={"100"}>
+                <Removeable index={idx} onRemove={onRemove}>
+                  <StepComponent
+                    key={idx}
+                    require={v.require}
+                    type={v.type}
+                    value={v.value}
+                    onChange={(v) => {
+                      var newArr = [...steps.value];
+                      newArr[idx] = v;
+                      steps.onChange(newArr);
+                    }}
+                  />
+                </Removeable>
+              </Box>
+            ))}
+        </InlineGrid>
+      </Layout.Section>
     </Card>
   );
 }

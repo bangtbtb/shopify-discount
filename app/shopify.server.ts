@@ -2,6 +2,7 @@ import "@shopify/shopify-app-remix/adapters/node";
 import {
   ApiVersion,
   AppDistribution,
+  DeliveryMethod,
   shopifyApp,
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
@@ -18,7 +19,44 @@ const shopify = shopifyApp({
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
   restResources,
-  // webhooks: {},
+  webhooks: {
+    APP_UNINSTALLED: {
+      pubSubProject: "earnest-command-226202",
+      pubSubTopic: "vd_discount",
+      deliveryMethod: DeliveryMethod.PubSub,
+    },
+    DISCOUNTS_CREATE: {
+      pubSubProject: "earnest-command-226202",
+      pubSubTopic: "vd_discount",
+      deliveryMethod: DeliveryMethod.PubSub,
+    },
+    DISCOUNTS_UPDATE: {
+      pubSubProject: "earnest-command-226202",
+      pubSubTopic: "vd_discount",
+      deliveryMethod: DeliveryMethod.PubSub,
+      // deliveryMethod: DeliveryMethod.Http,
+      // callbackUrl: "/webhooks",
+    },
+    DISCOUNTS_DELETE: {
+      pubSubProject: "earnest-command-226202",
+      pubSubTopic: "vd_discount",
+      deliveryMethod: DeliveryMethod.PubSub,
+    },
+  },
+  hooks: {
+    afterAuth: async ({ session }) => {
+      console.log("-------------------Call after_auth");
+
+      shopify
+        .registerWebhooks({ session })
+        .then(() => {
+          console.log("Register webhook success");
+        })
+        .catch((error) => {
+          console.error(`Try to register webhooks error: `, error);
+        });
+    },
+  },
   future: {
     unstable_newEmbeddedAuthStrategy: true,
   },

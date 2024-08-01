@@ -3,7 +3,10 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { topic, shop, session, admin } = await authenticate.webhook(request);
+  console.log("-----------------------WebhooksCalled ");
+  const { topic, shop, session, admin, payload } =
+    await authenticate.webhook(request);
+  console.log("-----------------------Webhooks ", topic);
 
   if (!admin) {
     // The admin context isn't returned if the webhook fired after a shop was uninstalled.
@@ -18,9 +21,20 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         await db.session.deleteMany({ where: { shop } });
       }
       break;
-    case "DISCOUNT_DELETE":
+    case "PRODUCTS_UPDATE":
+      console.log(`Topic: ${topic} Payload: `, payload);
       break;
-    case "DISCOUNT_UNACTIVE":
+    case "ORDERS_CREATE":
+      console.log("Order created: ", payload);
+      break;
+    case "DISCOUNTS_CREATE":
+      console.log("DISCOUNT created: ", payload);
+      break;
+    case "DISCOUNTS_UPDATE":
+      console.log("DISCOUNT UPDATED: ", payload);
+      break;
+    case "DISCOUNTS_DELETE":
+      console.log("DISCOUNT deleted: ", payload);
       break;
     case "CUSTOMERS_DATA_REQUEST":
     case "CUSTOMERS_REDACT":
@@ -29,5 +43,5 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       throw new Response("Unhandled webhook topic", { status: 404 });
   }
 
-  throw new Response();
+  throw new Response("Handle success", { status: 200 });
 };

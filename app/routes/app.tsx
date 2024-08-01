@@ -1,10 +1,10 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
 import { Link, Outlet, useLoaderData, useRouteError } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
+import { json } from "@remix-run/node";
 
 import { authenticate } from "../shopify.server";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
@@ -13,9 +13,6 @@ export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
-  // console.log("Session: ", session);
-  // console.log("Caller url: ", request.url);
-  console.log("Caller host: ", request.url);
 
   return json({ apiKey: process.env.SHOPIFY_API_KEY || "" });
 };
@@ -30,8 +27,9 @@ export default function App() {
           <Link to="/app" rel="home">
             Home
           </Link>
+          <Link to="/app">Home</Link>
+          <Link to="/app/settings">Settings</Link>
           <Link to="/app/additional">Additional page</Link>
-          <Link to="/app/pick-vd">Pick</Link>
         </NavMenu>
         <Outlet />
       </DiscountProvider>

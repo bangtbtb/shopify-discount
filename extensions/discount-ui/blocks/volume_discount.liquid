@@ -2,11 +2,11 @@
 
 <div id="reaction" product="{{ product.id }}" cols="{{ col_ids | join: "," }}"></div>
 
-<script src="{{ "loadvd.js" | asset_url }}" defer></script>
+<script src="{{ "load_vd.js" | asset_url }}" defer></script>
 
 {% schema %}
 {
-  "name": "React Block",
+  "name": "Volume discount",
   "target": "section",
   "settings": [{ "type": "product", "id": "product", "label": "product", "autofill": true }]
 }

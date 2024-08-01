@@ -1,13 +1,14 @@
 api_version = "2024-07"
 
 [[extensions]]
-name = "Volume discount"
-description = "Buy more, discount more"
-handle = "product-discount"
+name = "Bundle discount"
+description = "Sell in products bundle"
+handle = "od"
 type = "function"
 
+
 [[extensions.targeting]]
-target = "purchase.product-discount.run"
+target = "purchase.order-discount.run"
 input_query = "src/run.graphql"
 export = "run"
 
@@ -16,5 +17,5 @@ command = ""
 path = "dist/function.wasm"
 
 [extensions.ui.paths]
-create = "/app/vd/:functionId/new"
-details = "/app/vd/:functionId/:id"
+create = "/app/od/new"
+details = "/app/od/:id"

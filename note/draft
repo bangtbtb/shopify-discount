@@ -1,18 +1,25 @@
 1. Volume discount
-    - Type
-        - Product list
-        - Collection
-    - Query in component ui
-        - input: product id
-            - List all discount, filter
-            - Select first
-    - Execute in extension
-        - Check product in list 
+
+   - Type
+     - Product list
+     - Collection
+   - Query in component ui
+     - input: product id
+       - List all discount, filter
+       - Select first
+   - Execute in extension
+     - Check product in list
 
 2. Bundle discount
-    - Type 
-        - Product list
-        - Collection
-    - Query in component ui
-        
-    - Execute
+   - Type
+     - Buy x get y
+     - Bundle to sale (Example: 50%)
+       - Product list
+       - Collection
+   - Query in component ui
+   - Execute
+3. Shipping discount
+
+   - Local
+
+4. Performance

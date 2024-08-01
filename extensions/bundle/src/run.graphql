@@ -1,14 +1,3 @@
-# query RunInput {
-#   discountNode {
-#     metafield(
-#       namespace: "$app:product-discount"
-#       key: "function-configuration"
-#     ) {
-#       value
-#     }
-#   }
-# }
-
 query RunInput {
   cart {
     lines {
@@ -25,16 +14,13 @@ query RunInput {
           id
           product {
             id
-            inCollections {
-              collectionId
-            }
           }
         }
       }
     }
   }
   discountNode {
-    metafield(namespace: "$app:vol_discount", key: "func_config") {
+    metafield(namespace: "$app:od", key: "od_config") {
       value
     }
   }
