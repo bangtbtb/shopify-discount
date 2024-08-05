@@ -1,8 +1,13 @@
 # Run tunnel
 
 ```shell
-cloudflared.exe tunnel -url http://localhost:62068/
+cloudflared.exe tunnel -url http://localhost:52959/
 ```
+
+# Proxy config
+
+- Subpath: pickd
+- Proxy: https://domain/app/pickd/
 
 # Shopify App Template - Remix
 

@@ -59,6 +59,7 @@ export default function VDConfigCard({
 
           {applyType.value === "products" ? (
             <SelectMultipleProducts
+              label="Select target"
               products={products.value}
               onChange={products.onChange}
             />

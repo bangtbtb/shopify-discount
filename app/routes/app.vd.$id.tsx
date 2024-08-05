@@ -13,9 +13,10 @@ import {
   Layout,
   Page,
   PageActions,
-  Text,
   TextField,
 } from "@shopify/polaris";
+
+import { DeleteIcon } from "@shopify/polaris-icons";
 import { authenticate, unauthenticated } from "~/shopify.server";
 import {
   DiscountAutomaticApp,
@@ -34,31 +35,27 @@ import {
 } from "@shopify/discount-app-components";
 import VDConfigCard, { VDStepConfigComponent } from "~/components/VDConfigCard";
 import { CollectionInfo } from "~/components/SelectCollection";
-import { getVolumeDiscount, updateVolumeDiscount } from "~/models/vd_model";
-import { VDApplyType, VDConfig, VDStep } from "~/defs";
+import {
+  getVolumeDiscount,
+  updateVolumeDiscount,
+  VDConfigExt,
+} from "~/models/vd_model";
+import { ActionStatus, VDApplyType, VDConfig, VDStep } from "~/defs";
 import { ProductInfo } from "~/components/SelectProduct";
 import { getSimleProductInfo, getSimpleCollection } from "~/models/sfont";
 import { updatePrismaDiscount } from "~/models/db_models";
-import { title } from "process";
 import { StepData } from "~/components/ConfigStep";
-
-type VDConfigExt = VDConfig &
-  Metafield & {
-    products: Array<ProductInfo>;
-    collection: CollectionInfo | null;
-  };
 
 interface AciontDataResponse {
   id: string;
   discount: DiscountAutomaticApp;
   config: VDConfigExt;
   errors: [UserError];
+  status: ActionStatus;
 }
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const discountId = params.id;
-  // const funcId = params.funcId;
-  // console.log(`funcId:${funcId}  discountid:${discountId}`);
 
   const { admin, session } = await authenticate.admin(request);
   const data = await getVolumeDiscount(admin.graphql, {
@@ -91,67 +88,68 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 export const action = async ({ params, request }: ActionFunctionArgs) => {
   const { id } = params;
   const { admin } = await authenticate.admin(request);
+  // var rmed = request.method.toLowerCase()
+  // if (rmed === "delete") {
+  //   return json({})
+  // }
+
   const formData = await request.formData();
 
   const discount: DiscountAutomaticApp = JSON.parse(
     formData.get("discount")?.toString() || "{}",
   );
 
-  const config: Metafield = JSON.parse(
+  const config: VDConfigExt = JSON.parse(
     formData.get("config")?.toString() ?? "{}",
   );
-  var data: DiscountAutomaticAppInput = { ...discount };
 
-  if (config.id && config.value) {
-    data.metafields = [
-      {
-        id: config.id,
-        key: config.key,
-        namespace: config.namespace,
-        type: config.type,
-        value: config.value,
-      },
-    ];
-  } else {
-    data.metafields = undefined;
-  }
-  var cValue: VDConfig = JSON.parse(config.value);
+  var data: DiscountAutomaticAppInput = {
+    ...discount,
+    startsAt: new Date(discount.startsAt),
+    endsAt: discount.endsAt || undefined,
+  };
+  var configValue = JSON.stringify(config);
 
   var resp = await updateVolumeDiscount(admin.graphql, {
     discountId: id ?? "",
     data,
     configId: config?.id,
-    configValue: config?.value,
+    configValue,
   });
 
-  const errors = resp?.discountAutomaticAppUpdate?.userErrors;
-  if (!errors) {
-    await updatePrismaDiscount(discount.discountId, {
-      id: discount.discountId,
-      title: discount.title,
-      type: "Volume",
-      status: discount.status,
-      metafield: config.value,
-      collectionIds: cValue.colId ? [cValue.colId] : [],
-      productIds: cValue.productIds ? cValue.productIds : [],
-      startAt: new Date(discount.startsAt),
-      endAt: discount.endsAt ? new Date(discount.endsAt) : null,
-    });
+  var status: ActionStatus = "success";
+  var errors = resp?.discountAutomaticAppUpdate?.userErrors;
+  const rsDiscount = resp?.discountAutomaticAppUpdate?.automaticAppDiscount;
+  if (errors?.length) {
+    status = "failed";
+  } else {
+    if (rsDiscount) {
+      await updatePrismaDiscount(rsDiscount.discountId, {
+        title: rsDiscount.title,
+        status: rsDiscount.status,
+        metafield: configValue,
+        subType: config.applyType,
+        collectionIds: config.colId ? [config.colId] : [],
+        productIds: config.productIds ? config.productIds : [],
+        startAt: new Date(rsDiscount.startsAt),
+        endAt: rsDiscount.endsAt ? new Date(rsDiscount.endsAt) : null,
+      });
+    }
+    errors = undefined;
   }
-
-  return json({ errors });
+  return json({ status, errors });
 };
 
 export default function VolumeDiscountDetail() {
   const submitForm = useSubmit();
-  const loaderData = useLoaderData<AciontDataResponse>();
-  const actionData = useActionData<AciontDataResponse>();
+  const ldata = useLoaderData<AciontDataResponse>();
+  const actData = useActionData<AciontDataResponse>();
   const navigation = useNavigation();
 
   const todaysDate = useMemo(() => new Date().toString(), []);
 
   const isLoading = navigation.state == "submitting";
-  const submitErrors = actionData?.errors ?? [];
+  const submitErrors = actData?.errors ?? [];
 
   const {
     fields: { discountTitle, combinesWith, startDate, endDate, config },
@@ -188,7 +186,7 @@ export default function VolumeDiscountDetail() {
       };
       var colId =
         form.config.applyType == "collection"
-          ? parseFloat(form.config.collection?.id ?? "")
+          ? form.config.collection?.id
           : null;
       var productIds =
         form.config.applyType == "products"
@@ -201,24 +199,19 @@ export default function VolumeDiscountDetail() {
           value: Number.parseInt(v.value),
         },
       }));
-      var fcg = {
-        id: loaderData.config.id,
-        key: loaderData.config.key,
-        namespace: loaderData.config.namespace,
-        type: loaderData.config.type,
-        value: JSON.stringify({
-          label: form.config.label,
-          steps,
-          applyType: form.config.applyType,
-          colId: colId ?? "",
-          productIds: productIds,
-        }),
+
+      var fcg: VDConfig = {
+        label: form.config.label,
+        steps,
+        applyType: form.config.applyType,
+        colId: colId ?? "",
+        productIds: productIds,
       };
 
       submitForm(
         {
           discount: JSON.stringify(discount),
-          config: JSON.stringify(fcg),
+          config: JSON.stringify({ id: ldata.config.id, ...fcg }),
         },
         { method: "post" },
       );
@@ -227,12 +220,12 @@ export default function VolumeDiscountDetail() {
   });
 
   useEffect(() => {
-    if (!loaderData.discount) {
+    if (!ldata.discount) {
       return;
     }
 
-    const srcDis = loaderData.discount;
-    const srcConfig = loaderData.config;
+    const srcDis = ldata.discount;
+    const srcConfig = ldata.config;
 
     discountTitle.onChange(srcDis?.title);
     combinesWith.onChange(srcDis.combinesWith);
@@ -252,8 +245,29 @@ export default function VolumeDiscountDetail() {
     config.collection.onChange(srcConfig.collection);
     config.products.onChange(srcConfig.products ?? []);
 
-    console.log("Loader data: ", loaderData);
-  }, [loaderData]);
+    console.log("Loader data: ", ldata);
+  }, [ldata]);
+
+  useEffect(() => {
+    if (!actData) {
+      return;
+    }
+
+    if (actData.status === "success") {
+      window.shopify.toast.show("Update volume discount success", {
+        duration: 5000,
+      });
+    }
+
+    if (actData.status === "failed") {
+      window.shopify.toast.show("Update volume discount failed", {
+        duration: 5000,
+        isError: true,
+      });
+    }
+
+    console.log("Action data: ", actData);
+  }, [actData]);
 
   const errorBanner =
     submitErrors?.length > 0 ? (
@@ -323,7 +337,8 @@ export default function VolumeDiscountDetail() {
             }}
             secondaryActions={[
               {
-                content: "Discard",
+                content: "Delete",
+                icon: DeleteIcon,
                 onAction: () => {
                   console.log("Call discard");
                 },

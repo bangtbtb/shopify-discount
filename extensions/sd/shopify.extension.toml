@@ -2,10 +2,10 @@ api_version = "2024-07"
 
 [[extensions]]
 name = "Shipping discount"
+description = ""
 handle = "sd"
 type = "function"
 
-description = ""
 
 [[extensions.targeting]]
 target = "purchase.shipping-discount.run"
@@ -18,4 +18,4 @@ path = "dist/function.wasm"
 
 [extensions.ui.paths]
 create = "/app/sd/new"
-details = "/app/od/:id"
+details = "/app/sd/:id"

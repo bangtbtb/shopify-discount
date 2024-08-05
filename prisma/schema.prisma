@@ -10,8 +10,8 @@ generator client {
 // See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
 datasource db {
   provider = "postgresql"
-  url      = "postgres://admin:hellopass@localhost:5432/vol_discount"
-  // url      = env("DB_URL")
+  url      = env("DB_URL")
+  // url      = "postgres://admin:hellopass@localhost:5432/vol_discount"
 }
 
 // Automatic discount type
@@ -48,6 +48,7 @@ model Discount {
   startAt       DateTime
   endAt         DateTime?
   type          ADT
+  subType       String    @default("")
   createdAt     DateTime? @default(now())
   productIds    String[]
   collectionIds String[]

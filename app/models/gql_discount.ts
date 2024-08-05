@@ -20,10 +20,14 @@ export async function gqlCreateDiscount(
   const resp = await graphql(
     `
       #graphql
-      mutation createDiscount($discount: DiscountAutomaticAppInput!) {
+      mutation gqlCreateDiscount($discount: DiscountAutomaticAppInput!) {
         discountAutomaticAppCreate(automaticAppDiscount: $discount) {
           automaticAppDiscount {
             discountId
+            status
+            startsAt
+            endsAt
+            title
           }
           userErrors {
             code
@@ -49,22 +53,28 @@ export async function gqlCreateDiscount(
 
 export async function gqlUpdateDiscount(
   graphql: GraphQLClient<AdminOperations>,
-  { discountId, data, config }: GqlUpdateDiscountRequest,
+  req: GqlUpdateDiscountRequest,
 ) {
-  if (config.id && config.value) {
-    data.metafields = [
+  if (req.config.id) {
+    if (!req.config.value) {
+      req.config.value = JSON.stringify(req.config);
+    }
+    req.data.metafields = [
       {
-        ...config,
+        id: req.config.id,
+        value: req.config.value,
       },
     ];
+    // console.log("Metafield update: ", req.config);
   } else {
-    data.metafields = undefined;
+    req.data.metafields = undefined;
+    console.log("Metafield has no id: ", req.config);
   }
 
   const resp = await graphql(
     `
       #graphql
-      mutation updateDiscount($id: ID!, $data: DiscountAutomaticAppInput!) {
+      mutation gqlUpdateDiscount($id: ID!, $data: DiscountAutomaticAppInput!) {
         discountAutomaticAppUpdate(id: $id, automaticAppDiscount: $data) {
           automaticAppDiscount {
             discountId
@@ -77,14 +87,15 @@ export async function gqlUpdateDiscount(
             code
             field
             message
+            extraInfo
           }
         }
       }
     `,
     {
       variables: {
-        id: `gid://shopify/DiscountAutomaticNode/${discountId}`,
-        data: data,
+        id: `gid://shopify/DiscountAutomaticNode/${req.discountId}`,
+        data: req.data,
       },
     },
   );
@@ -96,12 +107,12 @@ export async function gqlUpdateDiscount(
 export async function gqlGetDiscount(
   graphql: GraphQLClient<AdminOperations>,
   discountId: string,
-  namespace: string,
+  namespace: string | undefined,
 ) {
   var resp = await graphql(
     `
       #graphql
-      query getDiscount($id: ID!, $namespace: String!) {
+      query gqlGetDiscount($id: ID!, $namespace: String) {
         discountNode(id: $id) {
           __typename
           id
@@ -123,6 +134,7 @@ export async function gqlGetDiscount(
               startsAt
               endsAt
               createdAt
+              asyncUsageCount
             }
           }
           metafields(first: 10, namespace: $namespace) {
@@ -138,6 +150,34 @@ export async function gqlGetDiscount(
       variables: {
         id: `gid://shopify/DiscountAutomaticNode/${discountId}`,
         namespace: namespace,
+      },
+    },
+  );
+  var respJson = await resp.json();
+  return respJson;
+}
+
+export async function gqlDelDiscount(
+  graphql: GraphQLClient<AdminOperations>,
+  discountId: string,
+) {
+  var resp = await graphql(
+    `
+      #graphql
+      mutation discountAutomaticDelete($id: ID!) {
+        discountAutomaticDelete(id: $id) {
+          deletedAutomaticDiscountId
+          userErrors {
+            field
+            code
+            message
+          }
+        }
+      }
+    `,
+    {
+      variables: {
+        id: `gid://shopify/DiscountAutomaticNode/${discountId}`,
       },
     },
   );

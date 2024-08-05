@@ -2,9 +2,12 @@ import { PubSub } from "@google-cloud/pubsub";
 import { Storage } from "@google-cloud/storage";
 import { log } from "console";
 
-console.log("Start pubsub");
+const ggProject = process.env.GOOGLE_PROJECT;
+const ggSub = process.env.GOOGLE_SUB;
 
-const projectId = "earnest-command-226202";
+// const ggProject = process.env.GOOGLE_PROJECT || "earnest-command-226202";
+// const ggSub = process.env.GOOGLE_SUB || "vd_discount-sub";
+
 // const topicId = "vd_discount";
 
 // export async function subscribe(topicId: string) {
@@ -20,3 +23,15 @@ const projectId = "earnest-command-226202";
 //     topic: topicId,
 //   });
 // }
+
+export async function startGooglePubsub() {
+  console.log(
+    ` ------------Start GooglePubSub Project:${ggProject} Sub:${ggSub}`,
+  );
+}
+
+async function onDiscountDelete() {}
+
+async function onDiscountUpdate() {}
+
+async function onCreateOrder() {}

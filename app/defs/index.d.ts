@@ -43,12 +43,12 @@ export type ODContainConfig = {
 
 export type ODConfig = {
   label: string;
-  type: ODApplyType;
+  applyType: ODApplyType;
   total?: ODTotalConfig | undefined;
   contain?: ODContainConfig | undefined;
 };
 
-// ----------------------------- Shipping discount (bundle) --------------
+// ----------------------------- Shipping discount --------------
 
 export type SDApplyType = "total" | "volume";
 
@@ -59,7 +59,7 @@ export type SDStep = {
 
 export type SDConfig = {
   label: string;
-  type: SDApplyType;
+  applyType: SDApplyType;
   local?: string[] | undefined;
   steps: SDStep[] | undefined;
   collIds: string[] | undefined;
@@ -75,3 +75,7 @@ export type SDConfig = {
 //   colId?: string;
 //   productIds?: Array<string>;
 // };
+
+// ----------------------------- Common --------------
+
+type ActionStatus = "success" | "failed" | "";

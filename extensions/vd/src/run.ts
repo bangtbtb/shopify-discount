@@ -116,7 +116,7 @@ export function run(input: RunInput): FunctionRunResult {
   });
 
   return {
-    discountApplicationStrategy: DiscountApplicationStrategy.All,
+    discountApplicationStrategy: DiscountApplicationStrategy.First,
     discounts: discounts,
   };
 }

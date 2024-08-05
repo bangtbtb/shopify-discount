@@ -5,6 +5,7 @@ import {
   CombinableDiscountTypes,
   CombinationCard,
   DateTime,
+  DiscountClass,
   DiscountStatus,
 } from "@shopify/discount-app-components";
 import {
@@ -21,9 +22,9 @@ import { useMemo } from "react";
 import { StepData } from "~/components/ConfigStep";
 import ODConfigCard from "~/components/ODConfigCard";
 import { ProductInfo } from "~/components/SelectProduct";
-import { DiscountValue, DVT, ODApplyType, ODConfig, ODTotalStep } from "~/defs";
+import { ActionStatus, DVT, ODApplyType, ODConfig } from "~/defs";
 import { createPrismaDiscount } from "~/models/db_models";
-import { getFunction } from "~/models/func_models";
+import { gqlGetFunction } from "~/models/gql_func";
 import { createBundleDiscount } from "~/models/od_models";
 import { authenticate } from "~/shopify.server";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
@@ -32,7 +33,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const formData = await request.formData();
 
-  var odFunc = await getFunction(admin.graphql, {
+  var odFunc = await gqlGetFunction(admin.graphql, {
     apiType: "order_discounts",
   });
 
@@ -65,6 +66,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   });
 
   const errors = resp?.discountAutomaticAppCreate?.userErrors;
+  var status: ActionStatus = "success";
   if (resp?.discountAutomaticAppCreate?.automaticAppDiscount) {
     await createPrismaDiscount({
       id: resp.discountAutomaticAppCreate.automaticAppDiscount.discountId,
@@ -73,6 +75,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       status: DiscountStatus.Active,
       title: discount.title || "",
       type: "Bundle",
+      subType: config.applyType,
       startAt: new Date(discount.startsAt),
       endAt: discount.endsAt ? new Date(discount.endsAt) : null,
       createdAt: new Date(),
@@ -80,8 +83,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       collectionIds: [],
     });
   }
-  if (errors) {
+  if (errors?.length) {
     console.log("Create discount error: ", errors);
+    status = "failed";
   }
 
   return json({});
@@ -133,7 +137,7 @@ export default function NewODPage() {
 
       var formConfig: ODConfig = {
         label: form.config.label,
-        type: form.config.type,
+        applyType: form.config.type,
         contain:
           form.config.type === "contain"
             ? {
@@ -199,6 +203,12 @@ export default function NewODPage() {
               odType={config.type}
               products={config.containProduct}
               steps={config.totalSteps}
+            />
+
+            <CombinationCard
+              combinableDiscountTypes={combinesWith}
+              discountClass={DiscountClass.Product}
+              discountDescriptor="Discount"
             />
 
             <ActiveDatesCard

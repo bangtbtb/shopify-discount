@@ -1,9 +1,16 @@
 import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData, useNavigation, useSubmit } from "@remix-run/react";
+import {
+  useActionData,
+  useLoaderData,
+  useNavigation,
+  useSubmit,
+} from "@remix-run/react";
 import {
   ActiveDatesCard,
   CombinableDiscountTypes,
+  CombinationCard,
   DateTime,
+  DiscountClass,
 } from "@shopify/discount-app-components";
 import {
   BlockStack,
@@ -27,14 +34,24 @@ import {
   updateBundleDiscount,
 } from "~/models/od_models";
 import { authenticate } from "~/shopify.server";
-import { DiscountAutomaticAppInput } from "~/types/admin.types";
+import {
+  DiscountAutomaticAppInput,
+  DiscountUserError,
+} from "~/types/admin.types";
+
+type ActionType = {
+  status: string;
+  errors: DiscountUserError[] | undefined;
+};
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const discountId = params.id ?? "";
   const { admin, session } = await authenticate.admin(request);
 
+  console.log("Discount id: ", discountId);
+
   var od = await getBundleDiscount(admin.graphql, { discountId });
-  console.log("Loaded bundle: ", od.config.id);
+  // console.log("Loaded bundle: ", od.config.id);
 
   return json(od);
 };
@@ -64,28 +81,35 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     config: config,
   });
 
-  const errors = resp?.discountAutomaticAppUpdate?.userErrors;
   const rsDiscount = resp?.discountAutomaticAppUpdate?.automaticAppDiscount;
-  if (!errors && rsDiscount) {
-    await updatePrismaDiscount(id, {
-      id: rsDiscount.discountId,
-      title: rsDiscount.title,
-      status: rsDiscount.status,
-      metafield: JSON.stringify(config),
-      collectionIds: [],
-      productIds: config.contain?.productIds ? config.contain.productIds : [],
-      startAt: new Date(rsDiscount.startsAt),
-      endAt: rsDiscount.endsAt ? new Date(rsDiscount.endsAt) : null,
-    });
-  }
-  console.log("Error: ", resp);
+  var errors = resp?.discountAutomaticAppUpdate?.userErrors;
+  var status = "success";
 
-  return json({ errors });
+  if (!errors?.length) {
+    if (rsDiscount) {
+      await updatePrismaDiscount(rsDiscount.discountId, {
+        title: rsDiscount.title,
+        status: rsDiscount.status,
+        metafield: JSON.stringify(config),
+        collectionIds: [],
+        productIds: config.contain?.productIds ? config.contain.productIds : [],
+        startAt: new Date(rsDiscount.startsAt),
+        endAt: rsDiscount.endsAt ? new Date(rsDiscount.endsAt) : null,
+      });
+    }
+    errors = undefined;
+  } else {
+    console.log("Update bundle discount error: ", errors);
+    status = "failed";
+  }
+
+  return json({ status, errors });
 };
 
 export default function BundleDetailPage() {
   const submitForm = useSubmit();
   const ldata = useLoaderData<typeof loader>();
+  const actData = useActionData<ActionType>();
   const navigation = useNavigation();
 
   const todaysDate = useMemo(() => new Date().toString(), []);
@@ -106,7 +130,7 @@ export default function BundleDetailPage() {
       endDate: useField<DateTime | null>(null),
       config: {
         label: useField(""),
-        type: useField<ODApplyType>("contain"),
+        applyType: useField<ODApplyType>("contain"),
         totalSteps: useField<Array<StepData>>([
           { type: "percent", value: "5", require: "2" },
           { type: "percent", value: "15", require: "3" },
@@ -129,9 +153,9 @@ export default function BundleDetailPage() {
       };
       var formConfig: ODConfig = {
         label: form.config.label,
-        type: form.config.type,
+        applyType: form.config.applyType,
         contain:
-          form.config.type === "contain"
+          form.config.applyType === "contain"
             ? {
                 productIds: form.config.containProduct.map((v) => v.id),
                 value: {
@@ -141,7 +165,7 @@ export default function BundleDetailPage() {
               }
             : undefined,
         total:
-          form.config.type === "total"
+          form.config.applyType === "total"
             ? {
                 steps: form.config.totalSteps.map((v) => ({
                   total: Number.parseFloat(v.require),
@@ -167,13 +191,12 @@ export default function BundleDetailPage() {
   });
 
   useEffect(() => {
-    // console.log("Update loader data 1");
+    console.log("On loader data: ", ldata);
     const discount = ldata.discount;
     const srcConfig = ldata.config;
     if (!discount || !srcConfig) {
       return;
     }
-    // console.log("Update loader data 2");
 
     title.onChange(discount.title);
     combinesWith.onChange(discount.combinesWith);
@@ -181,7 +204,7 @@ export default function BundleDetailPage() {
     discount.endsAt && endDate.onChange(discount.endsAt);
 
     config.label.onChange(srcConfig.label ?? "");
-    config.type.onChange(srcConfig.type ?? "total");
+    config.applyType.onChange(srcConfig.applyType ?? "total");
     srcConfig.total?.steps &&
       config.totalSteps.onChange(
         srcConfig.total?.steps.map((v) => ({
@@ -192,6 +215,22 @@ export default function BundleDetailPage() {
       );
     config.containProduct.onChange(srcConfig.products || []);
   }, [ldata]);
+
+  useEffect(() => {
+    if (!actData || !actData.status) {
+      return;
+    }
+    if (actData.status === "success") {
+      window.shopify.toast.show("Update discount success", { duration: 5000 });
+    }
+
+    if (actData.status === "failed") {
+      window.shopify.toast.show("Update discount failed", {
+        duration: 5000,
+        isError: true,
+      });
+    }
+  }, [actData]);
 
   return (
     <Page title="Bundle discount detail">
@@ -220,9 +259,15 @@ export default function BundleDetailPage() {
             </Card>
 
             <ODConfigCard
-              odType={config.type}
+              odType={config.applyType}
               products={config.containProduct}
               steps={config.totalSteps}
+            />
+
+            <CombinationCard
+              combinableDiscountTypes={combinesWith}
+              discountClass={DiscountClass.Product}
+              discountDescriptor="Discount"
             />
 
             <ActiveDatesCard

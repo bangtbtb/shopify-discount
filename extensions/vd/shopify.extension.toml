@@ -3,7 +3,7 @@ api_version = "2024-07"
 [[extensions]]
 name = "Volume Discount"
 description = "Buy more, discount more"
-handle = "product-discount"
+handle = "vd"
 type = "function"
 
 [[extensions.targeting]]

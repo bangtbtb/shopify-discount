@@ -3,7 +3,7 @@
 client_id = "59c7dbfbeefd1f11ba1aa85228d3700a"
 name = "Simple Discount"
 handle = "sd-xxyy"
-application_url = "https://retro-workers-syndication-lost.trycloudflare.com"
+application_url = "https://minimize-specification-johnny-stanford.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,21 +17,16 @@ scopes = "read_orders,write_discounts,write_orders,write_products"
 
 [auth]
 redirect_urls = [
-  "https://retro-workers-syndication-lost.trycloudflare.com/auth/callback",
-  "https://retro-workers-syndication-lost.trycloudflare.com/auth/shopify/callback",
-  "https://retro-workers-syndication-lost.trycloudflare.com/api/auth/callback"
+  "https://minimize-specification-johnny-stanford.trycloudflare.com/auth/callback",
+  "https://minimize-specification-johnny-stanford.trycloudflare.com/auth/shopify/callback",
+  "https://minimize-specification-johnny-stanford.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
 api_version = "2024-07"
 
   [[webhooks.subscriptions]]
-  topics = [
-  "app/uninstalled",
-  "discounts/create",
-  "discounts/delete",
-  "discounts/update"
-]
+  topics = [ "app/uninstalled", "discounts/delete", "discounts/update" ]
   uri = "pubsub://earnest-command-226202:vd_discount"
 
 [pos]

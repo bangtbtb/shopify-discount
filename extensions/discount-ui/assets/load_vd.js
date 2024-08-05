@@ -1,5 +1,5 @@
 (function () {
-  var elmReaction = document.getElementById("reaction");
+  var elmReaction = document.getElementById("vd_09123hnf");
 
   function getVolumeDiscount() {
     var host = window.location.host;
@@ -9,7 +9,7 @@
         var productId = elmReaction.getAttribute("product");
         var colIds = elmReaction.getAttribute("cols")?.split(",");
 
-        var resp = await fetch(`https://${host}/apps/proxy/vd`, {
+        var resp = await fetch(`https://${host}/apps/pickd/vd`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -52,17 +52,17 @@
   async function loadData() {
     try {
       var config = await getVolumeDiscount();
-      console.log("Config: ", config);
+      console.log("Volume Discount Config: ", config);
       if (config) {
         renderVolumeDiscount(config);
       }
     } catch (error) {
-      console.log("Load discount error: ", error);
+      console.log("Load volume discount error: ", error);
     }
   }
 
   window.document.addEventListener("DOMContentLoaded", () => {
-    console.log("Load document done");
+    console.log("Start load volume discount");
     loadData();
   });
 })();

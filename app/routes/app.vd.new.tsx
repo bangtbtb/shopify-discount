@@ -30,79 +30,77 @@ import { useEffect, useMemo } from "react";
 import { authenticate } from "~/shopify.server";
 import VDConfigCard, { VDStepConfigComponent } from "~/components/VDConfigCard";
 import { createVolumeDiscount } from "~/models/vd_model";
-import { VDApplyType, VDConfig, VDStep } from "~/defs";
+import { ActionStatus, VDApplyType, VDConfig, VDStep } from "~/defs";
 import { ProductInfo } from "~/components/SelectProduct";
-import { getFunction } from "~/models/func_models";
+import { gqlGetFunction } from "~/models/gql_func";
 import { StepData } from "~/components/ConfigStep";
 import { createPrismaDiscount } from "~/models/db_models";
+import { DiscountAutomaticAppInput } from "~/types/admin.types";
 
 interface ActionData {
   status: string;
   errors: Array<{ code: number; message: string; field: [string] }>;
 }
 
-type ActionPayload = {
-  title: string;
-  combinesWith: CombinableDiscountTypes;
-  startsAt: Date;
-  endsAt: Date | undefined;
-  config: VDConfig;
-};
-
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const formData = await request.formData();
 
-  const { title, combinesWith, startsAt, endsAt, config }: ActionPayload =
-    JSON.parse(formData.get("discount")?.toString() || "{}");
-
-  var vdFunc = await getFunction(admin.graphql, {
+  var vdFunc = await gqlGetFunction(admin.graphql, {
     apiType: "product_discounts",
   });
 
-  console.log("Call action create vol discount: ", vdFunc);
   if (!vdFunc?.length) {
-    console.log("Discount function is empty");
-
     return json({
       status: "failed",
       errors: { message: "Volume discount function not found" },
     });
   }
-  console.log("Function: ", vdFunc[0]);
+
+  var discount: DiscountAutomaticAppInput = JSON.parse(
+    formData.get("discount")?.toString() || "{}",
+  );
+  discount.functionId = vdFunc[0].id;
+  discount.startsAt = new Date(discount.startsAt);
+  if (discount.endsAt) {
+    discount.endsAt = new Date(discount.endsAt);
+  }
+
+  const config: VDConfig = JSON.parse(
+    formData.get("config")?.toString() || "{}",
+  );
 
   var resp = await createVolumeDiscount(admin.graphql, {
-    discount: {
-      title,
-      functionId: vdFunc[0].id,
-      combinesWith,
-      startsAt: new Date(startsAt),
-      endsAt: endsAt && new Date(endsAt),
-    },
+    discount: discount,
     config: config,
   });
 
+  const rsDiscount = resp?.discountAutomaticAppCreate?.automaticAppDiscount;
   const errors = resp?.discountAutomaticAppCreate?.userErrors;
-  if (resp?.discountAutomaticAppCreate?.automaticAppDiscount) {
-    await createPrismaDiscount({
-      id: resp.discountAutomaticAppCreate.automaticAppDiscount.discountId,
-      shop: session.shop,
-      metafield: JSON.stringify(config),
-      status: DiscountStatus.Active,
-      title: title,
-      type: "Volume",
-      startAt: new Date(startsAt),
-      endAt: endsAt ? new Date(endsAt) : null,
-      createdAt: new Date(),
-      productIds: config.productIds ? config.productIds : [],
-      collectionIds: config.colId ? [config.colId] : [],
-    });
-  }
-  if (errors) {
+  var status: ActionStatus = "success";
+  if (errors?.length) {
     console.log("Create discount error: ", errors);
+    status = "failed";
+  } else {
+    if (rsDiscount) {
+      await createPrismaDiscount({
+        id: rsDiscount.discountId,
+        shop: session.shop,
+        metafield: JSON.stringify(config),
+        status: rsDiscount.status,
+        title: discount.title ?? "",
+        type: "Volume",
+        subType: config.applyType,
+        startAt: discount.startsAt,
+        endAt: discount.endsAt ? discount.endsAt : null,
+        createdAt: new Date(),
+        productIds: config.productIds ? config.productIds : [],
+        collectionIds: config.colId ? [config.colId] : [],
+      });
+    }
   }
 
-  return json({ status: "success", errors });
+  return json({ status: status, errors });
 };
 
 export default function VolDiscountCreate() {
@@ -178,24 +176,31 @@ export default function VolDiscountCreate() {
         },
       }));
 
-      const discount = {
+      var discount: DiscountAutomaticAppInput = {
         title: form.title,
         combinesWith: form.combinesWith,
         startsAt: form.startDate,
         endsAt: form.endDate,
-        config: {
-          label: form.config.label,
-          steps,
-          applyType: form.config.applyType,
-          colId: colId,
-          productIds: productIds,
-        },
+      };
+
+      var formConfig: VDConfig = {
+        label: form.config.label,
+        steps,
+        applyType: form.config.applyType,
+        colId: colId ?? "",
+        productIds: productIds,
       };
       console.log("Product: ", productIds);
       console.log("Collection: ", colId);
       console.log("Discount: ", discount);
 
-      submitForm({ discount: JSON.stringify(discount) }, { method: "post" });
+      submitForm(
+        {
+          discount: JSON.stringify(discount),
+          config: JSON.stringify(formConfig),
+        },
+        { method: "post" },
+      );
       return { status: "success" };
     },
   });

@@ -7,14 +7,14 @@ type GetFuncRequest = {
   apiType?: FuncType;
 };
 
-export async function getFunction(
+export async function gqlGetFunction(
   graphql: GraphQLClient<AdminOperations>,
   { apiType }: GetFuncRequest,
 ) {
   var resp = await graphql(
     `
       #grapql
-      query getFunctions($apiType: String) {
+      query gqlGetFunction($apiType: String) {
         shopifyFunctions(first: 20, apiType: $apiType) {
           nodes {
             id

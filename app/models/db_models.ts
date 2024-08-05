@@ -1,6 +1,6 @@
-import { Discount, Prisma } from "@prisma/client";
-import sha1 from "sha1";
+import { Discount, Prisma, ADT } from "@prisma/client";
 import db from "../db.server";
+import { ODConfig } from "~/defs";
 
 export async function createPrismaDiscount(discount: Discount) {
   return db.discount.create({ data: discount });
@@ -22,15 +22,17 @@ export async function deletePrismaDiscount(discountId: string) {
 
 type RFindDiscount = {
   shop: string;
+  type: ADT;
   productId: string;
   collectionIds: string[];
 };
 
-export async function findDiscount(req: RFindDiscount) {
+export async function findPrismaDiscount(req: RFindDiscount) {
   return db.discount.findMany({
     where: {
       shop: req.shop,
-
+      type: req.type,
+      status: "ACTIVE",
       OR: [
         {
           productIds: {
@@ -44,6 +46,90 @@ export async function findDiscount(req: RFindDiscount) {
         },
       ],
     },
+    orderBy: {
+      createdAt: "asc",
+    },
+    take: 3,
+  });
+}
+
+type RFindBunbleDiscount = {
+  shop: string;
+  productId: string;
+  collectionIds: string[];
+};
+
+export async function findPrismaBundleDiscount(req: RFindBunbleDiscount) {
+  return await db.discount.findMany({
+    where: {
+      shop: req.shop,
+      type: "Bundle",
+      status: "ACTIVE",
+      OR: [
+        {
+          subType: "total",
+        },
+        {
+          subType: "contain",
+          OR: [
+            {
+              productIds: {
+                has: req.productId,
+              },
+            },
+            {
+              collectionIds: {
+                hasSome: req.collectionIds,
+              },
+            },
+          ],
+        },
+      ],
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+    take: 3,
+  });
+}
+
+type RFindShippingDiscount = {
+  shop: string;
+  productId: string;
+  collectionIds: string[];
+};
+
+export async function findPrismaShippingDiscount(req: RFindShippingDiscount) {
+  return await db.discount.findMany({
+    where: {
+      shop: req.shop,
+      type: "Shipping",
+      status: "ACTIVE",
+      OR: [
+        {
+          subType: "total",
+        },
+        {
+          subType: "contain",
+          OR: [
+            {
+              productIds: {
+                has: req.productId,
+              },
+            },
+            {
+              collectionIds: {
+                hasSome: req.collectionIds,
+              },
+            },
+          ],
+        },
+      ],
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+    take: 3,
   });
 }
 

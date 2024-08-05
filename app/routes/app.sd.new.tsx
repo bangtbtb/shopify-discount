@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node";
-import { useNavigation, useSubmit } from "@remix-run/react";
+import { useActionData, useNavigation, useSubmit } from "@remix-run/react";
 import {
   ActiveDatesCard,
   CombinableDiscountTypes,
@@ -17,23 +17,31 @@ import {
   TextField,
 } from "@shopify/polaris";
 import { useField, useForm } from "@shopify/react-form";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { StepData } from "~/components/ConfigStep";
 import { SDConfigCard } from "~/components/SDConfigCard";
 import { CollectionInfo } from "~/components/SelectCollection";
 import { ProductInfo } from "~/components/SelectProduct";
-import { SDApplyType, SDConfig } from "~/defs";
+import { ActionStatus, SDApplyType, SDConfig } from "~/defs";
 import { createPrismaDiscount } from "~/models/db_models";
-import { getFunction } from "~/models/func_models";
+import { gqlGetFunction } from "~/models/gql_func";
 import { createShippingDiscount } from "~/models/sd_models";
 import { authenticate } from "~/shopify.server";
-import { DiscountAutomaticAppInput } from "~/types/admin.types";
+import {
+  DiscountAutomaticAppInput,
+  DiscountUserError,
+} from "~/types/admin.types";
+
+type ActionType = {
+  status: ActionStatus;
+  errors: DiscountUserError[] | undefined;
+};
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const formData = await request.formData();
 
-  var sdFunc = await getFunction(admin.graphql, {
+  var sdFunc = await gqlGetFunction(admin.graphql, {
     apiType: "shipping_discounts",
   });
 
@@ -65,33 +73,41 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     config,
   });
 
-  const errors = resp?.discountAutomaticAppCreate?.userErrors;
-  if (resp?.discountAutomaticAppCreate?.automaticAppDiscount) {
-    await createPrismaDiscount({
-      id: resp.discountAutomaticAppCreate.automaticAppDiscount.discountId,
-      shop: session.shop,
-      metafield: JSON.stringify(config),
-      status: DiscountStatus.Active,
-      title: discount.title || "",
-      type: "Bundle",
-      startAt: new Date(discount.startsAt),
-      endAt: discount.endsAt ? new Date(discount.endsAt) : null,
-      createdAt: new Date(),
-      productIds: config.productIds ? config.productIds : [],
-      collectionIds: config.collIds ? config.collIds : [],
-    });
-  }
-  if (errors) {
-    console.log("Create discount error: ", errors);
+  var errors = resp?.discountAutomaticAppCreate?.userErrors;
+  var rsDiscount = resp?.discountAutomaticAppCreate?.automaticAppDiscount;
+  var status: ActionStatus = "success";
+  if (errors?.length) {
+    console.log("Create shipping discount error: ", errors);
+    status = "failed";
+  } else {
+    if (rsDiscount) {
+      await createPrismaDiscount({
+        id: rsDiscount.discountId,
+        shop: session.shop,
+        metafield: JSON.stringify(config),
+        status: DiscountStatus.Active,
+        title: discount.title || "",
+        type: "Shipping",
+        subType: config.applyType,
+        startAt: new Date(discount.startsAt),
+        endAt: discount.endsAt ? new Date(discount.endsAt) : null,
+        createdAt: new Date(),
+        productIds: config.productIds ? config.productIds : [],
+        collectionIds: config.collIds ? config.collIds : [],
+      });
+    }
+
+    errors = undefined;
   }
 
-  return json({ errors });
+  return json({ status, errors });
 };
 
 export default function NewSDPage() {
   const submitForm = useSubmit();
 
   const navigation = useNavigation();
+  const actData = useActionData<ActionType>();
 
   const todaysDate = useMemo(() => new Date().toString(), []);
   const isLoading = navigation.state == "submitting";
@@ -111,7 +127,7 @@ export default function NewSDPage() {
       endDate: useField<DateTime | null>(null),
       config: {
         label: useField(""),
-        type: useField<SDApplyType>("total"),
+        applyType: useField<SDApplyType>("total"),
         steps: useField<Array<StepData>>([
           { type: "percent", value: "5", require: "2" },
           { type: "percent", value: "15", require: "3" },
@@ -131,7 +147,7 @@ export default function NewSDPage() {
 
       var formConfig: SDConfig = {
         label: form.config.label,
-        type: form.config.type,
+        applyType: form.config.applyType,
         steps: form.config.steps.map((v) => ({
           require: Number.parseFloat(v.require),
           value: {
@@ -154,6 +170,23 @@ export default function NewSDPage() {
       return { status: "success" };
     },
   });
+
+  useEffect(() => {
+    if (!actData || !actData.status) {
+      return;
+    }
+    if (actData.status === "success") {
+      window.shopify.toast.show("Update discount success", { duration: 5000 });
+    }
+
+    if (actData.status === "failed") {
+      window.shopify.toast.show("Update discount failed", {
+        duration: 5000,
+        isError: true,
+      });
+    }
+  }, [actData]);
+
   return (
     <Page title="Create shipping discount">
       <Layout>
@@ -181,7 +214,7 @@ export default function NewSDPage() {
             </Card>
 
             <SDConfigCard
-              sdType={config.type}
+              sdType={config.applyType}
               steps={config.steps}
               products={config.products}
               colls={config.colls}

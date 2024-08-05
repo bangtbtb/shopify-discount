@@ -1,6 +1,6 @@
 import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node";
 import { Page } from "@shopify/polaris";
-import { getFunction } from "~/models/func_models";
+import { gqlGetFunction } from "~/models/gql_func";
 import { findVolumeDiscount } from "~/models/vd_model";
 import { authenticate } from "~/shopify.server";
 
@@ -43,7 +43,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return json({});
   }
 
-  var dcFuncs = await getFunction(admin?.graphql, {
+  var dcFuncs = await gqlGetFunction(admin?.graphql, {
     apiType: "product_discounts",
   });
 

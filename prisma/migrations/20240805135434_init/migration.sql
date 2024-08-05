@@ -32,6 +32,7 @@ CREATE TABLE "Discount" (
     "startAt" TIMESTAMP(3) NOT NULL,
     "endAt" TIMESTAMP(3),
     "type" "ADT" NOT NULL,
+    "subType" TEXT NOT NULL DEFAULT '',
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "productIds" TEXT[],
     "collectionIds" TEXT[],
