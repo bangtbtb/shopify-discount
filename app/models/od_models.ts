@@ -1,12 +1,9 @@
 import { AdminOperations } from "@shopify/admin-api-client";
 import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients/types";
-import { DiscountAutomaticAppInput, Metafield } from "~/types/admin.types";
-import { getDiscounts } from "./discount";
-import { DiscountStatus } from "@shopify/discount-app-components";
+import { DiscountAutomaticAppInput } from "~/types/admin.types";
 import { ODConfig } from "~/defs";
-import { config } from "process";
 import { ProductInfo } from "~/components/SelectProduct";
-import { getSimleProductInfo } from "./sfont";
+import { getSimleProductInfo } from "./gql_resource";
 import {
   gqlCreateDiscount,
   gqlGetDiscount,
@@ -21,11 +18,12 @@ export type ODConfigExt = ODConfig & {
 export type CreateODRequest = {
   discount: DiscountAutomaticAppInput;
   config: ODConfig;
+  shop: string;
 };
 
 export type UpdateODRequest = {
   discountId: string;
-  data: DiscountAutomaticAppInput;
+  discount: DiscountAutomaticAppInput;
   config: ODConfigExt;
 };
 
@@ -37,44 +35,6 @@ export async function createBundleDiscount(
   graphql: GraphQLClient<AdminOperations>,
   req: CreateODRequest,
 ) {
-  // const resp = await graphql(
-  //   `
-  //     #graphql
-  //     mutation createBundleDiscount($discount: DiscountAutomaticAppInput!) {
-  //       discountAutomaticAppCreate(automaticAppDiscount: $discount) {
-  //         automaticAppDiscount {
-  //           discountId
-  //         }
-  //         userErrors {
-  //           code
-  //           message
-  //           field
-  //         }
-  //       }
-  //     }
-  //   `,
-  //   {
-  //     variables: {
-  //       discount: {
-  //         ...req.discount,
-  //         metafields: [
-  //           {
-  //             namespace: "$app:od",
-  //             key: "od_config",
-  //             type: "json",
-  //             value: JSON.stringify(req.config),
-  //           },
-  //         ],
-  //       },
-  //     },
-  //   },
-  // );
-
-  // gqlCreateDiscount(graphql, {discount: req.discount, metafield: req})
-
-  // const respJson = await resp.json();
-  // return respJson.data;
-
   var resp = await gqlCreateDiscount(graphql, {
     discount: req.discount,
     metafield: {
@@ -83,6 +43,13 @@ export async function createBundleDiscount(
       type: "json",
       value: JSON.stringify(req.config),
     },
+    ftype: "order_discounts",
+    subType: req.config.applyType,
+    shop: req.shop,
+    productIds: req.config.contain?.productIds
+      ? req.config.contain?.productIds
+      : [],
+    collIds: [],
   });
   return resp;
 }
@@ -91,58 +58,15 @@ export async function updateBundleDiscount(
   graphql: GraphQLClient<AdminOperations>,
   req: UpdateODRequest,
 ) {
-  // if (config.id) {
-  //   data.metafields = [
-  //     {
-  //       id: config.id,
-  //       value: JSON.stringify(config),
-  //     },
-  //   ];
-  //   console.log("Metafield update: ", data.metafields[0]);
-  // } else {
-  //   data.metafields = undefined;
-  // }
-
-  // const resp = await graphql(
-  //   `
-  //     #graphql
-  //     mutation updateBundleDiscount(
-  //       $id: ID!
-  //       $data: DiscountAutomaticAppInput!
-  //     ) {
-  //       discountAutomaticAppUpdate(id: $id, automaticAppDiscount: $data) {
-  //         automaticAppDiscount {
-  //           discountId
-  //           title
-  //           startsAt
-  //           endsAt
-  //           status
-  //         }
-  //         userErrors {
-  //           code
-  //           field
-  //           message
-  //         }
-  //       }
-  //     }
-  //   `,
-  //   {
-  //     variables: {
-  //       id: `gid://shopify/DiscountAutomaticNode/${discountId}`,
-  //       data: data,
-  //     },
-  //   },
-  // );
-
-  // const respJson = await resp.json();
-
-  // console.log("Response data: ", respJson.data);
-  // return respJson.data;
-
   const respJson = await gqlUpdateDiscount(graphql, {
     discountId: req.discountId,
-    data: req.data,
+    discount: req.discount,
     config: req.config,
+    subType: req.config.applyType,
+    productIds: req.config.contain?.productIds
+      ? req.config.contain?.productIds
+      : [],
+    collIds: [],
   });
   // console.log("Config value: ", req.config);
   return respJson;
@@ -152,51 +76,9 @@ export async function getBundleDiscount(
   graphql: GraphQLClient<AdminOperations>,
   { discountId }: GetODRequest,
 ) {
-  // var resp = await graphql(
-  //   `
-  //     #graphql
-  //     query getBundleDiscount($id: ID!) {
-  //       discountNode(id: $id) {
-  //         __typename
-  //         id
-  //         discount {
-  //           ... on DiscountAutomaticApp {
-  //             title
-  //             status
-  //             appDiscountType {
-  //               title
-  //               targetType
-  //               functionId
-  //               discountClass
-  //             }
-  //             combinesWith {
-  //               orderDiscounts
-  //               productDiscounts
-  //               shippingDiscounts
-  //             }
-  //             startsAt
-  //             endsAt
-  //             createdAt
-  //           }
-  //         }
-  //         metafields(first: 10, namespace: "$app:od") {
-  //           nodes {
-  //             id
-  //             value
-  //           }
-  //         }
-  //       }
-  //     }
-  //   `,
-  //   {
-  //     variables: { id: `gid://shopify/DiscountAutomaticNode/${discountId}` },
-  //   },
-  // );
-  // var respJson = await resp.json();
+  var discount = await gqlGetDiscount(graphql, discountId, "$app:od");
 
-  var respJson = await gqlGetDiscount(graphql, discountId, "$app:od");
-
-  var metafield = respJson.data?.discountNode?.metafields?.nodes[0];
+  var metafield = discount?.metafields?.nodes[0];
   var config: ODConfigExt = {
     id: metafield?.id,
     products: [],
@@ -211,8 +93,8 @@ export async function getBundleDiscount(
   }
 
   return {
-    id: respJson.data?.discountNode?.id,
+    id: discount?.id,
     config: config,
-    discount: respJson.data?.discountNode?.discount,
+    discount: discount?.discount,
   };
 }

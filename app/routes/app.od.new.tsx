@@ -1,12 +1,11 @@
-import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node";
-import { useNavigation, useSubmit } from "@remix-run/react";
+import { ActionFunctionArgs, json } from "@remix-run/node";
+import { useActionData, useNavigation, useSubmit } from "@remix-run/react";
 import {
   ActiveDatesCard,
   CombinableDiscountTypes,
   CombinationCard,
   DateTime,
   DiscountClass,
-  DiscountStatus,
 } from "@shopify/discount-app-components";
 import {
   BlockStack,
@@ -18,43 +17,30 @@ import {
   TextField,
 } from "@shopify/polaris";
 import { useField, useForm } from "@shopify/react-form";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { StepData } from "~/components/ConfigStep";
 import ODConfigCard from "~/components/ODConfigCard";
 import { ProductInfo } from "~/components/SelectProduct";
 import { ActionStatus, DVT, ODApplyType, ODConfig } from "~/defs";
-import { createPrismaDiscount } from "~/models/db_models";
-import { gqlGetFunction } from "~/models/gql_func";
 import { createBundleDiscount } from "~/models/od_models";
 import { authenticate } from "~/shopify.server";
-import { DiscountAutomaticAppInput } from "~/types/admin.types";
+import {
+  DiscountAutomaticAppInput,
+  DiscountUserError,
+} from "~/types/admin.types";
+
+type ActionType = {
+  status: ActionStatus;
+  errors: DiscountUserError[] | undefined;
+};
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const formData = await request.formData();
 
-  var odFunc = await gqlGetFunction(admin.graphql, {
-    apiType: "order_discounts",
-  });
-
-  if (!odFunc?.length) {
-    console.log("Discount function is empty");
-
-    return json({
-      status: "failed",
-      errors: { message: "Bundle discount function not found" },
-    });
-  }
-
   const discount: DiscountAutomaticAppInput = JSON.parse(
     formData.get("discount")?.toString() || "{}",
   );
-
-  discount.startsAt = new Date(discount.startsAt);
-  if (discount.endsAt) {
-    discount.endsAt = new Date(discount.endsAt);
-  }
-  discount.functionId = odFunc[0].id;
 
   const config: ODConfig = JSON.parse(
     formData.get("config")?.toString() || "{}",
@@ -63,32 +49,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   var resp = await createBundleDiscount(admin.graphql, {
     discount,
     config,
+    shop: session.shop,
   });
 
-  const errors = resp?.discountAutomaticAppCreate?.userErrors;
+  var errors = resp?.userErrors;
   var status: ActionStatus = "success";
-  if (resp?.discountAutomaticAppCreate?.automaticAppDiscount) {
-    await createPrismaDiscount({
-      id: resp.discountAutomaticAppCreate.automaticAppDiscount.discountId,
-      shop: session.shop,
-      metafield: JSON.stringify(config),
-      status: DiscountStatus.Active,
-      title: discount.title || "",
-      type: "Bundle",
-      subType: config.applyType,
-      startAt: new Date(discount.startsAt),
-      endAt: discount.endsAt ? new Date(discount.endsAt) : null,
-      createdAt: new Date(),
-      productIds: config.contain?.productIds ? config.contain?.productIds : [],
-      collectionIds: [],
-    });
-  }
   if (errors?.length) {
     console.log("Create discount error: ", errors);
     status = "failed";
+  } else {
+    errors = undefined;
   }
 
-  return json({});
+  return json({ status, errors });
 };
 
 export default function NewODPage() {
@@ -96,8 +69,26 @@ export default function NewODPage() {
 
   const navigation = useNavigation();
 
+  const actData = useActionData<ActionType>();
+
   const todaysDate = useMemo(() => new Date().toString(), []);
   const isLoading = navigation.state == "submitting";
+
+  useEffect(() => {
+    if (!actData || !actData.status) {
+      return;
+    }
+    if (actData.status === "success") {
+      window.shopify.toast.show("Update discount success", { duration: 5000 });
+    }
+
+    if (actData.status === "failed") {
+      window.shopify.toast.show("Update discount failed", {
+        duration: 5000,
+        isError: true,
+      });
+    }
+  }, [actData]);
 
   const {
     fields: { title, combinesWith, startDate, endDate, config },
@@ -173,6 +164,7 @@ export default function NewODPage() {
       return { status: "success" };
     },
   });
+
   return (
     <Page title="Bundle discount detail">
       <Layout>

@@ -3,7 +3,7 @@ import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/s
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
 import { SDConfig } from "~/defs";
 import { ProductInfo } from "~/components/SelectProduct";
-import { getSimleProductInfo, getSimpleCollection } from "./sfont";
+import { getSimleProductInfo, getSimpleCollection } from "./gql_resource";
 import { CollectionInfo } from "~/components/SelectCollection";
 import {
   gqlCreateDiscount,
@@ -20,6 +20,7 @@ export type SDConfigExt = SDConfig & {
 export type CreateSDRequest = {
   discount: DiscountAutomaticAppInput;
   config: SDConfig;
+  shop: string;
 };
 
 export type UpdateSDRequest = {
@@ -36,41 +37,6 @@ export async function createShippingDiscount(
   graphql: GraphQLClient<AdminOperations>,
   req: CreateSDRequest,
 ) {
-  // const resp = await graphql(
-  //   `
-  //     #graphql
-  //     mutation createShippingDiscount($discount: DiscountAutomaticAppInput!) {
-  //       discountAutomaticAppCreate(automaticAppDiscount: $discount) {
-  //         automaticAppDiscount {
-  //           discountId
-  //         }
-  //         userErrors {
-  //           code
-  //           message
-  //           field
-  //         }
-  //       }
-  //     }
-  //   `,
-  //   {
-  //     variables: {
-  //       discount: {
-  //         ...req.discount,
-  //         metafields: [
-  //           {
-  //             namespace: "$app:sd",
-  //             key: "sd_config",
-  //             type: "json",
-  //             value: JSON.stringify(req.config),
-  //           },
-  //         ],
-  //       },
-  //     },
-  //   },
-  // );
-
-  // const respJson = await resp.json();
-  // return respJson.data;
   var resp = await gqlCreateDiscount(graphql, {
     discount: req.discount,
     metafield: {
@@ -79,6 +45,11 @@ export async function createShippingDiscount(
       type: "json",
       value: JSON.stringify(req.config),
     },
+    ftype: "shipping_discounts",
+    shop: req.shop,
+    subType: req.config.applyType,
+    productIds: req.config.productIds ? req.config.productIds : [],
+    collIds: req.config.collIds ? req.config.collIds : [],
   });
   return resp;
 }
@@ -89,8 +60,11 @@ export async function updateShippingDiscount(
 ) {
   const respJson = await gqlUpdateDiscount(graphql, {
     discountId: req.discountId,
-    data: req.data,
+    discount: req.data,
     config: req.config,
+    subType: req.config.applyType,
+    productIds: req.config.productIds ? req.config.productIds : [],
+    collIds: req.config.collIds ? req.config.collIds : [],
   });
   // console.log("Config value: ", req.config);
   console.log("Response update shipping discount: ", respJson);
@@ -101,51 +75,8 @@ export async function getShippingDiscount(
   graphql: GraphQLClient<AdminOperations>,
   { discountId }: GetSDRequest,
 ) {
-  // var resp = await graphql(
-  //   `
-  //     #graphql
-  //     query getShippingDiscount($id: ID!) {
-  //       discountNode(id: $id) {
-  //         __typename
-  //         id
-  //         discount {
-  //           ... on DiscountAutomaticApp {
-  //             title
-  //             status
-  //             appDiscountType {
-  //               title
-  //               targetType
-  //               functionId
-  //               discountClass
-  //             }
-  //             combinesWith {
-  //               orderDiscounts
-  //               productDiscounts
-  //               shippingDiscounts
-  //             }
-  //             startsAt
-  //             endsAt
-  //             createdAt
-  //           }
-  //         }
-  //         metafields(first: 10, namespace: "$app:sd") {
-  //           nodes {
-  //             id
-  //             value
-  //           }
-  //         }
-  //       }
-  //     }
-  //   `,
-  //   {
-  //     variables: { id: `gid://shopify/DiscountAutomaticNode/${discountId}` },
-  //   },
-  // );
-  // var respJson = await resp.json();
-
-  var respJson = await gqlGetDiscount(graphql, discountId, "$app:sd");
-
-  var metafield = respJson.data?.discountNode?.metafields?.nodes[0];
+  var discount = await gqlGetDiscount(graphql, discountId, "$app:sd");
+  var metafield = discount?.metafields?.nodes[0];
   var config: SDConfigExt = {
     id: metafield?.id,
     products: [],
@@ -163,8 +94,8 @@ export async function getShippingDiscount(
   }
 
   return {
-    id: respJson.data?.discountNode?.id,
+    id: discount?.id,
     config: config,
-    discount: respJson.data?.discountNode?.discount,
+    discount: discount?.discount,
   };
 }

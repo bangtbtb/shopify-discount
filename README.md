@@ -1,7 +1,7 @@
 # Run tunnel
 
 ```shell
-cloudflared.exe tunnel -url http://localhost:52959/
+cloudflared.exe tunnel -url http://localhost:58288/
 ```
 
 # Proxy config

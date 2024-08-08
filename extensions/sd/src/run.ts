@@ -34,13 +34,13 @@ interface ProductSum {
   variants: Array<Merchandise>;
 }
 
-type SDConfig = {
+export type SDConfig = {
   label: string;
-  type: SDApplyType;
-  local: string[] | undefined;
-  steps: SDStep[];
-  productIds: string[] | undefined;
+  applyType: SDApplyType;
+  local?: string[] | undefined;
+  steps: SDStep[] | undefined;
   collIds: string[] | undefined;
+  productIds: string[] | undefined;
 };
 
 export function run(input: RunInput): FunctionRunResult {
@@ -55,13 +55,15 @@ export function run(input: RunInput): FunctionRunResult {
     }
   }
 
-  if (config.type === "total") {
+  if (config.applyType === "total") {
     return onTotal(input, config);
   }
 
-  if (config.type === "volume") {
+  if (config.applyType === "volume") {
     return onVolume(input, config);
   }
+  console.log(`Apply type [${config.applyType}] is not support `);
+
   return EMPTY_DISCOUNT;
 }
 
@@ -70,6 +72,10 @@ function onTotal(input: RunInput, config: SDConfig): FunctionRunResult {
   input.cart.lines.forEach((line) => {
     total += line.cost.amountPerQuantity.amount * line.quantity;
   });
+
+  if (!config.steps) {
+    return EMPTY_DISCOUNT;
+  }
 
   for (let i = config.steps.length - 1; i >= 0; i--) {
     const s = config.steps[i];
@@ -121,6 +127,11 @@ function onVolume(input: RunInput, config: SDConfig): FunctionRunResult {
       return false;
     })
     .sort((a, b) => b.total - a.total);
+
+  if (!config.steps) {
+    console.log("Step is empty");
+    return EMPTY_DISCOUNT;
+  }
 
   for (var idx = 0; idx < arr.length; idx++) {
     const pMax = arr[idx];

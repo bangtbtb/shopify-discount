@@ -10,7 +10,7 @@ import {
   CombinableDiscountTypes,
   CombinationCard,
   DateTime,
-  DiscountStatus,
+  DiscountClass,
 } from "@shopify/discount-app-components";
 import {
   BlockStack,
@@ -29,7 +29,6 @@ import { SDConfigCard } from "~/components/SDConfigCard";
 import { CollectionInfo } from "~/components/SelectCollection";
 import { ProductInfo } from "~/components/SelectProduct";
 import { SDApplyType, SDConfig } from "~/defs";
-import { createPrismaDiscount, updatePrismaDiscount } from "~/models/db_models";
 import {
   getShippingDiscount,
   SDConfigExt,
@@ -73,36 +72,16 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   var formConfig: SDConfigExt = JSON.parse(
     formData.get("config")?.toString() || "{}",
   );
-  console.log("Update with sd config: ", JSON.stringify(formConfig));
+  // console.log("Update with sd config: ", JSON.stringify(formConfig));
 
   var resp = await updateShippingDiscount(admin.graphql, {
     discountId: id ?? "",
     data: discount,
     config: formConfig,
   });
-  var errors = resp?.discountAutomaticAppUpdate?.userErrors;
-  const rsDiscount = resp?.discountAutomaticAppUpdate?.automaticAppDiscount;
 
-  var status = "success";
-  if (errors && errors.length) {
-    console.log("Error: ", errors);
-    status = "failed";
-  } else {
-    if (rsDiscount) {
-      console.log("Discount response: ", rsDiscount);
-      await updatePrismaDiscount(rsDiscount.discountId, {
-        title: rsDiscount.title,
-        status: rsDiscount.status,
-        subType: formConfig.applyType,
-        metafield: JSON.stringify(formConfig),
-        collectionIds: formConfig.collIds ? formConfig.collIds : [],
-        productIds: formConfig.productIds ? formConfig.productIds : [],
-        startAt: new Date(rsDiscount.startsAt),
-        endAt: rsDiscount.endsAt ? new Date(rsDiscount.endsAt) : null,
-      });
-    }
-    errors = undefined;
-  }
+  var errors = resp?.userErrors?.length ? resp?.userErrors : undefined;
+  var status = errors ? "success" : "failed";
 
   return json({ status, errors });
 };
@@ -253,6 +232,11 @@ export default function ShippingDetailPage() {
               steps={config.steps}
               products={config.products}
               colls={config.colls}
+            />
+            <CombinationCard
+              combinableDiscountTypes={combinesWith}
+              discountClass={DiscountClass.Product}
+              discountDescriptor="Discount"
             />
 
             <ActiveDatesCard

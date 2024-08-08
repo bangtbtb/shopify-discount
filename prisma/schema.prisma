@@ -16,6 +16,7 @@ datasource db {
 
 // Automatic discount type
 enum ADT {
+  None
   Volume
   Bundle
   Shipping

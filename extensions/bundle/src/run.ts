@@ -37,10 +37,10 @@ type ODContainConfig = {
 };
 
 type ODConfig = {
-  type: ODApplyType;
   label: string;
-  total: ODTotalConfig | undefined;
-  contain: ODContainConfig | undefined;
+  applyType: ODApplyType;
+  total?: ODTotalConfig | undefined;
+  contain?: ODContainConfig | undefined;
 };
 
 interface ProductSum {
@@ -54,12 +54,18 @@ export function run(input: RunInput): FunctionRunResult {
   const config: ODConfig = JSON.parse(
     input?.discountNode?.metafield?.value ?? "{}",
   );
-  console.log("Config: ", JSON.stringify(config));
+  // console.log("Config: ", JSON.stringify(config));
 
-  if (config.type === "contain") {
+  if (config.applyType === "contain") {
     return onContain(input, config);
   }
-  return onTotal(input, config);
+
+  if (config.applyType === "total") {
+    return onTotal(input, config);
+  }
+  console.log(`[OD] Apply type [${config.applyType}] is not support `);
+
+  return EMPTY_DISCOUNT;
 }
 
 function onTotal(input: RunInput, config: ODConfig): FunctionRunResult {

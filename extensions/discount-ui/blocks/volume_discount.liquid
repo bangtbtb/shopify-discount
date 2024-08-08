@@ -1,6 +1,24 @@
 {%- assign col_ids = product.collections | map: 'id' -%}
 
-<div id="vd_09123hnf" product="{{ product.id }}" cols="{{ col_ids | join: "," }}"></div>
+<style>
+  .vd_table {
+    border: solid 1px green;
+    border-radius: 4px;
+    text-align: center;
+    padding: 0;
+    border-spacing: 0;
+  }
+
+  .vd_table thead {
+    margin: 0;
+    background-color: green;
+    border-bottom: solid 1px green;
+  }
+</style>
+
+<div id="vd_09123hnf" product="{{ product.id }}" cols="{{ col_ids | join: "," }}">
+  <p>Volume discount</p>
+</div>
 
 <script src="{{ "load_vd.js" | asset_url }}" defer></script>
 

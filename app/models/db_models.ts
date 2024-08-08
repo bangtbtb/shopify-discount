@@ -22,16 +22,15 @@ export async function deletePrismaDiscount(discountId: string) {
 
 type RFindDiscount = {
   shop: string;
-  type: ADT;
   productId: string;
   collectionIds: string[];
 };
 
-export async function findPrismaDiscount(req: RFindDiscount) {
+export async function findPrismaVolumeDiscount(req: RFindDiscount) {
   return db.discount.findMany({
     where: {
       shop: req.shop,
-      type: req.type,
+      type: "Volume",
       status: "ACTIVE",
       OR: [
         {

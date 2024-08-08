@@ -1,11 +1,115 @@
-<div id="bundle_asdf1abbdf" product="{{ product.id }}" cols="{{ col_ids | join: "," }}"></div>
+{%- assign col_ids = product.collections | map: 'id' -%}
+<style>
+  /* Table */
+  .od_table {
+    border: solid 1px {{ block.settings.hl_color }};
+    border-radius: 4px;
+    padding: 0;
+    border-spacing: 0;
+  }
+
+  .od_table thead {
+    margin: 0;
+    background-color: {{ block.settings.hl_color }};
+    border-bottom: 1px dashed black;
+  }
+
+  .od_table th,
+  td {
+    padding: 8px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+  }
+
+  /* Contain */
+
+  .od_contain {
+    border: solid 1px {{ block.settings.hl_color }};;
+    border-radius: 6px;
+    margin: 0.6rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .od_contain_head {
+    margin: 0;
+    color: red;
+    text-align: left;
+    background-color: {{ block.settings.hl_color }};;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .od_contain_content {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .od_contain_content .item {
+    width: 80px;
+    margin: 12px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    flex-wrap: wrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .od_contain_content .item img {
+    width: 100%;
+    object-fit: contain;
+    border-radius: 6px;
+  }
+
+  .od_contain_content .item .product-name {
+    width: 100%;
+    margin-top: 8px;
+    font-size: 0.6rem;
+    text-wrap: nowrap;
+    background-color: aliceblue;
+  }
+
+  .od_price_old {
+    font-size: 0.6rem;
+    color: gray;
+    text-decoration: line-through;
+  }
+
+  .od_price_new {
+    color: red;
+    font-size: 0.8rem;
+  }
+
+  .od_contain .od_total {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: right;
+    padding-right: 1rem;
+  }
+</style>
+
+<div
+  id="bundle_12jdj2bvs1abbdf"
+  product="{{ product.id }}"
+  prouduct-price="{{ product.price }}"
+  cols="{{ col_ids | join: "," }}"
+>
+  <p>Bundle discount</p>
+</div>
 
 <script src="{{ "load_bundle.js" | asset_url }}" defer></script>
+<script async src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js" onload="buildBundleUI()"></script>
 
 {% schema %}
 {
   "name": "Bundle discount",
   "target": "section",
-  "settings": [{ "type": "product", "id": "product", "label": "product", "autofill": true }]
+  "settings": [
+    { "type": "product", "id": "product", "label": "product", "autofill": true },
+    { "type": "color", "id": "hl_color", "label": "Highlight Color", "default": "#56d356" }
+  ]
 }
 {% endschema %}

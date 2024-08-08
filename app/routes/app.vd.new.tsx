@@ -11,20 +11,17 @@ import {
   DiscountClass,
   CombinableDiscountTypes,
   DateTime,
-  DiscountStatus,
 } from "@shopify/discount-app-components";
 import {
   Banner,
   BlockStack,
   Card,
   Form,
-  Icon,
   Layout,
   Page,
   PageActions,
   TextField,
 } from "@shopify/polaris";
-import { XIcon } from "@shopify/polaris-icons";
 import { useField, useForm } from "@shopify/react-form";
 import { useEffect, useMemo } from "react";
 import { authenticate } from "~/shopify.server";
@@ -32,13 +29,11 @@ import VDConfigCard, { VDStepConfigComponent } from "~/components/VDConfigCard";
 import { createVolumeDiscount } from "~/models/vd_model";
 import { ActionStatus, VDApplyType, VDConfig, VDStep } from "~/defs";
 import { ProductInfo } from "~/components/SelectProduct";
-import { gqlGetFunction } from "~/models/gql_func";
 import { StepData } from "~/components/ConfigStep";
-import { createPrismaDiscount } from "~/models/db_models";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
 
 interface ActionData {
-  status: string;
+  status: ActionStatus;
   errors: Array<{ code: number; message: string; field: [string] }>;
 }
 
@@ -46,25 +41,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const formData = await request.formData();
 
-  var vdFunc = await gqlGetFunction(admin.graphql, {
-    apiType: "product_discounts",
-  });
-
-  if (!vdFunc?.length) {
-    return json({
-      status: "failed",
-      errors: { message: "Volume discount function not found" },
-    });
-  }
-
   var discount: DiscountAutomaticAppInput = JSON.parse(
     formData.get("discount")?.toString() || "{}",
   );
-  discount.functionId = vdFunc[0].id;
-  discount.startsAt = new Date(discount.startsAt);
-  if (discount.endsAt) {
-    discount.endsAt = new Date(discount.endsAt);
-  }
 
   const config: VDConfig = JSON.parse(
     formData.get("config")?.toString() || "{}",
@@ -73,61 +52,41 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   var resp = await createVolumeDiscount(admin.graphql, {
     discount: discount,
     config: config,
+    shop: session.shop,
   });
 
-  const rsDiscount = resp?.discountAutomaticAppCreate?.automaticAppDiscount;
-  const errors = resp?.discountAutomaticAppCreate?.userErrors;
-  var status: ActionStatus = "success";
-  if (errors?.length) {
-    console.log("Create discount error: ", errors);
-    status = "failed";
-  } else {
-    if (rsDiscount) {
-      await createPrismaDiscount({
-        id: rsDiscount.discountId,
-        shop: session.shop,
-        metafield: JSON.stringify(config),
-        status: rsDiscount.status,
-        title: discount.title ?? "",
-        type: "Volume",
-        subType: config.applyType,
-        startAt: discount.startsAt,
-        endAt: discount.endsAt ? discount.endsAt : null,
-        createdAt: new Date(),
-        productIds: config.productIds ? config.productIds : [],
-        collectionIds: config.colId ? [config.colId] : [],
-      });
-    }
-  }
+  var status: ActionStatus = resp?.userErrors?.length ? "failed" : "success";
+  var errors = resp?.userErrors?.length ? resp?.userErrors?.length : undefined;
 
-  return json({ status: status, errors });
+  return json({ status, errors });
 };
 
 export default function VolDiscountCreate() {
   const submitForm = useSubmit();
-  const actionData = useActionData<ActionData>();
+  const actData = useActionData<ActionData>();
   const navigation = useNavigation();
 
   const todaysDate = useMemo(() => new Date().toString(), []);
   const isLoading = navigation.state == "submitting";
-  const submitErrors = actionData?.errors ?? [];
+  const submitErrors = actData?.errors ?? [];
 
-  const nav = useNavigate();
-
-  // const redirect = Redirect.create(app);
+  // const nav = useNavigate();
 
   useEffect(() => {
-    // if (actionData?.errors?.length === 0) {
-    //   redirect.dispatch(Redirect.Action.ADMIN_SECTION, {
-    //     name: Redirect.ResourceType.Discount,
-    //   });
-    // }
-
-    if (actionData?.status === "success") {
-      nav("/app");
+    if (actData?.status === "success") {
+      window.shopify.toast.show("Create volume discount success", {
+        duration: 5000,
+      });
     }
-    console.log("Navigation State: ", navigation, actionData);
-  }, [actionData]);
+
+    if (actData?.status === "failed") {
+      window.shopify.toast.show("Create volume discount failed", {
+        duration: 5000,
+        isError: true,
+      });
+    }
+    // console.log("Navigation State: ", navigation, actData);
+  }, [actData]);
 
   const {
     fields: { title, combinesWith, startDate, endDate, config },

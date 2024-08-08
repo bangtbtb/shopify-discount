@@ -8,8 +8,10 @@ import {
 import {
   Banner,
   BlockStack,
+  Button,
   Card,
   Form,
+  InlineGrid,
   Layout,
   Page,
   PageActions,
@@ -21,7 +23,6 @@ import { authenticate, unauthenticated } from "~/shopify.server";
 import {
   DiscountAutomaticApp,
   DiscountAutomaticAppInput,
-  Metafield,
   UserError,
 } from "~/types/admin.types";
 import { useEffect, useMemo } from "react";
@@ -42,7 +43,6 @@ import {
 } from "~/models/vd_model";
 import { ActionStatus, VDApplyType, VDConfig, VDStep } from "~/defs";
 import { ProductInfo } from "~/components/SelectProduct";
-import { getSimleProductInfo, getSimpleCollection } from "~/models/sfont";
 import { updatePrismaDiscount } from "~/models/db_models";
 import { StepData } from "~/components/ConfigStep";
 
@@ -57,32 +57,12 @@ interface AciontDataResponse {
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const discountId = params.id;
 
-  const { admin, session } = await authenticate.admin(request);
+  const { admin } = await authenticate.admin(request);
   const data = await getVolumeDiscount(admin.graphql, {
     discountId: discountId ?? "",
   });
 
-  var config: VDConfigExt = { ...data.config, collection: null, products: [] };
-  if (data.config.applyType === "collection" && config.colId) {
-    var colResp = await getSimpleCollection(
-      admin.graphql,
-      data.config.colId ?? "",
-    );
-    config.collection = colResp;
-  }
-
-  if (data.config.applyType === "products" && data.config.productIds?.length) {
-    var products: Array<ProductInfo> = [];
-    for (let i = 0; i < data.config.productIds.length; i++) {
-      const pid = data.config.productIds[i];
-      var product = await getSimleProductInfo(admin.graphql, pid);
-      product && products.push(product);
-      console.log("Product: ", product);
-    }
-    config.products = products;
-  }
-
-  return { ...data, config: config };
+  return json({ ...data });
 };
 
 export const action = async ({ params, request }: ActionFunctionArgs) => {
@@ -103,38 +83,20 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     formData.get("config")?.toString() ?? "{}",
   );
 
-  var data: DiscountAutomaticAppInput = {
-    ...discount,
-    startsAt: new Date(discount.startsAt),
-    endsAt: discount.endsAt || undefined,
-  };
   var configValue = JSON.stringify(config);
 
   var resp = await updateVolumeDiscount(admin.graphql, {
     discountId: id ?? "",
-    data,
+    discount: discount,
     configId: config?.id,
-    configValue,
+    config: config as VDConfig,
   });
 
   var status: ActionStatus = "success";
-  var errors = resp?.discountAutomaticAppUpdate?.userErrors;
-  const rsDiscount = resp?.discountAutomaticAppUpdate?.automaticAppDiscount;
+  var errors = resp?.userErrors;
   if (errors?.length) {
     status = "failed";
   } else {
-    if (rsDiscount) {
-      await updatePrismaDiscount(rsDiscount.discountId, {
-        title: rsDiscount.title,
-        status: rsDiscount.status,
-        metafield: configValue,
-        subType: config.applyType,
-        collectionIds: config.colId ? [config.colId] : [],
-        productIds: config.productIds ? config.productIds : [],
-        startAt: new Date(rsDiscount.startsAt),
-        endAt: rsDiscount.endsAt ? new Date(rsDiscount.endsAt) : null,
-      });
-    }
     errors = undefined;
   }
   return json({ status, errors });
@@ -329,6 +291,12 @@ export default function VolumeDiscountDetail() {
         </Layout.Section>
 
         <Layout.Section>
+          <InlineGrid alignItems="center">
+            <Button icon={DeleteIcon} variant="tertiary">
+              Delete
+            </Button>
+          </InlineGrid>
+
           <PageActions
             primaryAction={{
               content: "Save discount",

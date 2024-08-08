@@ -1,22 +1,84 @@
 import { AdminOperations } from "@shopify/admin-api-client";
 import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients/types";
 import { DiscountAutomaticAppInput, MetafieldInput } from "~/types/admin.types";
+import { createPrismaDiscount, updatePrismaDiscount } from "./db_models";
+import { ADT } from "@prisma/client";
+import { GqlCreateDiscountMutation } from "~/types/admin.generated";
+
+export type FuncType =
+  | "product_discounts"
+  | "order_discounts"
+  | "shipping_discounts";
+
+type GetFuncRequest = {
+  apiType?: FuncType;
+};
+
+var mapFuncType = new Map<FuncType, ADT>([
+  ["product_discounts", "Volume"],
+  ["order_discounts", "Bundle"],
+  ["shipping_discounts", "Shipping"],
+]);
+
+export async function gqlGetFunction(
+  graphql: GraphQLClient<AdminOperations>,
+  { apiType }: GetFuncRequest,
+) {
+  var resp = await graphql(
+    `
+      #grapql
+      query gqlGetFunction($apiType: String) {
+        shopifyFunctions(first: 20, apiType: $apiType) {
+          nodes {
+            id
+            title
+            apiType
+          }
+        }
+      }
+    `,
+    {
+      variables: {
+        apiType: apiType,
+      },
+    },
+  );
+  var respJson = await resp.json();
+  return respJson.data?.shopifyFunctions.nodes;
+}
 
 export type GqlCreateDiscountRequest = {
   discount: DiscountAutomaticAppInput;
   metafield: MetafieldInput;
-};
-
-export type GqlUpdateDiscountRequest = {
-  discountId: string;
-  data: DiscountAutomaticAppInput;
-  config: MetafieldInput;
+  ftype: FuncType;
+  subType: string;
+  productIds: string[];
+  collIds: string[];
+  shop: string;
 };
 
 export async function gqlCreateDiscount(
   graphql: GraphQLClient<AdminOperations>,
-  { discount, metafield }: GqlCreateDiscountRequest,
+  req: GqlCreateDiscountRequest,
 ) {
+  var funcs = await gqlGetFunction(graphql, {
+    apiType: req.ftype,
+  });
+
+  if (!funcs?.length) {
+    console.log("Discount function is empty");
+    return {
+      automaticAppDiscount: null,
+      userErrors: [{ message: "Bundle discount function not found" }],
+    };
+  }
+
+  req.discount.functionId = funcs[0].id;
+  req.discount.startsAt = new Date(req.discount.startsAt);
+  if (req.discount.endsAt) {
+    req.discount.endsAt = new Date(req.discount.endsAt);
+  }
+
   const resp = await graphql(
     `
       #graphql
@@ -40,16 +102,43 @@ export async function gqlCreateDiscount(
     {
       variables: {
         discount: {
-          ...discount,
-          metafields: [metafield],
+          ...req.discount,
+          metafields: [req.metafield],
         },
       },
     },
   );
 
   const respJson = await resp.json();
-  return respJson.data;
+  const rsDiscount =
+    respJson?.data?.discountAutomaticAppCreate?.automaticAppDiscount;
+  if (rsDiscount) {
+    await createPrismaDiscount({
+      id: rsDiscount.discountId,
+      shop: req.shop,
+      metafield: req.metafield.value ?? "",
+      status: rsDiscount.status,
+      title: rsDiscount.title ?? "",
+      type: mapFuncType.get(req.ftype) ?? "None",
+      subType: req.subType,
+      startAt: new Date(rsDiscount.startsAt),
+      endAt: rsDiscount.endsAt ? new Date(rsDiscount.endsAt) : null,
+      createdAt: new Date(),
+      productIds: req.productIds ? req.productIds : [],
+      collectionIds: req.collIds ? req.collIds : [],
+    });
+  }
+  return respJson.data?.discountAutomaticAppCreate;
 }
+
+export type GqlUpdateDiscountRequest = {
+  discountId: string;
+  discount: DiscountAutomaticAppInput;
+  config: MetafieldInput;
+  subType: string;
+  productIds: string[];
+  collIds: string[];
+};
 
 export async function gqlUpdateDiscount(
   graphql: GraphQLClient<AdminOperations>,
@@ -59,7 +148,7 @@ export async function gqlUpdateDiscount(
     if (!req.config.value) {
       req.config.value = JSON.stringify(req.config);
     }
-    req.data.metafields = [
+    req.discount.metafields = [
       {
         id: req.config.id,
         value: req.config.value,
@@ -67,8 +156,16 @@ export async function gqlUpdateDiscount(
     ];
     // console.log("Metafield update: ", req.config);
   } else {
-    req.data.metafields = undefined;
+    req.discount.metafields = undefined;
     console.log("Metafield has no id: ", req.config);
+  }
+
+  if (req.discount.startsAt) {
+    req.discount.startsAt = new Date(req.discount.startsAt);
+  }
+
+  if (req.discount.endsAt) {
+    req.discount.endsAt = new Date(req.discount.endsAt);
   }
 
   const resp = await graphql(
@@ -95,13 +192,27 @@ export async function gqlUpdateDiscount(
     {
       variables: {
         id: `gid://shopify/DiscountAutomaticNode/${req.discountId}`,
-        data: req.data,
+        data: req.discount,
       },
     },
   );
 
   const respJson = await resp.json();
-  return respJson.data;
+  var rs = respJson.data?.discountAutomaticAppUpdate;
+  const rsDiscount = rs?.automaticAppDiscount;
+  if (!rs?.userErrors.length && rsDiscount) {
+    await updatePrismaDiscount(rsDiscount.discountId, {
+      title: rsDiscount.title,
+      status: rsDiscount.status,
+      subType: req.subType,
+      metafield: req.config.value ?? undefined,
+      collectionIds: req.collIds ? req.collIds : [],
+      productIds: req.productIds ? req.productIds : [],
+      startAt: new Date(rsDiscount.startsAt),
+      endAt: rsDiscount.endsAt ? new Date(rsDiscount.endsAt) : null,
+    });
+  }
+  return rs;
 }
 
 export async function gqlGetDiscount(
@@ -154,7 +265,7 @@ export async function gqlGetDiscount(
     },
   );
   var respJson = await resp.json();
-  return respJson;
+  return respJson.data?.discountNode;
 }
 
 export async function gqlDelDiscount(
@@ -164,7 +275,7 @@ export async function gqlDelDiscount(
   var resp = await graphql(
     `
       #graphql
-      mutation discountAutomaticDelete($id: ID!) {
+      mutation gqlDelDiscount($id: ID!) {
         discountAutomaticDelete(id: $id) {
           deletedAutomaticDiscountId
           userErrors {
@@ -182,5 +293,5 @@ export async function gqlDelDiscount(
     },
   );
   var respJson = await resp.json();
-  return respJson;
+  return respJson.data;
 }

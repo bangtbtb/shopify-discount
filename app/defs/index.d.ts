@@ -66,6 +66,29 @@ export type SDConfig = {
   productIds: string[] | undefined;
 };
 
+const sdConfigTotal: SDConfig = {
+  title: "SD Total",
+  label: "SD total config",
+  applyType: "total",
+  steps: [
+    { require: 100, value: { value: 10, type: "percent" } },
+    { require: 200, value: { value: 15, type: "percent" } },
+    { require: 300, value: { value: 20, type: "percent" } },
+  ],
+};
+
+const sdConfigContain: SDConfig = {
+  title: "SD Contain",
+  label: "SD contain config",
+  applyType: "volume",
+  productIds: ["product 1", "product 2"],
+  steps: [
+    { require: 2, value: { value: 10, type: "percent" } },
+    { require: 4, value: { value: 15, type: "percent" } },
+    { require: 6, value: { value: 20, type: "percent" } },
+  ],
+};
+
 // export type VDConfigValue = {
 //   label: string;
 //   minQuantity: number;

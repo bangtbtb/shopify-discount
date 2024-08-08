@@ -23,8 +23,6 @@ import { SDConfigCard } from "~/components/SDConfigCard";
 import { CollectionInfo } from "~/components/SelectCollection";
 import { ProductInfo } from "~/components/SelectProduct";
 import { ActionStatus, SDApplyType, SDConfig } from "~/defs";
-import { createPrismaDiscount } from "~/models/db_models";
-import { gqlGetFunction } from "~/models/gql_func";
 import { createShippingDiscount } from "~/models/sd_models";
 import { authenticate } from "~/shopify.server";
 import {
@@ -41,62 +39,26 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const formData = await request.formData();
 
-  var sdFunc = await gqlGetFunction(admin.graphql, {
-    apiType: "shipping_discounts",
-  });
-
-  if (!sdFunc?.length) {
-    console.log("Discount function is empty");
-
-    return json({
-      status: "failed",
-      errors: { message: "Bundle discount function not found" },
-    });
-  }
-
   const discount: DiscountAutomaticAppInput = JSON.parse(
     formData.get("discount")?.toString() || "{}",
   );
 
-  discount.startsAt = new Date(discount.startsAt);
-  if (discount.endsAt) {
-    discount.endsAt = new Date(discount.endsAt);
-  }
-  discount.functionId = sdFunc[0].id;
-
-  const config: SDConfig = JSON.parse(
+  const formConfig: SDConfig = JSON.parse(
     formData.get("config")?.toString() || "{}",
   );
 
   var resp = await createShippingDiscount(admin.graphql, {
     discount,
-    config,
+    config: formConfig,
+    shop: session.shop,
   });
 
-  var errors = resp?.discountAutomaticAppCreate?.userErrors;
-  var rsDiscount = resp?.discountAutomaticAppCreate?.automaticAppDiscount;
+  var errors = resp?.userErrors;
   var status: ActionStatus = "success";
   if (errors?.length) {
     console.log("Create shipping discount error: ", errors);
     status = "failed";
   } else {
-    if (rsDiscount) {
-      await createPrismaDiscount({
-        id: rsDiscount.discountId,
-        shop: session.shop,
-        metafield: JSON.stringify(config),
-        status: DiscountStatus.Active,
-        title: discount.title || "",
-        type: "Shipping",
-        subType: config.applyType,
-        startAt: new Date(discount.startsAt),
-        endAt: discount.endsAt ? new Date(discount.endsAt) : null,
-        createdAt: new Date(),
-        productIds: config.productIds ? config.productIds : [],
-        collectionIds: config.collIds ? config.collIds : [],
-      });
-    }
-
     errors = undefined;
   }
 

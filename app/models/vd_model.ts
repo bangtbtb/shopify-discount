@@ -11,6 +11,7 @@ import {
   gqlGetDiscount,
   gqlUpdateDiscount,
 } from "./gql_discount";
+import { getSimleProductInfo, getSimpleCollection } from "./gql_resource";
 
 export type VDConfigExt = VDConfig & {
   id: string;
@@ -21,13 +22,14 @@ export type VDConfigExt = VDConfig & {
 export type CreateVDRequest = {
   discount: DiscountAutomaticAppInput;
   config: VDConfig;
+  shop: string;
 };
 
 export type UpdateVDRequest = {
   discountId: string;
-  data: DiscountAutomaticAppInput;
-  configId?: string;
-  configValue?: string;
+  discount: DiscountAutomaticAppInput;
+  configId: string;
+  config: VDConfig;
 };
 
 export type GetVDRequest = {
@@ -44,48 +46,6 @@ export async function createVolumeDiscount(
   graphql: GraphQLClient<AdminOperations>,
   req: CreateVDRequest,
 ) {
-  // const resp = await graphql(
-  //   `
-  //     #graphql
-  //     mutation createVolumeDiscount($discount: DiscountAutomaticAppInput!) {
-  //       discountAutomaticAppCreate(automaticAppDiscount: $discount) {
-  //         automaticAppDiscount {
-  //           discountId
-  //         }
-  //         userErrors {
-  //           code
-  //           message
-  //           field
-  //         }
-  //       }
-  //     }
-  //   `,
-  //   {
-  //     variables: {
-  //       discount: {
-  //         ...discount,
-  //         metafields: [
-  //           {
-  //             namespace: "$app:vd",
-  //             key: "vd_config",
-  //             type: "json",
-  //             value: JSON.stringify({
-  //               label: config.label,
-  //               applyType: config.applyType,
-  //               steps: config.steps,
-  //               colIds: config.colId,
-  //               productIds: config.productIds,
-  //             }),
-  //           },
-  //         ],
-  //       },
-  //     },
-  //   },
-  // );
-
-  // const respJson = await resp.json();
-  // return respJson.data;
-
   var resp = await gqlCreateDiscount(graphql, {
     discount: req.discount,
     metafield: {
@@ -94,6 +54,11 @@ export async function createVolumeDiscount(
       type: "json",
       value: JSON.stringify(req.config),
     },
+    ftype: "product_discounts",
+    shop: req.shop,
+    subType: req.config.applyType,
+    productIds: req.config.productIds ? req.config.productIds : [],
+    collIds: req.config.colId ? [req.config.colId] : [],
   });
   return resp;
 }
@@ -102,60 +67,17 @@ export async function updateVolumeDiscount(
   graphql: GraphQLClient<AdminOperations>,
   req: UpdateVDRequest,
 ) {
-  // if (configId && configValue) {
-  //   data.metafields = [
-  //     {
-  //       id: configId,
-  //       value: configValue,
-  //     },
-  //   ];
-  // } else {
-  //   data.metafields = undefined;
-  // }
-
-  // const resp = await graphql(
-  //   `
-  //     #graphql
-  //     mutation updateVolumeDiscount(
-  //       $id: ID!
-  //       $data: DiscountAutomaticAppInput!
-  //     ) {
-  //       discountAutomaticAppUpdate(id: $id, automaticAppDiscount: $data) {
-  //         automaticAppDiscount {
-  //           discountId
-  //           title
-  //           startsAt
-  //           endsAt
-  //           status
-  //         }
-  //         userErrors {
-  //           code
-  //           field
-  //           message
-  //         }
-  //       }
-  //     }
-  //   `,
-  //   {
-  //     variables: {
-  //       id: `gid://shopify/DiscountAutomaticNode/${discountId}`,
-  //       data: data,
-  //     },
-  //   },
-  // );
-
-  // const respJson = await resp.json();
-  // return respJson.data;
-
   const respJson = await gqlUpdateDiscount(graphql, {
     discountId: req.discountId,
-    data: req.data,
+    discount: req.discount,
     config: {
       id: req.configId,
-      value: req.configValue,
+      value: JSON.stringify(req.config),
     },
+    subType: req.config.applyType,
+    productIds: req.config.productIds ? req.config.productIds : [],
+    collIds: req.config.colId ? [req.config.colId] : [],
   });
-  // console.log("Config value: ", req.config);
   console.log("Response update volume discount: ", respJson);
   return respJson;
 }
@@ -164,70 +86,32 @@ export async function getVolumeDiscount(
   graphql: GraphQLClient<AdminOperations>,
   { discountId }: GetVDRequest,
 ) {
-  // var resp = await graphql(
-  //   `
-  //     #graphql
-  //     query getVolumeDiscount($id: ID!) {
-  //       discountNode(id: $id) {
-  //         __typename
-  //         id
-  //         discount {
-  //           ... on DiscountAutomaticApp {
-  //             title
-  //             status
-  //             appDiscountType {
-  //               title
-  //               targetType
-  //               functionId
-  //               discountClass
-  //             }
-  //             combinesWith {
-  //               orderDiscounts
-  //               productDiscounts
-  //               shippingDiscounts
-  //             }
-  //             startsAt
-  //             endsAt
-  //             createdAt
-  //           }
-  //         }
-  //         metafields(first: 10, namespace: "$app:vd") {
-  //           nodes {
-  //             id
-  //             value
-  //           }
-  //         }
-  //       }
-  //     }
-  //   `,
-  //   {
-  //     variables: { id: `gid://shopify/DiscountAutomaticNode/${discountId}` },
-  //   },
-  // );
-  // var respJson = await resp.json();
+  var discount = await gqlGetDiscount(graphql, discountId, "$app:vd");
 
-  var respJson = await gqlGetDiscount(graphql, discountId, "$app:vd");
+  var metafield = discount?.metafields?.nodes[0];
+  var config: VDConfigExt = {
+    id: metafield?.id ?? 0,
+    products: [],
+    collection: null,
+    ...JSON.parse(discount?.metafields?.nodes[0].value ?? "{}"),
+  };
 
-  var metafield = respJson.data?.discountNode?.metafields?.nodes[0] ?? {};
-  var config: Metafield & VDConfig = JSON.parse(
-    respJson.data?.discountNode?.metafields?.nodes[0].value ?? "{}",
-  );
-  // if (respJson.data?.discountNode?.metafields.nodes?.length) {
-  //   // console.log(
-  //   //   "metafields: ",
-  //   //   respJson.data?.discountNode?.metafields?.nodes[0],
-  //   // );
-  //   config = JSON.parse(
-  //     respJson.data?.discountNode?.metafields?.nodes[0].value ?? "{}",
-  //   );
-  // }
+  if (config.applyType === "collection" && config.colId) {
+    var colResp = await getSimpleCollection(graphql, config.colId ?? "");
+    config.collection = colResp;
+  }
 
-  // console.log("config:  ", { ...config, ...metafield });
+  if (config.applyType === "products" && config.productIds?.length) {
+    for (let i = 0; i < config.productIds.length; i++) {
+      const pid = config.productIds[i];
+      var product = await getSimleProductInfo(graphql, pid);
+      product && config.products.push(product);
+    }
+  }
 
   return {
-    id: respJson.data?.discountNode?.id,
-    config: { ...config, ...metafield },
-    discount: respJson.data?.discountNode?.discount,
+    config: config,
+    discount: discount?.discount,
   };
 }
 

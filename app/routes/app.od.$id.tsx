@@ -26,8 +26,7 @@ import { useEffect, useMemo } from "react";
 import { StepData } from "~/components/ConfigStep";
 import ODConfigCard from "~/components/ODConfigCard";
 import { ProductInfo } from "~/components/SelectProduct";
-import { DVT, ODApplyType, ODConfig } from "~/defs";
-import { updatePrismaDiscount } from "~/models/db_models";
+import { ActionStatus, DVT, ODApplyType, ODConfig } from "~/defs";
 import {
   getBundleDiscount,
   ODConfigExt,
@@ -46,7 +45,7 @@ type ActionType = {
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const discountId = params.id ?? "";
-  const { admin, session } = await authenticate.admin(request);
+  const { admin } = await authenticate.admin(request);
 
   console.log("Discount id: ", discountId);
 
@@ -77,30 +76,18 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 
   var resp = await updateBundleDiscount(admin.graphql, {
     discountId: id ?? "",
-    data: discount,
+    discount: discount,
     config: config,
   });
 
-  const rsDiscount = resp?.discountAutomaticAppUpdate?.automaticAppDiscount;
-  var errors = resp?.discountAutomaticAppUpdate?.userErrors;
-  var status = "success";
+  var errors = resp?.userErrors;
+  var status: ActionStatus = "success";
 
-  if (!errors?.length) {
-    if (rsDiscount) {
-      await updatePrismaDiscount(rsDiscount.discountId, {
-        title: rsDiscount.title,
-        status: rsDiscount.status,
-        metafield: JSON.stringify(config),
-        collectionIds: [],
-        productIds: config.contain?.productIds ? config.contain.productIds : [],
-        startAt: new Date(rsDiscount.startsAt),
-        endAt: rsDiscount.endsAt ? new Date(rsDiscount.endsAt) : null,
-      });
-    }
-    errors = undefined;
-  } else {
+  if (errors?.length) {
     console.log("Update bundle discount error: ", errors);
     status = "failed";
+  } else {
+    errors = undefined;
   }
 
   return json({ status, errors });

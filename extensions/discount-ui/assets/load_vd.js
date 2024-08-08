@@ -1,13 +1,13 @@
 (function () {
-  var elmReaction = document.getElementById("vd_09123hnf");
+  var elmVD = document.getElementById("vd_09123hnf");
 
   function getVolumeDiscount() {
     var host = window.location.host;
 
     return new Promise(async (resolve, reject) => {
       try {
-        var productId = elmReaction.getAttribute("product");
-        var colIds = elmReaction.getAttribute("cols")?.split(",");
+        var productId = elmVD.getAttribute("product");
+        var colIds = elmVD.getAttribute("cols")?.split(",");
 
         var resp = await fetch(`https://${host}/apps/pickd/vd`, {
           method: "POST",
@@ -34,15 +34,42 @@
   }
 
   function renderVolumeDiscount(config) {
+    if (!config.steps?.length) {
+      return;
+    }
     try {
       console.log("Render volume discount");
-      var tbl = document.createElement("ul");
-      for (var i = config.minQuantity; i <= config.maxQuantity; i++) {
-        var row = document.createElement("li");
-        row.innerHTML = `Buy ${i}, discount ${config.percent * i}`;
-        tbl.appendChild(row);
+      var tbl = document.createElement("table");
+      var thead = document.createElement("thead");
+
+      var tbody = document.createElement("thead");
+      // Head
+      var th1 = document.createElement("th");
+      var th2 = document.createElement("th");
+      th1.innerHTML = "Buy";
+      th2.innerHTML = "Discount";
+      thead.appendChild(th1);
+      thead.appendChild(th2);
+
+      // Body
+      for (const step of config.steps) {
+        var row = document.createElement("tr");
+        var td1 = document.createElement("td");
+        var td2 = document.createElement("td");
+
+        td1.innerHTML = `${step.require}+`;
+        td2.innerHTML = `${step.value.value} ${step.value.type === "percent" ? "%" : ""}`;
+
+        row.appendChild(td1);
+        row.appendChild(td2);
+        tbody.appendChild(row);
       }
-      elmReaction.appendChild(tbl);
+
+      tbl.setAttribute("class", "vd_table");
+      tbl.appendChild(thead);
+      tbl.appendChild(tbody);
+
+      elmVD.appendChild(tbl);
       console.log("Render volume discount success");
     } catch (error) {
       console.log("Render error: ", error);
