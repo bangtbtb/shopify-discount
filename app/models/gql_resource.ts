@@ -1,11 +1,7 @@
 import { AdminOperations } from "@shopify/admin-api-client";
-import { StorefrontOperations } from "@shopify/storefront-api-client";
 import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients/types";
-import { CollectionInfo } from "~/components/SelectCollection";
 
 export async function getSimleProductInfo(
-  // graphql: GraphQLClient<StorefrontOperations>,
-
   graphql: GraphQLClient<AdminOperations>,
   id: string,
 ) {
@@ -21,6 +17,16 @@ export async function getSimleProductInfo(
               id
               altText
               url
+            }
+          }
+          priceRangeV2 {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+            maxVariantPrice {
+              amount
+              currencyCode
             }
           }
         }
@@ -39,6 +45,9 @@ export async function getSimleProductInfo(
       title: respJson.data?.product?.title,
       image: respJson.data?.product?.images.nodes[0].url ?? "",
       imageAlt: respJson.data?.product?.images.nodes[0].altText ?? "",
+      priceRangeV2: respJson.data?.product?.priceRangeV2,
+      minPrice: respJson.data?.product?.priceRangeV2.minVariantPrice,
+      maxPrice: respJson.data?.product?.priceRangeV2.maxVariantPrice,
     };
   }
   return null;

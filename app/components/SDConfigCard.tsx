@@ -116,6 +116,25 @@ export function SDConfigCard({
               colls={colls.value}
               onChange={colls.onChange}
             />
+
+            {steps &&
+              steps.value.map((v, idx) => (
+                <Box key={idx} padding={"100"}>
+                  <Removeable index={idx} onRemove={onRemove}>
+                    <StepComponent
+                      key={idx}
+                      require={v.require}
+                      type={v.type}
+                      value={v.value}
+                      onChange={(v) => {
+                        var newArr = [...steps.value];
+                        newArr[idx] = v;
+                        steps.onChange(newArr);
+                      }}
+                    />
+                  </Removeable>
+                </Box>
+              ))}
           </InlineGrid>
         )}
       </InlineStack>

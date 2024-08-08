@@ -22,7 +22,6 @@
   }
 
   /* Contain */
-
   .od_contain {
     border: solid 1px {{ block.settings.hl_color }};;
     border-radius: 6px;
@@ -36,7 +35,7 @@
     margin: 0;
     color: red;
     text-align: left;
-    background-color: {{ block.settings.hl_color }};;
+    background-color: {{ block.settings.hl_color }};
     padding: 0.4rem 0.6rem;
   }
 
@@ -46,7 +45,7 @@
     flex-wrap: wrap;
   }
 
-  .od_contain_content .item {
+  .od_contain_content .od_ctn_p {
     width: 80px;
     margin: 12px;
     display: flex;
@@ -57,13 +56,14 @@
     text-overflow: ellipsis;
   }
 
-  .od_contain_content .item img {
+  .od_contain_content .od_ctn_p img {
     width: 100%;
+    aspect-ratio: 1;
     object-fit: contain;
     border-radius: 6px;
   }
 
-  .od_contain_content .item .product-name {
+  .od_contain_content .od_ctn_p .product-name {
     width: 100%;
     margin-top: 8px;
     font-size: 0.6rem;
@@ -94,14 +94,20 @@
 <div
   id="bundle_12jdj2bvs1abbdf"
   product="{{ product.id }}"
-  prouduct-price="{{ product.price }}"
   cols="{{ col_ids | join: "," }}"
 >
-  <p>Bundle discount</p>
+  {% comment %} <p>Bundle discount</p> {% endcomment %}
 </div>
 
+<script
+  async
+  src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+></script>
 <script src="{{ "load_bundle.js" | asset_url }}" defer></script>
-<script async src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js" onload="buildBundleUI()"></script>
+
+<script>
+  console.log('Inline script');
+</script>
 
 {% schema %}
 {

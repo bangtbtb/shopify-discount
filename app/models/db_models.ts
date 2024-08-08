@@ -109,7 +109,7 @@ export async function findPrismaShippingDiscount(req: RFindShippingDiscount) {
           subType: "total",
         },
         {
-          subType: "contain",
+          subType: "volume",
           OR: [
             {
               productIds: {

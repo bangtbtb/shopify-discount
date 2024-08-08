@@ -1,11 +1,44 @@
-<div id="sd_aabbsd" product="{{ product.id }}" cols="{{ col_ids | join: "," }}"></div>
+<style>
+  .sd_tbl {
+    border: solid 1px {{ block.settings.hl_color }};;
+    border-radius: 4px;
+    text-align: center;
+    padding: 0;
+    border-spacing: 0;
+  }
 
+  .sd_tbl thead {
+    margin: 0;
+    text-align: center;
+    background-color: {{ block.settings.hl_color }};;
+  }
+
+  .sd_tbl th,
+  td {
+    padding: 8px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+  }
+</style>
 <script src="{{ "load_sd.js" | asset_url }}" defer></script>
+<script
+  async
+  src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+></script>
+
+{%- assign col_ids = product.collections | map: 'id' -%}
+
+<div id="sd_aabbsd" product="{{ product.id }}" cols="{{ col_ids | join: "," }}">
+  {% comment %} <p>Shipping discount</p> {% endcomment %}
+</div>
 
 {% schema %}
 {
-  "name": "Shipping discount",
+  "name": "Shipping Discount",
   "target": "section",
-  "settings": [{ "type": "product", "id": "product", "label": "product", "autofill": true }]
+  "settings": [
+    { "type": "product", "id": "product", "label": "product", "autofill": true },
+    { "type": "color", "id": "hl_color", "label": "Highlight Color", "default": "#56d356" }
+  ]
 }
 {% endschema %}

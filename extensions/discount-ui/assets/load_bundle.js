@@ -1,4 +1,4 @@
-function buildBundleUI() {
+(function buildBundleUI() {
   const bundleContainerId = "bundle_12jdj2bvs1abbdf";
   // (function buildBundleUI() {
 
@@ -26,19 +26,10 @@ function buildBundleUI() {
       }
     } catch (err) {
       console.log("Get Bundle discount error: ", err);
-      reject(err);
+      return null;
     }
   }
 
-  /**
-   *
-   * @param {{
-   * label: string;
-   * applyType: "total" | "contain";
-   * total?: ODTotalConfig | undefined;
-   * contain?: ODContainConfig | undefined;
-   * }} config
-   */
   function renderOD(config) {
     if (config.applyType === "total") {
       renderODTotal();
@@ -50,73 +41,75 @@ function buildBundleUI() {
     }
   }
 
-  /**
-   *
-   * @param {{
-   * label: string;
-   * applyType: "total" | "contain";
-   * total?: ODTotalConfig | undefined;
-   * contain?: ODContainConfig | undefined;
-   * }} config
-   */
   function renderODTotal(config) {
-    if (!config.total) {
-      return;
-    }
-
-    // var tbl = document.createElement("table");
-    // var thead = document.createElement("thead");
-
-    // var tbody = document.createElement("thead");
-    // // Head
-    // var th1 = document.createElement("th");
-    // var th2 = document.createElement("th");
-    // th1.innerHTML = "Total order";
-    // th2.innerHTML = "Discount";
-    // thead.appendChild(th1);
-    // thead.appendChild(th2);
-
-    // // Body
-    // for (const step of config.total.steps) {
-    //   var row = document.createElement("tr");
-    //   var td1 = document.createElement("td");
-    //   var td2 = document.createElement("td");
-
-    //   td1.innerHTML = `${step.require}+`;
-    //   td2.innerHTML = `${step.value.value} ${step.value.type === "percent" ? "%" : ""}`;
-
-    //   row.appendChild(td1);
-    //   row.appendChild(td2);
-    //   tbody.appendChild(row);
-    // }
-
-    // tbl.setAttribute("class", "od_table");
-    // tbl.appendChild(thead);
-    // tbl.appendChild(tbody);
-    // elmBundle.appendChild(tbl);
-
+    console.log("Render od total ", config);
     var rows = [];
     // // Body
     for (const step of config.total.steps) {
-      var row = `<tr><td>${step.require}+</td> <td>${step.value.value} ${step.value.type === "percent" ? "%" : ""}</td></tr>`;
+      var row = `<tr><td>${step.total}+</td> <td>${step.value.value} ${step.value.type === "percent" ? "%" : ""}</td></tr>`;
       rows.push(row);
     }
-    $(`#${bundleContainerId}`).a;
+    $(`#${bundleContainerId}`).append(`
+    <table class="od_table">
+        <thead>
+            <tr>
+            <th>Totol order</th>
+            <th>Discount</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        ${rows.join("\n")}
+        </tbody>
+    </table>
+    `);
   }
 
-  /**
-   *
-   * @param {{
-   * label: string;
-   * applyType: "total" | "contain";
-   * total?: ODTotalConfig | undefined;
-   * contain?: ODContainConfig | undefined;
-   * }} config
-   */
   function renderODContain(config) {
-    var divContain = $(`<div class="od_contain_content"></div>`);
-  }
+    var uiProducts = [];
+    var total = 0;
+    var remain = 0;
+    const vType = config.contain.value.type;
+    const dVal = config.contain.value.value;
+    const dAvg = dVal / config.contain.productIds.length;
 
+    console.log("Product object: ", config.products);
+
+    for (const p of config.products) {
+      console.log("Product: ", p);
+      const remain = vType;
+      total += Number.parseInt(p.minPrice.amount);
+
+      var newPrice =
+        p.minPrice.amount -
+        (vType === "fix" ? dAvg : (dVal * p.minPrice.amount) / 100.0);
+      uiProducts.push(` <div class="od_ctn_p">
+      <img  src="${p.image}" />
+      <span class="product-name">${p.title}</span>
+      <div>
+        <span class="od_price_old">${p.minPrice.amount}</span>
+        <span class="od_price_new">${newPrice}</span>
+      </div>
+    </div>`);
+    }
+    remain = total - (vType == "fix" ? dVal : (dVal * total) / 100.0);
+
+    $(`#${bundleContainerId}`).append(`
+    <div class="od_contain">
+        <p class="od_contain_head">${config.title}</p>
+        <div class="od_contain_content">
+        ${uiProducts.join("\n")}
+        </div>
+        <div class="od_total">
+            <span>=</span>
+            <div>
+                <span class="od_price_old" style="flex-grow: 1">${total}</span>
+                <span class="od_price_new" style="flex-grow: 1">${remain}</span>
+            </div>
+        </div>
+    </div>
+    `);
+  }
   function renderOD(config) {
     if (config.applyType === "total") {
       return renderODTotal(config);
@@ -140,12 +133,10 @@ function buildBundleUI() {
       console.log("Load Bundle discount error: ", error);
     }
   }
-  loadOD();
-
-  // window.document.addEventListener("DOMContentLoaded", () => {
-  //   console.log("Start load Bundle discount");
-  //   loadOD();
-  // });
-
-  // })();
-}
+  const itId = setInterval(() => {
+    if ($) {
+      loadOD();
+      clearInterval(itId);
+    }
+  }, 50);
+})();

@@ -21,14 +21,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     payload.cids = payload.cids.map((v) => "gid://shopify/Collection/" + v);
   }
 
-  var sds = await findPrismaShippingDiscount({
+  var ds = await findPrismaShippingDiscount({
     shop: session?.shop || "",
     productId: payload.pid,
     collectionIds: payload.cids,
   });
 
-  if (sds.length) {
-    return json(JSON.parse(sds[0].metafield));
+  if (ds.length) {
+    var rs = { ...JSON.parse(ds[0].metafield), title: ds[0].title };
+    // return json(JSON.parse(.metafield));
+    return json(rs);
   }
 
   return json({});

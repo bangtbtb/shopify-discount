@@ -1,4 +1,5 @@
 import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node";
+import { findPrismaVolumeDiscount } from "~/models/db_models";
 import { authenticate } from "~/shopify.server";
 
 type RequestPayload = {
@@ -17,9 +18,29 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  console.log(`------------------- Call action proxy`);
+  console.log(`------------------- Call action VD proxy`);
 
   const { admin, session } = await authenticate.public.appProxy(request);
+  var payload: RequestPayload = await request.json();
+  console.log("Form data: ", payload);
+  if (payload.pid) {
+    payload.pid = "gid://shopify/Product/" + payload.pid;
+  }
+
+  if (payload.cids && payload.cids.length) {
+    payload.cids = payload.cids.map((v) => "gid://shopify/Collection/" + v);
+  }
+
+  var ds = await findPrismaVolumeDiscount({
+    shop: session?.shop || "",
+    productId: payload.pid,
+    collectionIds: payload.cids,
+  });
+
+  if (ds.length) {
+    var rs = { ...JSON.parse(ds[0].metafield), title: ds[0].title };
+    return json(rs);
+  }
 
   console.log("Cant found any discount ");
   return json({});

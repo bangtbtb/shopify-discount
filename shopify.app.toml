@@ -3,7 +3,7 @@
 client_id = "59c7dbfbeefd1f11ba1aa85228d3700a"
 name = "Simple Discount"
 handle = "sd-xxyy"
-application_url = "https://dot-suggesting-malaysia-proper.trycloudflare.com"
+application_url = "https://spectrum-ya-night-burner.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_orders,write_discounts,write_orders,write_products"
 
 [auth]
 redirect_urls = [
-  "https://dot-suggesting-malaysia-proper.trycloudflare.com/auth/callback",
-  "https://dot-suggesting-malaysia-proper.trycloudflare.com/auth/shopify/callback",
-  "https://dot-suggesting-malaysia-proper.trycloudflare.com/api/auth/callback"
+  "https://spectrum-ya-night-burner.trycloudflare.com/auth/callback",
+  "https://spectrum-ya-night-burner.trycloudflare.com/auth/shopify/callback",
+  "https://spectrum-ya-night-burner.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

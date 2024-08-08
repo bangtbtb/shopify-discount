@@ -28,7 +28,7 @@ import { StepData } from "~/components/ConfigStep";
 import { SDConfigCard } from "~/components/SDConfigCard";
 import { CollectionInfo } from "~/components/SelectCollection";
 import { ProductInfo } from "~/components/SelectProduct";
-import { SDApplyType, SDConfig } from "~/defs";
+import { ActionStatus, SDApplyType, SDConfig } from "~/defs";
 import {
   getShippingDiscount,
   SDConfigExt,
@@ -81,7 +81,10 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   });
 
   var errors = resp?.userErrors?.length ? resp?.userErrors : undefined;
-  var status = errors ? "success" : "failed";
+  var status: ActionStatus = errors ? "failed" : "success";
+  if (errors) {
+    console.log("Update shipping discount error: ", errors);
+  }
 
   return json({ status, errors });
 };
@@ -159,7 +162,7 @@ export default function ShippingDetailPage() {
     // console.log("Update loader data 1");
     const discount = ldata.discount;
     const srcConfig = ldata.config;
-    console.log("Loader data: ", ldata);
+    // console.log("Loader data: ", ldata);
 
     if (!discount || !srcConfig) {
       return;
@@ -189,6 +192,8 @@ export default function ShippingDetailPage() {
     if (!actData || !actData.status) {
       return;
     }
+    // console.log("Action data: ", actData);
+
     if (actData.status === "success") {
       window.shopify.toast.show("Update discount success", { duration: 5000 });
     }
