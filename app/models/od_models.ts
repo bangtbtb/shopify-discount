@@ -44,6 +44,7 @@ export async function createBundleDiscount(
       value: JSON.stringify(req.config),
     },
     ftype: "order_discounts",
+    label: req.config.label,
     subType: req.config.applyType,
     shop: req.shop,
     productIds: req.config.contain?.productIds
@@ -62,6 +63,7 @@ export async function updateBundleDiscount(
     discountId: req.discountId,
     discount: req.discount,
     config: req.config,
+    label: req.config.label,
     subType: req.config.applyType,
     productIds: req.config.contain?.productIds
       ? req.config.contain?.productIds

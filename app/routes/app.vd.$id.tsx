@@ -19,12 +19,8 @@ import {
 } from "@shopify/polaris";
 
 import { DeleteIcon } from "@shopify/polaris-icons";
-import { authenticate, unauthenticated } from "~/shopify.server";
-import {
-  DiscountAutomaticApp,
-  DiscountAutomaticAppInput,
-  UserError,
-} from "~/types/admin.types";
+import { authenticate } from "~/shopify.server";
+import { DiscountAutomaticApp, UserError } from "~/types/admin.types";
 import { useEffect, useMemo } from "react";
 import { useField, useForm } from "@shopify/react-form";
 import {
@@ -43,7 +39,6 @@ import {
 } from "~/models/vd_model";
 import { ActionStatus, VDApplyType, VDConfig, VDStep } from "~/defs";
 import { ProductInfo } from "~/components/SelectProduct";
-import { updatePrismaDiscount } from "~/models/db_models";
 import { StepData } from "~/components/ConfigStep";
 
 interface AciontDataResponse {
@@ -130,12 +125,13 @@ export default function VolumeDiscountDetail() {
         label: useField(""),
         steps: useField<Array<StepData>>([]),
         applyType: useField<VDApplyType>("collection"),
-        collection: useField<CollectionInfo | null>({
-          id: "",
-          title: "",
-          image: "",
-          imageAlt: "",
-        }),
+        // collection: useField<CollectionInfo | null>({
+        //   id: "",
+        //   title: "",
+        //   image: "",
+        //   imageAlt: "",
+        // }),
+        colls: useField<Array<CollectionInfo>>([]),
         products: useField<Array<ProductInfo>>([]),
       },
     },
@@ -146,28 +142,25 @@ export default function VolumeDiscountDetail() {
         startsAt: form.startDate,
         endsAt: form.endDate,
       };
-      var colId =
-        form.config.applyType == "collection"
-          ? form.config.collection?.id
-          : null;
-      var productIds =
-        form.config.applyType == "products"
-          ? form.config.products.map((v) => v.id)
-          : [];
-      var steps: VDStep[] = form.config.steps.map((v) => ({
-        require: Number.parseInt(v.require),
-        value: {
-          type: v.type,
-          value: Number.parseInt(v.value),
-        },
-      }));
 
       var fcg: VDConfig = {
         label: form.config.label,
-        steps,
+        steps: form.config.steps.map((v) => ({
+          require: Number.parseInt(v.require),
+          value: {
+            type: v.type,
+            value: Number.parseInt(v.value),
+          },
+        })),
         applyType: form.config.applyType,
-        colId: colId ?? "",
-        productIds: productIds,
+        collIds:
+          form.config.applyType == "collection"
+            ? form.config.colls.map((v) => v.id)
+            : [],
+        productIds:
+          form.config.applyType == "products"
+            ? form.config.products.map((v) => v.id)
+            : [],
       };
 
       submitForm(
@@ -204,7 +197,7 @@ export default function VolumeDiscountDetail() {
     );
 
     config.applyType.onChange(srcConfig.applyType);
-    config.collection.onChange(srcConfig.collection);
+    config.colls.onChange(srcConfig.colls);
     config.products.onChange(srcConfig.products ?? []);
 
     console.log("Loader data: ", ldata);
@@ -271,7 +264,7 @@ export default function VolumeDiscountDetail() {
               <VDStepConfigComponent steps={config.steps} />
               <VDConfigCard
                 applyType={config.applyType}
-                collection={config.collection}
+                colls={config.colls}
                 products={config.products}
               />
 

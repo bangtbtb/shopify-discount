@@ -1,9 +1,13 @@
-import { PubSub } from "@google-cloud/pubsub";
+import { Message, PubSub } from "@google-cloud/pubsub";
 import { Storage } from "@google-cloud/storage";
-import { log } from "console";
+import { AttributesEvent, DiscountEvent, OrderCreateEvent } from "./defs";
+import { deletePrismaDiscount, updatePrismaDiscount } from "./models/db_models";
+import { Discount } from "@prisma/client";
 
 const ggProject = process.env.GOOGLE_PROJECT;
 const ggSub = process.env.GOOGLE_SUB;
+
+var init = false;
 
 // const ggProject = process.env.GOOGLE_PROJECT || "earnest-command-226202";
 // const ggSub = process.env.GOOGLE_SUB || "vd_discount-sub";
@@ -24,14 +28,97 @@ const ggSub = process.env.GOOGLE_SUB;
 //   });
 // }
 
+console.log("Import GooglePubSub");
+
 export async function startGooglePubsub() {
+  if (init) {
+    console.log("Google pubsub was init");
+    return;
+  }
+
+  init = true;
   console.log(
-    ` ------------Start GooglePubSub Project:${ggProject} Sub:${ggSub}`,
+    ` ------------Start GooglePubSub Project:${ggProject} Sub:${ggSub} init: ${init}`,
   );
+
+  // const pubSub = new PubSub({
+  //   projectId: ggProject,
+  // });
+
+  // const subscription = pubSub.subscription("vd_discount-sub");
+  // subscription.on("message", handleMessage);
 }
 
-async function onDiscountDelete() {}
+function handleMessage(msg: Message) {
+  var data = JSON.parse(msg.data.toString("utf-8"));
+  var attrs = msg.attributes as unknown as AttributesEvent;
 
-async function onDiscountUpdate() {}
+  switch (attrs["X-Shopify-Topic"]) {
+    case "discounts/create":
+      onDiscountCreate(msg, attrs, data);
+      break;
+    case "discounts/update":
+      onDiscountUpdate(msg, attrs, data);
+      break;
+    case "discounts/delete":
+      onDiscountDelete(msg, attrs, data);
+      break;
 
-async function onCreateOrder() {}
+    case "orders/create":
+      onCreateOrder(msg, attrs, data);
+      break;
+
+    default:
+      break;
+  }
+}
+
+async function onDiscountCreate(
+  msg: Message,
+  attr: AttributesEvent,
+  data: DiscountEvent,
+) {
+  msg.ack();
+  // var discount = data as DiscountEvent;
+  // try {
+  //   await deletePrismaDiscount(discount.admin_graphql_api_id);
+  // } catch (error) {
+  //   console.error("Handle event discount delete error: ", error);
+  // }
+}
+
+async function onDiscountUpdate(
+  msg: Message,
+  attrs: AttributesEvent,
+  discount: DiscountEvent,
+) {
+  try {
+    await updatePrismaDiscount(discount.admin_graphql_api_id, {
+      title: discount.title,
+      status: discount.status,
+    });
+    msg.ack();
+  } catch (error) {
+    console.error("Handle event update discount error: ", error);
+    msg.nack();
+  }
+}
+
+async function onDiscountDelete(
+  msg: Message,
+  attr: AttributesEvent,
+  data: DiscountEvent,
+) {
+  var discount = data as DiscountEvent;
+  try {
+    await deletePrismaDiscount(discount.admin_graphql_api_id);
+  } catch (error) {
+    console.error("Handle event discount delete error: ", error);
+  }
+}
+
+async function onCreateOrder(
+  msg: Message,
+  attr: AttributesEvent,
+  data: OrderCreateEvent,
+) {}

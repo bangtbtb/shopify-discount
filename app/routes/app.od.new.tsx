@@ -79,11 +79,11 @@ export default function NewODPage() {
       return;
     }
     if (actData.status === "success") {
-      window.shopify.toast.show("Update discount success", { duration: 5000 });
+      window.shopify.toast.show("Create discount success", { duration: 5000 });
     }
 
     if (actData.status === "failed") {
-      window.shopify.toast.show("Update discount failed", {
+      window.shopify.toast.show("Create discount failed", {
         duration: 5000,
         isError: true,
       });

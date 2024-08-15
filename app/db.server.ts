@@ -12,6 +12,4 @@ if (process.env.NODE_ENV !== "production") {
   }
 }
 
-console.log("Init beepify db");
-
 export default prisma;

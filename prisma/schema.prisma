@@ -45,6 +45,7 @@ model Discount {
   shop          String
   status        String
   title         String
+  label         String    @default("")
   metafield     String
   startAt       DateTime
   endAt         DateTime?
@@ -60,16 +61,18 @@ model Discount {
   @@index([shop, createdAt])
 }
 
-// model DiscountApplied {
-//   id            String   @id @default(uuid())
-//   shop          String
-//   discountId    String
-//   functionId    String
-//   orderId       String
-//   discountValue Float
-//   totalValue    Float
-//   createdAt     DateTime @default(now())
-// }
+model DiscountApplied {
+  id            String   @id @default(uuid())
+  shop          String
+  discountId    String
+  functionId    String
+  orderId       String
+  discountValue Float
+  totalValue    Float
+  createdAt     DateTime @default(now())
+
+  @@index([shop, createdAt])
+}
 
 // model DiscountProduct {
 //   id         String   @id

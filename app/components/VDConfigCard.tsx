@@ -17,6 +17,7 @@ import {
   CollectionInfo,
   SelectCollection,
   SelectCollectionProp,
+  SelectCollections,
 } from "./SelectCollection";
 import {
   ProductInfo,
@@ -29,13 +30,13 @@ import { Removeable } from "./Removeable";
 
 interface VBConfigCardProps {
   applyType: Field<VDApplyType>;
-  collection: Field<CollectionInfo | null>;
+  colls: Field<Array<CollectionInfo>>;
   products: Field<Array<ProductInfo>>;
 }
 
 export default function VDConfigCard({
   applyType,
-  collection,
+  colls,
   products,
 }: VBConfigCardProps) {
   return (
@@ -64,7 +65,11 @@ export default function VDConfigCard({
               onChange={products.onChange}
             />
           ) : (
-            <SelectCollection label="Select target" {...collection} />
+            <SelectCollections
+              label="Select collection target"
+              colls={colls.value}
+              onChange={colls.onChange}
+            />
           )}
         </InlineStack>
       </Layout.Section>

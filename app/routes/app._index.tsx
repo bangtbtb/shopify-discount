@@ -1,11 +1,20 @@
 import { useEffect, useState } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
+import {
+  useFetcher,
+  useLoaderData,
+  useLocation,
+  useNavigate,
+  useOutletContext,
+} from "@remix-run/react";
 import { Page, Layout, IndexTable } from "@shopify/polaris";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { getPrismaDiscounts } from "~/models/db_models";
+import { AppSubscription } from "~/types/admin.types";
+import { BillingCheckResponseObject } from "@shopify/shopify-api";
+import { AppContextType } from "~/defs/fe";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
@@ -28,6 +37,8 @@ export default function Index() {
   const { total, page, discounts } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
 
+  // const { bill } = useOutletContext<AppContextType>();
+
   const shopify = useAppBridge();
   const isLoading =
     ["loading", "submitting"].includes(fetcher.state) &&
@@ -36,9 +47,20 @@ export default function Index() {
   const [loadSuccess, setLoadSuccess] = useState(false);
 
   const nav = useNavigate();
+  const loc = useLocation();
 
   useEffect(() => {
     setLoadSuccess(true);
+    // console.log("Comeback to app index ", bill);
+
+    // if (bill) {
+    //   if (!bill?.appSubscriptions?.length) {
+    //     if (loc.pathname != "/app/pricing") {
+    //       console.log("Redirect to pricing");
+    //       nav("/app/pricing");
+    //     }
+    //   }
+    // }
   }, [loadSuccess]);
 
   return (

@@ -3,7 +3,6 @@ import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/s
 import { DiscountAutomaticAppInput, MetafieldInput } from "~/types/admin.types";
 import { createPrismaDiscount, updatePrismaDiscount } from "./db_models";
 import { ADT } from "@prisma/client";
-import { GqlCreateDiscountMutation } from "~/types/admin.generated";
 
 export type FuncType =
   | "product_discounts"
@@ -50,6 +49,7 @@ export async function gqlGetFunction(
 export type GqlCreateDiscountRequest = {
   discount: DiscountAutomaticAppInput;
   metafield: MetafieldInput;
+  label: string;
   ftype: FuncType;
   subType: string;
   productIds: string[];
@@ -119,6 +119,7 @@ export async function gqlCreateDiscount(
       metafield: req.metafield.value ?? "",
       status: rsDiscount.status,
       title: rsDiscount.title ?? "",
+      label: req.label,
       type: mapFuncType.get(req.ftype) ?? "None",
       subType: req.subType,
       startAt: new Date(rsDiscount.startsAt),
@@ -135,6 +136,7 @@ export type GqlUpdateDiscountRequest = {
   discountId: string;
   discount: DiscountAutomaticAppInput;
   config: MetafieldInput;
+  label: string;
   subType: string;
   productIds: string[];
   collIds: string[];
@@ -294,4 +296,62 @@ export async function gqlDelDiscount(
   );
   var respJson = await resp.json();
   return respJson.data;
+}
+type GetDiscount = {
+  limit: number;
+  namespace: string;
+  after: string | null;
+};
+
+export async function gqlGetDiscounts(
+  graphql: GraphQLClient<AdminOperations>,
+  { limit, namespace, after }: GetDiscount,
+) {
+  var resp = await graphql(
+    `
+      query gqlGetDiscounts($limit: Int!, $after: String, $namespace: String) {
+        discountNodes(first: $limit, after: $after) {
+          nodes {
+            id
+            discount {
+              ... on DiscountAutomaticApp {
+                title
+                startsAt
+                status
+                discountClass
+                appDiscountType {
+                  title
+                  functionId
+                }
+              }
+            }
+            metafields(first: 10, namespace: $namespace) {
+              edges {
+                node {
+                  id
+                  namespace
+                  key
+                  value
+                }
+              }
+            }
+          }
+          pageInfo {
+            hasNextPage
+            startCursor
+            endCursor
+          }
+        }
+      }
+    `,
+    {
+      variables: {
+        limit,
+        after,
+        namespace,
+      },
+    },
+  );
+  var respJson = await resp.json();
+  return respJson;
 }

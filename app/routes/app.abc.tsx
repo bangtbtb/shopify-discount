@@ -37,25 +37,5 @@ export default function ABCIndex() {
     },
   });
 
-  const [multiP, setMultiP] = useState<Array<ProductInfo>>([]);
-
-  return (
-    <Page title="ABC index">
-      <Form onSubmit={() => {}}>
-        <Button
-          onClick={() => {
-            submit({}, { method: "post" });
-          }}
-        >
-          Submit
-        </Button>
-      </Form>
-
-      <SelectProduct {...p.fields} />
-      <SelectMultipleProducts
-        products={multiP}
-        onChange={(val) => setMultiP(val)}
-      />
-    </Page>
-  );
+  return <Page title="ABC index"></Page>;
 }

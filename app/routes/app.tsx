@@ -1,5 +1,12 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { Link, Outlet, useLoaderData, useRouteError } from "@remix-run/react";
+import {
+  Link,
+  Outlet,
+  useLoaderData,
+  useLocation,
+  useNavigate,
+  useRouteError,
+} from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
@@ -8,17 +15,69 @@ import { json } from "@remix-run/node";
 
 import { authenticate } from "../shopify.server";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
+import {
+  AppSubscription,
+  BillingCheckResponseObject,
+} from "@shopify/shopify-api";
+import { ContextType, useEffect, useState } from "react";
+import { AppContextType } from "~/defs/fe";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session, billing } = await authenticate.admin(request);
 
-  return json({ apiKey: process.env.SHOPIFY_API_KEY || "" });
+  const url = new URL(request.url);
+  var billStatus: BillingCheckResponseObject | undefined = undefined;
+  var idx = url.pathname.indexOf("/app/pricing");
+  console.log(`Idx:${idx} Path name: `, url.pathname);
+
+  if (idx < 0) {
+    try {
+      billStatus = await billing.check({
+        plans: [],
+      });
+    } catch (error) {
+      console.log("Get subscription error: ", error);
+    }
+  }
+
+  return json({
+    apiKey: process.env.SHOPIFY_API_KEY || "",
+    billStatus: billStatus,
+  });
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData<typeof loader>();
+  const { apiKey, billStatus } = useLoaderData<typeof loader>();
+  const nav = useNavigate();
+  const loc = useLocation();
+
+  const [bill, setBill] = useState<BillingCheckResponseObject | null>(null);
+
+  useEffect(() => {
+    console.log(`Path: ${loc.pathname} App subscription: `, billStatus);
+    if (billStatus) {
+      setBill(billStatus);
+    }
+
+    if (!billStatus?.appSubscriptions?.length) {
+      if (loc.pathname != "/app/pricing") {
+        console.log("Redirect to pricing");
+        nav("/app/pricing");
+      }
+    } else {
+      console.log("Subscsription has length");
+    }
+  }, [billStatus]);
+
+  useEffect(() => {
+    console.log("Loc change to: ", loc.pathname);
+    if (!bill?.appSubscriptions.length && loc.pathname != "/app/pricing") {
+      console.log("Redirect to pricing");
+      nav("/app/pricing");
+    }
+  }, [loc]);
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
@@ -28,10 +87,10 @@ export default function App() {
             Home
           </Link>
           <Link to="/app">Home</Link>
+          <Link to="/app/pricing">Pricing</Link>
           <Link to="/app/settings">Settings</Link>
-          <Link to="/app/additional">Additional page</Link>
         </NavMenu>
-        <Outlet />
+        <Outlet context={{ bill } satisfies AppContextType} />
       </DiscountProvider>
     </AppProvider>
   );

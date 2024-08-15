@@ -1,0 +1,51 @@
+1. Free trial
+
+   - Free trial day: 14
+   - Feature:
+     - Volume: limit 1
+     - Bundle: limit 1
+     - Shipping: limit 1
+     - Analystics: unlimited
+
+2. Beginner
+
+   - Fix fee:
+     - Month: 8$
+     - Annual: 80$
+   - Feature:
+
+     - Volume: unlimited
+     - Bundle: unlimited
+     - Shipping: unlimited
+     - Analystics: unlimited
+
+   - Extends: 500 order apply count
+     - 1% order fee
+
+3. Pro
+
+   - Fix fee:
+     - Month: 12$
+     - Annual: 100$
+   - Feature:
+
+     - Volume: unlimited
+     - Bundle: unlimited
+     - Shipping: unlimited
+     - Analystics: unlimited
+
+   - Extends: 1000 order apply count
+
+4. Pro
+
+   - Fix fee:
+
+     - Month: 20$
+     - Annual: 200$
+
+   - Feature:
+
+     - Volume: unlimited
+     - Bundle: unlimited
+     - Shipping: unlimited
+     - Analystics: unlimited

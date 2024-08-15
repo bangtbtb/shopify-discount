@@ -1,7 +1,6 @@
 import { AdminOperations } from "@shopify/admin-api-client";
 import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients/types";
 import { DiscountAutomaticAppInput, Metafield } from "~/types/admin.types";
-import { getDiscounts } from "./discount";
 import { DiscountStatus } from "@shopify/discount-app-components";
 import { VDConfig } from "~/defs";
 import { ProductInfo } from "~/components/SelectProduct";
@@ -10,13 +9,15 @@ import {
   gqlCreateDiscount,
   gqlGetDiscount,
   gqlUpdateDiscount,
+  gqlGetDiscounts,
 } from "./gql_discount";
+
 import { getSimleProductInfo, getSimpleCollection } from "./gql_resource";
 
 export type VDConfigExt = VDConfig & {
   id: string;
   products: Array<ProductInfo>;
-  collection: CollectionInfo | null;
+  colls: Array<CollectionInfo>;
 };
 
 export type CreateVDRequest = {
@@ -54,11 +55,12 @@ export async function createVolumeDiscount(
       type: "json",
       value: JSON.stringify(req.config),
     },
+    label: req.config.label,
     ftype: "product_discounts",
     shop: req.shop,
     subType: req.config.applyType,
     productIds: req.config.productIds ? req.config.productIds : [],
-    collIds: req.config.colId ? [req.config.colId] : [],
+    collIds: req.config.collIds ? req.config.collIds : [],
   });
   return resp;
 }
@@ -74,9 +76,10 @@ export async function updateVolumeDiscount(
       id: req.configId,
       value: JSON.stringify(req.config),
     },
+    label: req.config.label,
     subType: req.config.applyType,
     productIds: req.config.productIds ? req.config.productIds : [],
-    collIds: req.config.colId ? [req.config.colId] : [],
+    collIds: req.config.collIds ? req.config.collIds : [],
   });
   console.log("Response update volume discount: ", respJson);
   return respJson;
@@ -92,13 +95,16 @@ export async function getVolumeDiscount(
   var config: VDConfigExt = {
     id: metafield?.id ?? 0,
     products: [],
-    collection: null,
+    colls: [],
     ...JSON.parse(discount?.metafields?.nodes[0].value ?? "{}"),
   };
 
-  if (config.applyType === "collection" && config.colId) {
-    var colResp = await getSimpleCollection(graphql, config.colId ?? "");
-    config.collection = colResp;
+  if (config.applyType === "collection" && config.collIds?.length) {
+    for (let i = 0; i < config.collIds?.length; i++) {
+      const collId = config.collIds[i];
+      var coll = await getSimpleCollection(graphql, collId);
+      coll && config.colls.push(coll);
+    }
   }
 
   if (config.applyType === "products" && config.productIds?.length) {
@@ -115,50 +121,50 @@ export async function getVolumeDiscount(
   };
 }
 
-export async function findVolumeDiscount(
-  graphql: GraphQLClient<AdminOperations>,
-  { funcId, productId, collectionIds }: FindVolumeDiscount,
-) {
-  var limit = 20;
-  var after: string | null = null;
-  var done = false;
-  while (!done) {
-    var resp = await getDiscounts(graphql, {
-      limit,
-      namespace: "$app:vd",
-      after: after,
-    });
+// export async function findVolumeDiscount(
+//   graphql: GraphQLClient<AdminOperations>,
+//   { funcId, productId, collectionIds }: FindVolumeDiscount,
+// ) {
+//   var limit = 20;
+//   var after: string | null = null;
+//   var done = false;
+//   while (!done) {
+//     var resp = await gqlGetDiscounts(graphql, {
+//       limit,
+//       namespace: "$app:vd",
+//       after: after,
+//     });
 
-    var discounts = resp.data?.discountNodes.nodes;
-    if (discounts) {
-      for (let i = 0; i < (discounts?.length ?? 0); i++) {
-        const d = discounts[i].discount;
-        const m = discounts[i].metafields.edges;
+//     var discounts = resp.data?.discountNodes.nodes;
+//     if (discounts) {
+//       for (let i = 0; i < (discounts?.length ?? 0); i++) {
+//         const d = discounts[i].discount;
+//         const m = discounts[i].metafields.edges;
 
-        if (
-          d.appDiscountType?.functionId !== funcId ||
-          d.status !== DiscountStatus.Active
-        ) {
-          continue;
-        }
+//         if (
+//           d.appDiscountType?.functionId !== funcId ||
+//           d.status !== DiscountStatus.Active
+//         ) {
+//           continue;
+//         }
 
-        if (d.appDiscountType.functionId == funcId && m.length) {
-          var config: VDConfig = JSON.parse(m[0].node.value);
-          if (config.applyType === "products") {
-            if ((config.productIds ?? []).indexOf(productId) >= 0) {
-              return discounts[i];
-            }
-          } else {
-            if (collectionIds.indexOf(config.colId || "") >= 0) {
-              return discounts[i];
-            }
-          }
-        }
-      }
-    }
+//         if (d.appDiscountType.functionId == funcId && m.length) {
+//           var config: VDConfig = JSON.parse(m[0].node.value);
+//           if (config.applyType === "products") {
+//             if ((config.productIds ?? []).indexOf(productId) >= 0) {
+//               return discounts[i];
+//             }
+//           } else {
+//             if (collectionIds.indexOf(config.colId || "") >= 0) {
+//               return discounts[i];
+//             }
+//           }
+//         }
+//       }
+//     }
 
-    after = resp.data?.discountNodes.pageInfo.endCursor ?? null;
-    done = resp.data?.discountNodes.pageInfo.hasNextPage ?? false;
-  }
-  return null;
-}
+//     after = resp.data?.discountNodes.pageInfo.endCursor ?? null;
+//     done = resp.data?.discountNodes.pageInfo.hasNextPage ?? false;
+//   }
+//   return null;
+// }

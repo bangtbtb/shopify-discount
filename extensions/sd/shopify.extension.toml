@@ -1,11 +1,15 @@
 api_version = "2024-07"
 
 [[extensions]]
-name = "Shipping discount"
+name = "Shipping Discount"
 description = ""
 handle = "sd"
 type = "function"
 
+
+[extensions.input.variables]
+namespace = "$app:sd"
+key = "sd_config"
 
 [[extensions.targeting]]
 target = "purchase.shipping-discount.run"
@@ -15,6 +19,7 @@ export = "run"
 [extensions.build]
 command = ""
 path = "dist/function.wasm"
+
 
 [extensions.ui.paths]
 create = "/app/sd/new"

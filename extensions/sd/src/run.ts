@@ -1,4 +1,3 @@
-import { DiscountApplicationStrategy } from "@shopify/discount-app-components";
 import type {
   RunInput,
   FunctionRunResult,
@@ -30,6 +29,7 @@ type SDStep = {
 interface ProductSum {
   id: string;
   total: number;
+  inAnyCollection: boolean;
   collections: Array<CollectionMembership>;
   variants: Array<Merchandise>;
 }
@@ -91,7 +91,7 @@ function onTotal(input: RunInput, config: SDConfig): FunctionRunResult {
         discounts: [
           {
             targets: targets,
-            message: config.label || "dfd",
+            message: config.label || "SHIPPING_DISCOUNT",
             value:
               s.value.type === "percent"
                 ? {
@@ -113,31 +113,38 @@ function onTotal(input: RunInput, config: SDConfig): FunctionRunResult {
 }
 
 function onVolume(input: RunInput, config: SDConfig): FunctionRunResult {
+  console.log(
+    "Calculate shipping discount volume: ",
+    config.collIds,
+    config.productIds,
+  );
+  if (!config.steps) {
+    console.log("Step is empty");
+    return EMPTY_DISCOUNT;
+  }
+
   var pSum = countProduct(input);
   var arr = [...pSum.values()];
   arr = arr
     .filter((v) => {
-      if (config.productIds && config.productIds.includes(v.id)) {
+      if (v.inAnyCollection) {
         return true;
       }
-
-      if (config.collIds && config.collIds.includes(v.id)) {
+      if (config.productIds && config.productIds.includes(v.id)) {
         return true;
       }
       return false;
     })
     .sort((a, b) => b.total - a.total);
 
-  if (!config.steps) {
-    console.log("Step is empty");
-    return EMPTY_DISCOUNT;
-  }
+  console.log("Product sorted: ", JSON.stringify(arr));
 
   for (var idx = 0; idx < arr.length; idx++) {
     const pMax = arr[idx];
+
     var step = config.steps.reduce<SDStep | null>(
       (prev, current, currentIdx) => {
-        if (pMax.total > current.require) {
+        if (pMax.total >= current.require) {
           idx = currentIdx;
           return current;
         }
@@ -145,6 +152,7 @@ function onVolume(input: RunInput, config: SDConfig): FunctionRunResult {
       },
       null,
     );
+    console.log("Step found: ", step);
 
     if (step) {
       return {
@@ -153,7 +161,7 @@ function onVolume(input: RunInput, config: SDConfig): FunctionRunResult {
             targets: input.cart.deliveryGroups.map((v) => ({
               deliveryGroup: { id: v.id },
             })),
-            message: config.label || "Shipping discount",
+            message: config.label || "SHIPPING_DISCOUNT",
             value:
               step.value.type === "percent"
                 ? { percentage: { value: step.value.value } }
@@ -163,7 +171,7 @@ function onVolume(input: RunInput, config: SDConfig): FunctionRunResult {
       };
     }
   }
-
+  console.log("Cant find any product matched");
   return EMPTY_DISCOUNT;
 }
 
@@ -177,6 +185,7 @@ function countProduct(input: RunInput) {
       sum = {
         id: variant.product.id,
         total: 0,
+        inAnyCollection: variant.product.inAnyCollection,
         collections: variant.product.inCollections,
         variants: new Array<ProductVariant>(),
       };

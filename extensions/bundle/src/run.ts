@@ -33,6 +33,7 @@ type ODTotalConfig = {
 
 type ODContainConfig = {
   value: DiscountValue;
+  allOrder: boolean | undefined;
   productIds: string[];
 };
 
@@ -126,37 +127,38 @@ function onContain(input: RunInput, config: ODConfig): FunctionRunResult {
   // Count product
   var pCounter = new Map<string, ProductSum>();
   input.cart.lines.forEach((line) => {
-    var p = line.merchandise as ProductVariant;
-    var num = existed.get(p.id);
+    const pVar = line.merchandise as ProductVariant;
+    var num = existed.get(pVar.id) || 0;
 
-    var sum = pCounter.get(p.product.id);
+    var sum = pCounter.get(pVar.product.id);
     if (!sum) {
       sum = {
-        id: p.product.id,
+        id: pVar.product.id,
         total: 0,
         mark: num !== undefined,
         variants: new Array<ProductVariantTarget>(),
       };
-      pCounter.set(p.product.id, sum);
+      pCounter.set(pVar.product.id, sum);
     }
 
     sum.total += line.quantity;
     sum.variants.push({
-      id: p.id,
+      id: pVar.id,
       quantity: line.quantity,
     });
 
-    if (num !== undefined) {
-      existed.set(p.id, num + line.quantity);
+    if (existed.has(pVar.product.id)) {
+      existed.set(pVar.product.id, num + line.quantity);
     }
   });
 
   var success = true;
   var targets: Target[] = [];
+
   existed.forEach((v, k) => {
-    var ps = pCounter.get(k);
-    if (v > 0 && ps) {
-      ps.variants.forEach((variants) => {
+    var pSum = pCounter.get(k);
+    if (v > 0 && pSum) {
+      pSum.variants.forEach((variants) => {
         targets.push({
           productVariant: {
             id: variants.id,
@@ -165,12 +167,26 @@ function onContain(input: RunInput, config: ODConfig): FunctionRunResult {
         });
       });
     } else {
+      console.log(
+        `Product ${k} is not existed. Count:${v} Sum:${JSON.stringify(pSum)} `,
+      );
+
       success = false;
     }
   });
 
   if (!success) {
+    console.log("Not success ");
     return EMPTY_DISCOUNT;
+  }
+
+  if (config.contain.allOrder) {
+    targets = input.cart.lines.map((line) => ({
+      productVariant: {
+        id: (line.merchandise as ProductVariant).id,
+        quantity: line.quantity,
+      },
+    }));
   }
 
   return {
@@ -178,12 +194,19 @@ function onContain(input: RunInput, config: ODConfig): FunctionRunResult {
     discounts: [
       {
         targets: targets,
-        value: {
-          percentage: {
-            value: 1,
-          },
-        },
-        message: "",
+        value:
+          config.contain.value.type === "percent"
+            ? {
+                percentage: {
+                  value: config.contain.value.value,
+                },
+              }
+            : {
+                fixedAmount: {
+                  amount: config.contain.value.value,
+                },
+              },
+        message: config.label,
       },
     ],
   };

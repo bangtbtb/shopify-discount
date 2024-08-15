@@ -1,4 +1,4 @@
-query RunInput {
+query RunInput($collIds: [ID!]) {
   localization {
     country {
       isoCode
@@ -22,6 +22,7 @@ query RunInput {
             inCollections {
               collectionId
             }
+            inAnyCollection(ids: $collIds)
           }
         }
       }

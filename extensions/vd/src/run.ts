@@ -4,7 +4,6 @@ import type {
   ProductVariant,
   Target,
   Discount,
-  CollectionMembership,
 } from "../generated/api";
 import { DiscountApplicationStrategy } from "../generated/api";
 
@@ -32,13 +31,14 @@ type VDConfig = {
   steps: VDStep[];
   applyType: VDApplyType;
   colId: string | undefined;
+  collIds: string[] | undefined;
   productIds?: Array<string> | undefined;
 };
 
 interface ProductSum {
   id: string;
   total: number;
-  collections: Array<CollectionMembership>;
+  inAnyCollection: boolean;
   variants: Array<Target>;
 }
 
@@ -46,7 +46,7 @@ export function run(input: RunInput): FunctionRunResult {
   const config: VDConfig = JSON.parse(
     input?.discountNode.metafield?.value ?? "{}",
   );
-  console.log(`Config: `, JSON.stringify(config));
+  // console.log(`Config: `, JSON.stringify(config));
 
   if (!config.steps || !config.steps.length) {
     return EMPTY_DISCOUNT;
@@ -61,7 +61,7 @@ export function run(input: RunInput): FunctionRunResult {
       sum = {
         id: p.product.id,
         total: 0,
-        collections: p.product.inCollections,
+        inAnyCollection: p.product.inAnyCollection,
         variants: new Array<Target>(),
       };
       pCounter.set(p.product.id, sum);
@@ -75,31 +75,35 @@ export function run(input: RunInput): FunctionRunResult {
       },
     });
   });
+  // console.log("Product summary: ", JSON.stringify(pCounter));
 
   // Calculate discount
   var discounts: Array<Discount> = [];
-  pCounter.forEach((ps) => {
+  pCounter.forEach((pSum) => {
     if (config.applyType === "collection") {
-      var idx = ps.collections.findIndex((v) => v.collectionId == config.colId);
-      if (idx >= 0) {
+      if (!pSum.inAnyCollection) {
         return;
       }
-    } else if (config.applyType == "products") {
-      if ((config.productIds?.indexOf(ps.id) ?? -1) < 0) {
-        return;
-      }
+      console.log("Accepted product by collection: ", pSum.id);
     }
 
-    var step = findStep(config.steps, ps);
+    if (config.applyType === "products") {
+      if ((config.productIds?.indexOf(pSum.id) ?? -1) < 0) {
+        return;
+      }
+      console.log("Accepted product by id: ", pSum.id);
+    }
+
+    var step = findStep(config.steps, pSum);
     if (!step) {
       return;
     }
     var isPercent = step.value.type === "percent";
-    var label = config.label || `Off ${step.value} ${isPercent ? "%" : ""}`;
 
     var discount: Discount = {
-      targets: ps.variants.map((v) => ({ ...v })),
-      message: label,
+      targets: pSum.variants.map((v) => ({ ...v })),
+      message:
+        config.label || `Volume discount ${step.value} ${isPercent ? "%" : ""}`,
       value: isPercent
         ? {
             percentage: {
@@ -123,7 +127,7 @@ export function run(input: RunInput): FunctionRunResult {
 
 function findStep(steps: VDStep[], p: ProductSum) {
   for (let i = steps.length - 1; i >= 0; i--) {
-    if (p.total > steps[i].require) {
+    if (p.total >= steps[i].require) {
       return steps[i];
     }
   }

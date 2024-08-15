@@ -11,6 +11,10 @@ target = "purchase.product-discount.run"
 input_query = "src/run.graphql"
 export = "run"
 
+[extensions.input.variables]
+namespace = "$app:vd"
+key = "vd_config"
+
 [extensions.build]
 command = ""
 path = "dist/function.wasm"

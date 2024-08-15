@@ -1,4 +1,5 @@
-query RunInput {
+# query RunInput {
+query RunInput($collIds: [ID!]) {
   cart {
     lines {
       id
@@ -14,9 +15,7 @@ query RunInput {
           id
           product {
             id
-            inCollections {
-              collectionId
-            }
+            inAnyCollection(ids: $collIds)
           }
         }
       }

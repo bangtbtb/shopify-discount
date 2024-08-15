@@ -31,6 +31,7 @@ import { ActionStatus, VDApplyType, VDConfig, VDStep } from "~/defs";
 import { ProductInfo } from "~/components/SelectProduct";
 import { StepData } from "~/components/ConfigStep";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
+import { CollectionInfo } from "~/components/SelectCollection";
 
 interface ActionData {
   status: ActionStatus;
@@ -109,32 +110,17 @@ export default function VolDiscountCreate() {
           { type: "percent", value: "15", require: "4" },
         ]),
         applyType: useField<VDApplyType>("collection"),
-        collection: useField({
-          id: "",
-          title: "",
-          image: "",
-          imageAlt: "",
-        }),
+        // collection: useField({
+        //   id: "",
+        //   title: "",
+        //   image: "",
+        //   imageAlt: "",
+        // }),
+        colls: useField<Array<CollectionInfo>>([]),
         products: useField<Array<ProductInfo>>([]),
       },
     },
     onSubmit: async (form) => {
-      var colId =
-        form.config.applyType == "collection"
-          ? form.config.collection.id
-          : null;
-      var productIds =
-        form.config.applyType == "products"
-          ? form.config.products.map((v) => v.id)
-          : [];
-      var steps: VDStep[] = form.config.steps.map((v) => ({
-        require: Number.parseInt(v.require),
-        value: {
-          type: v.type,
-          value: Number.parseInt(v.value),
-        },
-      }));
-
       var discount: DiscountAutomaticAppInput = {
         title: form.title,
         combinesWith: form.combinesWith,
@@ -142,21 +128,32 @@ export default function VolDiscountCreate() {
         endsAt: form.endDate,
       };
 
-      var formConfig: VDConfig = {
+      var fcg: VDConfig = {
         label: form.config.label,
-        steps,
+        steps: form.config.steps.map((v) => ({
+          require: Number.parseInt(v.require),
+          value: {
+            type: v.type,
+            value: Number.parseInt(v.value),
+          },
+        })),
         applyType: form.config.applyType,
-        colId: colId ?? "",
-        productIds: productIds,
+        collIds:
+          form.config.applyType == "collection"
+            ? form.config.colls.map((v) => v.id)
+            : [],
+        productIds:
+          form.config.applyType == "products"
+            ? form.config.products.map((v) => v.id)
+            : [],
       };
-      console.log("Product: ", productIds);
-      console.log("Collection: ", colId);
+      console.log("Form config: ", fcg);
       console.log("Discount: ", discount);
 
       submitForm(
         {
           discount: JSON.stringify(discount),
-          config: JSON.stringify(formConfig),
+          config: JSON.stringify(fcg),
         },
         { method: "post" },
       );
@@ -208,7 +205,7 @@ export default function VolDiscountCreate() {
 
               <VDConfigCard
                 applyType={config.applyType}
-                collection={config.collection}
+                colls={config.colls}
                 products={config.products}
               />
 

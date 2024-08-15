@@ -1,0 +1,36 @@
+1. Volume 
+    - Collection 
+    - Product
+    - Step
+
+2. Bundle
+    - Contain: chứa những sản phẩm nào
+    - Total: Tổng order đạt bao nhiêu tiền
+        - Step: 100$ giam 5%
+
+3. Shipping
+    - Total: Tổng order đạt bao nhiêu tiền
+        - Step: 100$ giam 5%
+    - Volume 
+
+
+Thiết kế 
+1. App
+    - HomePage:
+        - Tổng quan về các discount
+        - Đánh giá
+    - Discount
+        - Discount table
+        - Button : create
+    - Discount detail
+        - Performance
+        - Edit
+        - Delete 
+        - Status
+    - Pricing
+    - Setting
+
+2. Phần hiển thị web
+    - Tất cả các tính năng discount (volume, bundle, shipping)
+    
+3.  Checkout 
