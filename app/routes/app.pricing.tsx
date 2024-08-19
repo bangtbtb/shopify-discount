@@ -26,37 +26,47 @@ import {
 import { useEffect, useState } from "react";
 import { getShopName } from "~/models/utils";
 
+type PlanName = "Freemium" | "Basic" | "Advanced" | "Enterprise";
+const planTitles = ["Freemium", "Basic", "Advanced", "Enterprise"];
+
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing } = await authenticate.admin(request);
 
   var subscription = await billing.check({
-    plans: ["Freemium", "Basic", "Advance", "Enterprise"],
+    plans: ["Freemium", "Basic", "Advanced", "Enterprise"],
   });
 
   return json({ activedSubs: subscription.appSubscriptions });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin, session, billing } = await authenticate.admin(request);
+  const { session, billing } = await authenticate.admin(request);
 
   const formData = await request.formData();
-  const subTitle = formData.get("title") as PricingPlanName;
+  const stitle: PlanName =
+    (formData.get("title")?.toString() as PlanName) ?? "Freemium";
+
+  console.log("Sub title: ", stitle);
+  if (!planTitles.includes(stitle)) {
+    return json({
+      status: "failed",
+      message: `Plan ${stitle} is not support`,
+    });
+  }
+
   var status = "success";
-
-  console.log("Sub title: ", subTitle);
-
   const isBillingTest = process.env.BILLING_TEST === "true";
 
   const resp = await billing.require({
     isTest: isBillingTest,
-    plans: [subTitle],
+    plans: [stitle],
     onFailure: () => {
       return billing.request({
-        plan: subTitle,
+        plan: stitle,
         isTest: isBillingTest,
-        returnUrl: `https://admin.shopify.com/store/${getShopName(session.shop)}/apps/xbilling/app`,
+        returnUrl: `https://admin.shopify.com/store/${getShopName(session.shop)}/apps/sd-xxyy`,
       });
     },
   });

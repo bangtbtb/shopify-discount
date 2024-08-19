@@ -1,20 +1,28 @@
 import { useEffect, useState } from "react";
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  SerializeFrom,
+} from "@remix-run/node";
 import { json } from "@remix-run/node";
 import {
   useFetcher,
   useLoaderData,
   useLocation,
   useNavigate,
-  useOutletContext,
 } from "@remix-run/react";
-import { Page, Layout, IndexTable } from "@shopify/polaris";
+import { Page, Layout, Text, Card } from "@shopify/polaris";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
-import { getPrismaDiscounts } from "~/models/db_models";
-import { AppSubscription } from "~/types/admin.types";
-import { BillingCheckResponseObject } from "@shopify/shopify-api";
-import { AppContextType } from "~/defs/fe";
+import { dbGetDiscounts } from "~/models/db_discount";
+import { DiscountTable } from "~/components/DiscountTable";
+import { Discount } from "@prisma/client";
+
+// type LoaderType = {
+//   total: number;
+//   page: number;
+//   discounts: Discount[];
+// };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
@@ -24,7 +32,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const page = Number.parseInt(searchParams.get("page") || "") || 1;
 
-  const { total, discounts } = await getPrismaDiscounts(session.shop, page);
+  const { total, discounts } = await dbGetDiscounts({
+    shop: session.shop,
+    page,
+  });
 
   return json({ total, page, discounts });
 };
@@ -37,8 +48,6 @@ export default function Index() {
   const { total, page, discounts } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
 
-  // const { bill } = useOutletContext<AppContextType>();
-
   const shopify = useAppBridge();
   const isLoading =
     ["loading", "submitting"].includes(fetcher.state) &&
@@ -49,18 +58,14 @@ export default function Index() {
   const nav = useNavigate();
   const loc = useLocation();
 
+  const onClickDiscount = (d: SerializeFrom<Discount>) => {
+    var dt = d.type === "Bundle" ? "od" : d.type === "Volume" ? "vd" : "sd";
+    var idxSplash = d.id.lastIndexOf("/");
+    nav(`/app/${dt}/${d.id.slice(idxSplash + 1)}`);
+  };
+
   useEffect(() => {
     setLoadSuccess(true);
-    // console.log("Comeback to app index ", bill);
-
-    // if (bill) {
-    //   if (!bill?.appSubscriptions?.length) {
-    //     if (loc.pathname != "/app/pricing") {
-    //       console.log("Redirect to pricing");
-    //       nav("/app/pricing");
-    //     }
-    //   }
-    // }
   }, [loadSuccess]);
 
   return (
@@ -93,42 +98,15 @@ export default function Index() {
     >
       <Layout.Section>
         {loadSuccess && discounts && (
-          <IndexTable
-            itemCount={discounts.length}
-            selectable={false}
-            headings={[
-              { title: "Title" },
-              { title: "Status" },
-              { title: "Type" },
-              { title: "Start" },
-              { title: "End" },
-            ]}
-          >
-            {discounts.map((d, idx) => (
-              <IndexTable.Row
-                id={d.id}
-                key={d.id}
-                position={idx}
-                onClick={() => {
-                  var dt =
-                    d.type === "Bundle"
-                      ? "od"
-                      : d.type === "Volume"
-                        ? "vd"
-                        : "sd";
-                  var idxSplash = d.id.lastIndexOf("/");
-                  nav(`/app/${dt}/${d.id.slice(idxSplash + 1)}`);
-                }}
-              >
-                <IndexTable.Cell>{d.title}</IndexTable.Cell>
-                <IndexTable.Cell>{d.status}</IndexTable.Cell>
-                <IndexTable.Cell>{d.type}</IndexTable.Cell>
-                <IndexTable.Cell>{d.startAt}</IndexTable.Cell>
-                <IndexTable.Cell>{d.endAt || ""}</IndexTable.Cell>
-              </IndexTable.Row>
-            ))}
-          </IndexTable>
+          <DiscountTable
+            discounts={discounts ?? []}
+            onClick={onClickDiscount}
+          />
         )}
+      </Layout.Section>
+      <Layout.Section>
+        <Text as="h2">Performance</Text>
+        {/* <Card></Card> */}
       </Layout.Section>
     </Page>
   );

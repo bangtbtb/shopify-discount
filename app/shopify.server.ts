@@ -10,7 +10,6 @@ import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prism
 import { restResources } from "@shopify/shopify-api/rest/admin/2024-07";
 import prisma from "./db.server";
 import { startGooglePubsub } from "./pubsub";
-import { BillingReplacementBehavior } from "@shopify/shopify-api";
 
 startGooglePubsub();
 console.log("Init beepify");
@@ -50,7 +49,7 @@ const shopify = shopifyApp({
         },
       ],
     },
-    Advance: {
+    Advanced: {
       lineItems: [
         {
           interval: BillingInterval.Every30Days,

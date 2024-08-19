@@ -37,7 +37,7 @@ import {
   updateVolumeDiscount,
   VDConfigExt,
 } from "~/models/vd_model";
-import { ActionStatus, VDApplyType, VDConfig, VDStep } from "~/defs";
+import { ActionStatus, VDApplyType, VDConfig } from "~/defs";
 import { ProductInfo } from "~/components/SelectProduct";
 import { StepData } from "~/components/ConfigStep";
 
@@ -125,12 +125,6 @@ export default function VolumeDiscountDetail() {
         label: useField(""),
         steps: useField<Array<StepData>>([]),
         applyType: useField<VDApplyType>("collection"),
-        // collection: useField<CollectionInfo | null>({
-        //   id: "",
-        //   title: "",
-        //   image: "",
-        //   imageAlt: "",
-        // }),
         colls: useField<Array<CollectionInfo>>([]),
         products: useField<Array<ProductInfo>>([]),
       },
@@ -252,12 +246,6 @@ export default function VolumeDiscountDetail() {
                   label={"Title"}
                   autoComplete="off"
                   {...discountTitle}
-                />
-
-                <TextField
-                  label={"Label"}
-                  autoComplete="off"
-                  {...config.label}
                 />
               </Card>
 

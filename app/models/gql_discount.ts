@@ -1,7 +1,7 @@
 import { AdminOperations } from "@shopify/admin-api-client";
 import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients/types";
 import { DiscountAutomaticAppInput, MetafieldInput } from "~/types/admin.types";
-import { createPrismaDiscount, updatePrismaDiscount } from "./db_models";
+import { createPrismaDiscount, updatePrismaDiscount } from "./db_discount";
 import { ADT } from "@prisma/client";
 
 export type FuncType =

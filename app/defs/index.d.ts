@@ -12,17 +12,22 @@ export type BasicDiscountConfig = {
   applyType: VDApplyType;
 };
 
+export type RewardStep = {
+  require: number; // Condition
+  value: DiscountValue; // Reward
+};
+
 // ----------------------------- Order discount (bundle) --------------
 
 export type ODApplyType = "total" | "contain";
 
-export type ODTotalStep = {
-  total: number; // Condition
-  value: DiscountValue; // Reward
-};
+// export type ODTotalStep = {
+//   total: number; // Condition
+//   value: DiscountValue; // Reward
+// };
 
 export type ODTotalConfig = {
-  steps: ODTotalStep[];
+  steps: RewardStep[];
 };
 
 export type ODContainConfig = {
@@ -42,16 +47,11 @@ export type ODConfig = {
 
 export type SDApplyType = "total" | "volume";
 
-export type SDStep = {
-  require: number;
-  value: DiscountValue;
-};
-
 export type SDConfig = {
   label: string;
   applyType: SDApplyType;
   local?: string[] | undefined;
-  steps: SDStep[] | undefined;
+  steps: RewardStep[] | undefined;
   collIds: string[] | undefined;
   productIds: string[] | undefined;
 };
@@ -60,15 +60,10 @@ export type SDConfig = {
 
 export type VDApplyType = "collection" | "products";
 
-export type VDStep = {
-  require: number;
-  value: DiscountValue;
-};
-
 export type VDConfig = {
   label: string;
   applyType: VDApplyType;
-  steps: VDStep[];
+  steps: RewardStep[];
   // colId: string | undefined;
   collIds: string[] | undefined;
   productIds: string[] | undefined;
@@ -100,8 +95,8 @@ export interface DiscountEvent {
 }
 
 export interface Money {
-  amount: string;
-  currency_code: string;
+  amount: bigint;
+  currency_code: bigint;
 }
 
 export interface PriceSet {
@@ -127,15 +122,15 @@ export interface OrderCreateEvent {
   confirmed: boolean;
   created_at: string;
   currency: string;
-  current_subtotal_price: string;
+  current_subtotal_price: bigint;
   current_subtotal_price_set: PriceSet;
   current_total_additional_fees_set: any;
-  current_total_discounts: string;
+  current_total_discounts: bigint;
   current_total_discounts_set: PriceSet;
   current_total_duties_set: any;
-  current_total_price: string;
+  current_total_price: bigint;
   current_total_price_set: PriceSet;
-  current_total_tax: string;
+  current_total_tax: bigint;
   current_total_tax_set: PriceSet;
   customer_locale: string;
   device_id: any;
@@ -163,7 +158,7 @@ export interface OrderCreateEvent {
   source_identifier: string;
   source_name: string;
   source_url: any;
-  subtotal_price: string;
+  subtotal_price: bigint;
   subtotal_price_set: PriceSet;
   tags: string;
   tax_exempt: boolean;
@@ -171,17 +166,17 @@ export interface OrderCreateEvent {
   taxes_included: boolean;
   test: boolean;
   token: string;
-  total_discounts: string;
+  total_discounts: bigint;
   total_discounts_set: PriceSet;
-  total_line_items_price: string; // Total order
+  total_line_items_price: bigint; // Total order
   total_line_items_price_set: PriceSet;
-  total_outstanding: string;
-  total_price: string;
+  total_outstanding: bigint;
+  total_price: bigint;
   total_price_set: PriceSet;
   total_shipping_price_set: PriceSet;
-  total_tax: string;
+  total_tax: bigint;
   total_tax_set: PriceSet;
-  total_tip_received: string;
+  total_tip_received: bigint;
   total_weight: number;
   updated_at: string;
   user_id: any;
@@ -206,7 +201,7 @@ export interface ClientDetails {
 }
 
 export interface TaxLine {
-  price: string;
+  price: bigint;
   rate: number;
   title: string;
   price_set: PriceSet;
@@ -257,12 +252,12 @@ export interface DefaultAddress {
 }
 
 export interface DiscountApplication {
-  target_type: string;
+  target_type: "line_item" | "shipping_line";
   type: string;
-  value: string;
-  value_type: string;
-  allocation_method: string;
-  target_selection: string;
+  value: bigint;
+  value_type: "percentage" | "fixed_amount";
+  allocation_method: "across" | "each";
+  target_selection: "all" | "entitled" | "explicit";
   title: string;
 }
 
@@ -277,7 +272,7 @@ export interface LineItem {
   gift_card: boolean;
   grams: number;
   name: string;
-  price: string;
+  price: bigint;
   price_set: PriceSet;
   product_exists: boolean;
   product_id: number;
@@ -287,27 +282,19 @@ export interface LineItem {
   sku: string;
   taxable: boolean;
   title: string;
-  total_discount: string;
+  total_discount: bigint;
   total_discount_set: PriceSet;
   variant_id: number;
   variant_inventory_management: string;
   variant_title: string;
   vendor: string;
-  tax_lines: TaxLine2[];
+  tax_lines: TaxLine[];
   duties: any[];
   discount_allocations: DiscountAllocation[];
 }
 
-export interface TaxLine2 {
-  channel_liable: boolean;
-  price: string;
-  price_set: PriceSet;
-  rate: number;
-  title: string;
-}
-
 export interface DiscountAllocation {
-  amount: string;
+  amount: bigint;
   amount_set: PriceSet;
   discount_application_index: number;
 }

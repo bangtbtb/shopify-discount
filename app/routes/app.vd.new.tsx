@@ -27,11 +27,12 @@ import { useEffect, useMemo } from "react";
 import { authenticate } from "~/shopify.server";
 import VDConfigCard, { VDStepConfigComponent } from "~/components/VDConfigCard";
 import { createVolumeDiscount } from "~/models/vd_model";
-import { ActionStatus, VDApplyType, VDConfig, VDStep } from "~/defs";
+import { ActionStatus, VDApplyType, VDConfig } from "~/defs";
 import { ProductInfo } from "~/components/SelectProduct";
 import { StepData } from "~/components/ConfigStep";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
 import { CollectionInfo } from "~/components/SelectCollection";
+import { randomNumber } from "~/models/utils";
 
 interface ActionData {
   status: ActionStatus;
@@ -46,9 +47,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     formData.get("discount")?.toString() || "{}",
   );
 
-  const config: VDConfig = JSON.parse(
-    formData.get("config")?.toString() || "{}",
-  );
+  const config: VDConfig = {
+    ...JSON.parse(formData.get("config")?.toString() || "{}"),
+    label: `VOLUME_${randomNumber()}`,
+  };
 
   var resp = await createVolumeDiscount(admin.graphql, {
     discount: discount,
@@ -70,8 +72,6 @@ export default function VolDiscountCreate() {
   const todaysDate = useMemo(() => new Date().toString(), []);
   const isLoading = navigation.state == "submitting";
   const submitErrors = actData?.errors ?? [];
-
-  // const nav = useNavigate();
 
   useEffect(() => {
     if (actData?.status === "success") {
@@ -110,12 +110,6 @@ export default function VolDiscountCreate() {
           { type: "percent", value: "15", require: "4" },
         ]),
         applyType: useField<VDApplyType>("collection"),
-        // collection: useField({
-        //   id: "",
-        //   title: "",
-        //   image: "",
-        //   imageAlt: "",
-        // }),
         colls: useField<Array<CollectionInfo>>([]),
         products: useField<Array<ProductInfo>>([]),
       },
@@ -195,11 +189,11 @@ export default function VolDiscountCreate() {
             <BlockStack align="space-around" gap={"200"}>
               <Card>
                 <TextField label={"Title"} autoComplete="off" {...title} />
-                <TextField
+                {/* <TextField
                   label={"Label"}
                   autoComplete="off"
                   {...config.label}
-                />
+                /> */}
               </Card>
               <VDStepConfigComponent steps={config.steps} />
 

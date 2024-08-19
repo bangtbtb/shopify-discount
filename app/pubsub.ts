@@ -1,7 +1,10 @@
 import { Message, PubSub } from "@google-cloud/pubsub";
 import { Storage } from "@google-cloud/storage";
 import { AttributesEvent, DiscountEvent, OrderCreateEvent } from "./defs";
-import { deletePrismaDiscount, updatePrismaDiscount } from "./models/db_models";
+import {
+  deletePrismaDiscount,
+  updatePrismaDiscount,
+} from "./models/db_discount";
 import { Discount } from "@prisma/client";
 
 const ggProject = process.env.GOOGLE_PROJECT;

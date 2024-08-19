@@ -123,6 +123,7 @@ export default function BundleDetailPage() {
           { type: "percent", value: "15", require: "3" },
           { type: "percent", value: "15", require: "4" },
         ]),
+        allOrder: useField(true),
         containProduct: useField<Array<ProductInfo>>([]),
         containValue: useField({
           type: "percent",
@@ -138,6 +139,7 @@ export default function BundleDetailPage() {
         startsAt: form.startDate,
         endsAt: form.endDate,
       };
+
       var formConfig: ODConfig = {
         label: form.config.label,
         applyType: form.config.applyType,
@@ -149,13 +151,14 @@ export default function BundleDetailPage() {
                   type: form.config.containValue.type as DVT,
                   value: Number.parseFloat(form.config.containValue.value),
                 },
+                allOrder: form.config.allOrder,
               }
             : undefined,
         total:
           form.config.applyType === "total"
             ? {
                 steps: form.config.totalSteps.map((v) => ({
-                  total: Number.parseFloat(v.require),
+                  require: Number.parseFloat(v.require),
                   value: {
                     type: v.type,
                     value: Number.parseFloat(v.value),
@@ -195,7 +198,7 @@ export default function BundleDetailPage() {
     srcConfig.total?.steps &&
       config.totalSteps.onChange(
         srcConfig.total?.steps.map((v) => ({
-          require: v.total.toString(),
+          require: v.require.toString(),
           type: v.value.type,
           value: v.value.value.toString(),
         })),
@@ -235,14 +238,14 @@ export default function BundleDetailPage() {
                 />
               </Box>
 
-              <Box>
+              {/* <Box>
                 <TextField
                   label={"Label"}
                   autoComplete="off"
                   {...config.label}
                   helpText="This text will show in checkout ui of customer"
                 />
-              </Box>
+              </Box> */}
             </Card>
 
             <ODConfigCard

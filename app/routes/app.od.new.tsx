@@ -23,6 +23,7 @@ import ODConfigCard from "~/components/ODConfigCard";
 import { ProductInfo } from "~/components/SelectProduct";
 import { ActionStatus, DVT, ODApplyType, ODConfig } from "~/defs";
 import { createBundleDiscount } from "~/models/od_models";
+import { randomNumber } from "~/models/utils";
 import { authenticate } from "~/shopify.server";
 import {
   DiscountAutomaticAppInput,
@@ -42,9 +43,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     formData.get("discount")?.toString() || "{}",
   );
 
-  const config: ODConfig = JSON.parse(
-    formData.get("config")?.toString() || "{}",
-  );
+  const config: ODConfig = {
+    ...JSON.parse(formData.get("config")?.toString() || "{}"),
+    label: `BUNDLE_${randomNumber()}`,
+  };
 
   var resp = await createBundleDiscount(admin.graphql, {
     discount,
@@ -111,6 +113,7 @@ export default function NewODPage() {
           { type: "percent", value: "15", require: "3" },
           { type: "percent", value: "15", require: "4" },
         ]),
+        allOrder: useField(true),
         containProduct: useField<Array<ProductInfo>>([]),
         containValue: useField({
           type: "percent",
@@ -137,13 +140,14 @@ export default function NewODPage() {
                   type: form.config.containValue.type as DVT,
                   value: Number.parseFloat(form.config.containValue.value),
                 },
+                allOrder: form.config.allOrder,
               }
             : undefined,
         total:
           form.config.type === "total"
             ? {
                 steps: form.config.totalSteps.map((v) => ({
-                  total: Number.parseFloat(v.require),
+                  require: Number.parseFloat(v.require),
                   value: {
                     type: v.type,
                     value: Number.parseFloat(v.value),
@@ -178,15 +182,6 @@ export default function NewODPage() {
                   autoComplete="off"
                   {...title}
                   helpText="This text will show in dashboard of admin"
-                />
-              </Box>
-
-              <Box>
-                <TextField
-                  label={"Label"}
-                  autoComplete="off"
-                  {...config.label}
-                  helpText="This text will show in checkout ui of customer"
                 />
               </Box>
             </Card>

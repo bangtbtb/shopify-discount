@@ -24,6 +24,7 @@ import { CollectionInfo } from "~/components/SelectCollection";
 import { ProductInfo } from "~/components/SelectProduct";
 import { ActionStatus, SDApplyType, SDConfig } from "~/defs";
 import { createShippingDiscount } from "~/models/sd_models";
+import { randomNumber } from "~/models/utils";
 import { authenticate } from "~/shopify.server";
 import {
   DiscountAutomaticAppInput,
@@ -43,9 +44,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     formData.get("discount")?.toString() || "{}",
   );
 
-  const formConfig: SDConfig = JSON.parse(
-    formData.get("config")?.toString() || "{}",
-  );
+  const formConfig: SDConfig = {
+    ...JSON.parse(formData.get("config")?.toString() || "{}"),
+    label: `SHIPPING_${randomNumber()}`,
+  };
 
   var resp = await createShippingDiscount(admin.graphql, {
     discount,
@@ -162,15 +164,6 @@ export default function NewSDPage() {
                   autoComplete="off"
                   {...title}
                   helpText="This text will show in dashboard of admin"
-                />
-              </Box>
-
-              <Box>
-                <TextField
-                  label={"Label"}
-                  autoComplete="off"
-                  {...config.label}
-                  helpText="This text will show in checkout ui of customer"
                 />
               </Box>
             </Card>

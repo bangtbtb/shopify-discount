@@ -21,14 +21,14 @@ type DiscountValue = {
   type: DVT;
 };
 
-type VDStep = {
-  require: number;
-  value: DiscountValue;
+type RewardStep = {
+  require: number; // Condition
+  value: DiscountValue; // Reward
 };
 
 type VDConfig = {
   label: string;
-  steps: VDStep[];
+  steps: RewardStep[];
   applyType: VDApplyType;
   colId: string | undefined;
   collIds: string[] | undefined;
@@ -98,12 +98,11 @@ export function run(input: RunInput): FunctionRunResult {
     if (!step) {
       return;
     }
-    var isPercent = step.value.type === "percent";
 
+    var isPercent = step.value.type === "percent";
     var discount: Discount = {
       targets: pSum.variants.map((v) => ({ ...v })),
-      message:
-        config.label || `Volume discount ${step.value} ${isPercent ? "%" : ""}`,
+      message: config.label || `VOLUME_DISCOUNT`,
       value: isPercent
         ? {
             percentage: {
@@ -125,7 +124,7 @@ export function run(input: RunInput): FunctionRunResult {
   };
 }
 
-function findStep(steps: VDStep[], p: ProductSum) {
+function findStep(steps: RewardStep[], p: ProductSum) {
   for (let i = steps.length - 1; i >= 0; i--) {
     if (p.total >= steps[i].require) {
       return steps[i];

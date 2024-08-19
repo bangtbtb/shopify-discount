@@ -1,7 +1,7 @@
 import { ActionFunctionArgs, json } from "@remix-run/node";
 import { StorefrontOperations } from "@shopify/storefront-api-client";
 import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients/types";
-import { findPrismaBundleDiscount } from "~/models/db_models";
+import { dbFindBundleDiscount } from "~/models/db_discount";
 import { getSimleProductInfo } from "~/models/gql_resource";
 import { authenticate, unauthenticated } from "~/shopify.server";
 
@@ -74,7 +74,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     payload.cids = payload.cids.map((v) => "gid://shopify/Collection/" + v);
   }
 
-  var ds = await findPrismaBundleDiscount({
+  var ds = await dbFindBundleDiscount({
     shop: session?.shop || "",
     productId: payload.pid,
     collectionIds: payload.cids,

@@ -222,14 +222,14 @@ export default function ShippingDetailPage() {
                 />
               </Box>
 
-              <Box>
+              {/* <Box>
                 <TextField
                   label={"Label"}
                   autoComplete="off"
                   {...config.label}
                   helpText="This text will show in checkout ui of customer"
                 />
-              </Box>
+              </Box> */}
             </Card>
 
             <SDConfigCard

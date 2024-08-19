@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node";
-import { findPrismaVolumeDiscount } from "~/models/db_models";
+import { dbFindVolumeDiscount } from "~/models/db_discount";
 import { authenticate } from "~/shopify.server";
 
 type RequestPayload = {
@@ -31,7 +31,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     payload.cids = payload.cids.map((v) => "gid://shopify/Collection/" + v);
   }
 
-  var ds = await findPrismaVolumeDiscount({
+  var ds = await dbFindVolumeDiscount({
     shop: session?.shop || "",
     productId: payload.pid,
     collectionIds: payload.cids,

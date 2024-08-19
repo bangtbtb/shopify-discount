@@ -22,13 +22,13 @@ type DiscountValue = {
   type: DVT;
 };
 
-type ODTotalStep = {
-  total: number; // Condition
+export type RewardStep = {
+  require: number; // Condition
   value: DiscountValue; // Reward
 };
 
 type ODTotalConfig = {
-  steps: ODTotalStep[];
+  steps: RewardStep[];
 };
 
 type ODContainConfig = {
@@ -81,7 +81,7 @@ function onTotal(input: RunInput, config: ODConfig): FunctionRunResult {
 
   for (let i = config.total.steps.length - 1; i >= 0; i--) {
     const s = config.total.steps[i];
-    if (total > s.total) {
+    if (total > s.require) {
       return {
         discountApplicationStrategy: DiscountApplicationStrategy.First,
         discounts: [
@@ -93,7 +93,7 @@ function onTotal(input: RunInput, config: ODConfig): FunctionRunResult {
                 },
               },
             ],
-            message: config.label || "dfd",
+            message: config.label || "BUNDLE_DISCOUNT",
             value:
               s.value.type === "percent"
                 ? {

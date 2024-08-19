@@ -55,36 +55,34 @@ model Discount {
   productIds    String[]
   collectionIds String[]
 
-  // products    DiscountProduct[]
-  // collections DiscountCollection[]
+  DiscountApplied DiscountApplied[]
+
+  @@index([shop, createdAt])
+  @@index([label])
+}
+
+model OrderApplied {
+  id            String            @id
+  shop          String
+  wasApplied    Boolean
+  subTotalPrice Decimal
+  products      String[]          @default([])
+  createdAt     DateTime          @default(now())
+  applied       DiscountApplied[]
 
   @@index([shop, createdAt])
 }
 
 model DiscountApplied {
-  id            String   @id @default(uuid())
-  shop          String
-  discountId    String
-  functionId    String
-  orderId       String
-  discountValue Float
-  totalValue    Float
-  createdAt     DateTime @default(now())
+  id             String        @id @default(uuid())
+  shop           String
+  discountId     String
+  discount       Float // Discount value
+  total          Float // Total  
+  orderAppliedId String?
+  createdAt      DateTime      @default(now())
+  OrderApplied   OrderApplied? @relation(fields: [orderAppliedId], references: [id])
+  Discount       Discount?     @relation(fields: [discountId], references: [id])
 
-  @@index([shop, createdAt])
+  @@index([discountId])
 }
-
-// model DiscountProduct {
-//   id         String   @id
-//   shop       String
-//   value      String
-//   discountId String
-//   discount   Discount @relation(fields: [discountId], references: [id])
-// }
-
-// model DiscountCollection {
-//   id         String   @id
-//   shop       String
-//   discountId String
-//   discount   Discount @relation(fields: [discountId], references: [id])
-// }

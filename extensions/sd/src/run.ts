@@ -21,9 +21,9 @@ type DiscountValue = {
   type: DVT;
 };
 
-type SDStep = {
-  require: number;
-  value: DiscountValue;
+type RewardStep = {
+  require: number; // Condition
+  value: DiscountValue; // Reward
 };
 
 interface ProductSum {
@@ -38,7 +38,7 @@ export type SDConfig = {
   label: string;
   applyType: SDApplyType;
   local?: string[] | undefined;
-  steps: SDStep[] | undefined;
+  steps: RewardStep[] | undefined;
   collIds: string[] | undefined;
   productIds: string[] | undefined;
 };
@@ -142,7 +142,7 @@ function onVolume(input: RunInput, config: SDConfig): FunctionRunResult {
   for (var idx = 0; idx < arr.length; idx++) {
     const pMax = arr[idx];
 
-    var step = config.steps.reduce<SDStep | null>(
+    var step = config.steps.reduce<RewardStep | null>(
       (prev, current, currentIdx) => {
         if (pMax.total >= current.require) {
           idx = currentIdx;

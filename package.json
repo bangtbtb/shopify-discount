@@ -16,7 +16,8 @@
     "shopify": "shopify",
     "prisma": "prisma",
     "gqlgen": "graphql-codegen",
-    "vite": "vite"
+    "vite": "vite",
+    "prisma-gen": "npx prisma generate"
   },
   "type": "module",
   "engines": {

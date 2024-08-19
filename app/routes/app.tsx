@@ -35,8 +35,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (idx < 0) {
     try {
       billStatus = await billing.check({
-        plans: [],
+        plans: ["Freemium", "Basic", "Advanced", "Enterprise"],
       });
+      console.log("Bill status: ", billStatus);
     } catch (error) {
       console.log("Get subscription error: ", error);
     }
@@ -73,8 +74,12 @@ export default function App() {
 
   useEffect(() => {
     console.log("Loc change to: ", loc.pathname);
-    if (!bill?.appSubscriptions.length && loc.pathname != "/app/pricing") {
-      console.log("Redirect to pricing");
+    if (
+      bill &&
+      !bill?.appSubscriptions.length &&
+      loc.pathname != "/app/pricing"
+    ) {
+      console.log("Redirect to pricing because: ", bill);
       nav("/app/pricing");
     }
   }, [loc]);

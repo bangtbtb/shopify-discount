@@ -1,8 +1,0 @@
-mutation updateDiscount($id: ID!, $data: DiscountAutomaticAppInput!) {
-  discountAutomaticAppUpdate(id: $id, automaticAppDiscount: $data) {
-    userErrors {
-      field
-      message
-    }
-  }
-}
