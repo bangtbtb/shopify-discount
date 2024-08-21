@@ -10,33 +10,28 @@ import {
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
-import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { json } from "@remix-run/node";
-
 import { authenticate } from "../shopify.server";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
-import {
-  AppSubscription,
-  BillingCheckResponseObject,
-} from "@shopify/shopify-api";
-import { ContextType, useEffect, useState } from "react";
+import { BillingCheckResponseObject } from "@shopify/shopify-api";
+import { useEffect, useState } from "react";
 import { AppContextType } from "~/defs/fe";
+
+import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
+// import translations from "@shopify/polaris/locales/en.json";
+// import { useI18n, I18nContext } from "@shopify/react-i18n";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session, billing } = await authenticate.admin(request);
+  const { billing } = await authenticate.admin(request);
 
   const url = new URL(request.url);
   var billStatus: BillingCheckResponseObject | undefined = undefined;
   var idx = url.pathname.indexOf("/app/pricing");
-  console.log(`Idx:${idx} Path name: `, url.pathname);
-
   if (idx < 0) {
     try {
-      billStatus = await billing.check({
-        plans: ["Freemium", "Basic", "Advanced", "Enterprise"],
-      });
+      billStatus = await billing.check();
       console.log("Bill status: ", billStatus);
     } catch (error) {
       console.log("Get subscription error: ", error);
@@ -55,6 +50,17 @@ export default function App() {
   const loc = useLocation();
 
   const [bill, setBill] = useState<BillingCheckResponseObject | null>(null);
+  // const [i18n] = useI18n({
+  //   id: "Polaris",
+  //   fallback: translations,
+  //   translations(locale) {
+  //     console.log("Load locale: ", locale);
+
+  //     return import(`translations/${locale}.json`).then(
+  //       (dictionary) => dictionary && dictionary.default,
+  //     );
+  //   },
+  // });
 
   useEffect(() => {
     console.log(`Path: ${loc.pathname} App subscription: `, billStatus);
@@ -86,15 +92,15 @@ export default function App() {
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
+      <NavMenu>
+        <Link to="/app" rel="home">
+          Home
+        </Link>
+        <Link to="/app">Home</Link>
+        <Link to="/app/pricing">Pricing</Link>
+        <Link to="/app/settings">Settings</Link>
+      </NavMenu>
       <DiscountProvider>
-        <NavMenu>
-          <Link to="/app" rel="home">
-            Home
-          </Link>
-          <Link to="/app">Home</Link>
-          <Link to="/app/pricing">Pricing</Link>
-          <Link to="/app/settings">Settings</Link>
-        </NavMenu>
         <Outlet context={{ bill } satisfies AppContextType} />
       </DiscountProvider>
     </AppProvider>

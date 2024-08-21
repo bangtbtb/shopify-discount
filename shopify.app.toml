@@ -3,7 +3,7 @@
 client_id = "59c7dbfbeefd1f11ba1aa85228d3700a"
 name = "Simple Discount"
 handle = "sd-xxyy"
-application_url = "https://auditor-gale-perfectly-avon.trycloudflare.com"
+application_url = "https://velvet-grows-pink-low.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_orders,write_discounts,write_orders,write_products"
 
 [auth]
 redirect_urls = [
-  "https://auditor-gale-perfectly-avon.trycloudflare.com/auth/callback",
-  "https://auditor-gale-perfectly-avon.trycloudflare.com/auth/shopify/callback",
-  "https://auditor-gale-perfectly-avon.trycloudflare.com/api/auth/callback"
+  "https://velvet-grows-pink-low.trycloudflare.com/auth/callback",
+  "https://velvet-grows-pink-low.trycloudflare.com/auth/shopify/callback",
+  "https://velvet-grows-pink-low.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

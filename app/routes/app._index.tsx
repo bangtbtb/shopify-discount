@@ -11,18 +11,15 @@ import {
   useLocation,
   useNavigate,
 } from "@remix-run/react";
-import { Page, Layout, Text, Card } from "@shopify/polaris";
+import { Page, Layout, Text, Card, Box } from "@shopify/polaris";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { dbGetDiscounts } from "~/models/db_discount";
 import { DiscountTable } from "~/components/DiscountTable";
 import { Discount } from "@prisma/client";
 
-// type LoaderType = {
-//   total: number;
-//   page: number;
-//   discounts: Discount[];
-// };
+import { randomNumber } from "~/models/utils";
+import { LineChart } from "~/components/Chart";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
@@ -62,6 +59,47 @@ export default function Index() {
     var dt = d.type === "Bundle" ? "od" : d.type === "Volume" ? "vd" : "sd";
     var idxSplash = d.id.lastIndexOf("/");
     nav(`/app/${dt}/${d.id.slice(idxSplash + 1)}`);
+  };
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top" as const,
+      },
+      title: {
+        display: true,
+        text: "Chart.js Line Chart",
+      },
+    },
+  };
+
+  const labels = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+  ];
+
+  const data = {
+    labels,
+    datasets: [
+      {
+        label: "Dataset 1",
+        data: labels.map(() => randomNumber()),
+        borderColor: "rgb(255, 99, 132)",
+        backgroundColor: "rgba(255, 99, 132, 0.5)",
+      },
+      {
+        label: "Dataset 2",
+        data: labels.map(() => randomNumber()),
+        borderColor: "rgb(53, 162, 235)",
+        backgroundColor: "rgba(53, 162, 235, 0.5)",
+      },
+    ],
   };
 
   useEffect(() => {
@@ -106,7 +144,10 @@ export default function Index() {
       </Layout.Section>
       <Layout.Section>
         <Text as="h2">Performance</Text>
-        {/* <Card></Card> */}
+        <Box minHeight="300" width="300">
+          <LineChart data={data} options={options} />
+        </Box>
+        <Card></Card>
       </Layout.Section>
     </Page>
   );
