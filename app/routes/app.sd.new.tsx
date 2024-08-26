@@ -19,6 +19,7 @@ import {
 import { useField, useForm } from "@shopify/react-form";
 import { useEffect, useMemo } from "react";
 import { StepData } from "~/components/ConfigStep";
+import { DiscountProvider } from "~/components/providers/DiscountProvider";
 import { SDConfigCard } from "~/components/SDConfigCard";
 import { CollectionInfo } from "~/components/SelectCollection";
 import { ProductInfo } from "~/components/SelectProduct";
@@ -175,11 +176,13 @@ export default function NewSDPage() {
               colls={config.colls}
             />
 
-            <ActiveDatesCard
-              startDate={startDate}
-              endDate={endDate}
-              timezoneAbbreviation="EST"
-            />
+            <DiscountProvider>
+              <ActiveDatesCard
+                startDate={startDate}
+                endDate={endDate}
+                timezoneAbbreviation="EST"
+              />
+            </DiscountProvider>
           </BlockStack>
         </Layout.Section>
 

@@ -25,6 +25,7 @@ import { useField, useForm } from "@shopify/react-form";
 import { useEffect, useMemo } from "react";
 import { StepData } from "~/components/ConfigStep";
 import ODConfigCard from "~/components/ODConfigCard";
+import { DiscountProvider } from "~/components/providers/DiscountProvider";
 import { ProductInfo } from "~/components/SelectProduct";
 import { ActionStatus, DVT, ODApplyType, ODConfig } from "~/defs";
 import {
@@ -225,20 +226,21 @@ export default function BundleDetailPage() {
   return (
     <Page title="Bundle discount detail">
       <Layout>
-        {/* Information */}
-        <Layout.Section>
-          <BlockStack align="space-around" gap={"200"}>
-            <Card>
-              <Box paddingBlockEnd={"500"}>
-                <TextField
-                  label={"Title"}
-                  autoComplete="off"
-                  {...title}
-                  helpText="This text will show in dashboard of admin"
-                />
-              </Box>
+        <DiscountProvider>
+          {/* Information */}
+          <Layout.Section>
+            <BlockStack align="space-around" gap={"200"}>
+              <Card>
+                <Box paddingBlockEnd={"500"}>
+                  <TextField
+                    label={"Title"}
+                    autoComplete="off"
+                    {...title}
+                    helpText="This text will show in dashboard of admin"
+                  />
+                </Box>
 
-              {/* <Box>
+                {/* <Box>
                 <TextField
                   label={"Label"}
                   autoComplete="off"
@@ -246,27 +248,28 @@ export default function BundleDetailPage() {
                   helpText="This text will show in checkout ui of customer"
                 />
               </Box> */}
-            </Card>
+              </Card>
 
-            <ODConfigCard
-              odType={config.applyType}
-              products={config.containProduct}
-              steps={config.totalSteps}
-            />
+              <ODConfigCard
+                odType={config.applyType}
+                products={config.containProduct}
+                steps={config.totalSteps}
+              />
 
-            <CombinationCard
-              combinableDiscountTypes={combinesWith}
-              discountClass={DiscountClass.Product}
-              discountDescriptor="Discount"
-            />
+              <CombinationCard
+                combinableDiscountTypes={combinesWith}
+                discountClass={DiscountClass.Product}
+                discountDescriptor="Discount"
+              />
 
-            <ActiveDatesCard
-              startDate={startDate}
-              endDate={endDate}
-              timezoneAbbreviation="EST"
-            />
-          </BlockStack>
-        </Layout.Section>
+              <ActiveDatesCard
+                startDate={startDate}
+                endDate={endDate}
+                timezoneAbbreviation="EST"
+              />
+            </BlockStack>
+          </Layout.Section>
+        </DiscountProvider>
 
         <Layout.Section>
           <PageActions

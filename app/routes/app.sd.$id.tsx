@@ -25,6 +25,7 @@ import { useField, useForm } from "@shopify/react-form";
 
 import { useEffect, useMemo } from "react";
 import { StepData } from "~/components/ConfigStep";
+import { DiscountProvider } from "~/components/providers/DiscountProvider";
 import { SDConfigCard } from "~/components/SDConfigCard";
 import { CollectionInfo } from "~/components/SelectCollection";
 import { ProductInfo } from "~/components/SelectProduct";
@@ -238,17 +239,19 @@ export default function ShippingDetailPage() {
               products={config.products}
               colls={config.colls}
             />
-            <CombinationCard
-              combinableDiscountTypes={combinesWith}
-              discountClass={DiscountClass.Product}
-              discountDescriptor="Discount"
-            />
+            <DiscountProvider>
+              <CombinationCard
+                combinableDiscountTypes={combinesWith}
+                discountClass={DiscountClass.Product}
+                discountDescriptor="Discount"
+              />
 
-            <ActiveDatesCard
-              startDate={startDate}
-              endDate={endDate}
-              timezoneAbbreviation="CXT"
-            />
+              <ActiveDatesCard
+                startDate={startDate}
+                endDate={endDate}
+                timezoneAbbreviation="CXT"
+              />
+            </DiscountProvider>
           </BlockStack>
         </Layout.Section>
 

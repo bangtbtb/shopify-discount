@@ -20,6 +20,7 @@ import { useField, useForm } from "@shopify/react-form";
 import { useEffect, useMemo } from "react";
 import { StepData } from "~/components/ConfigStep";
 import ODConfigCard from "~/components/ODConfigCard";
+import { DiscountProvider } from "~/components/providers/DiscountProvider";
 import { ProductInfo } from "~/components/SelectProduct";
 import { ActionStatus, DVT, ODApplyType, ODConfig } from "~/defs";
 import { createBundleDiscount } from "~/models/od_models";
@@ -173,38 +174,40 @@ export default function NewODPage() {
     <Page title="Bundle discount detail">
       <Layout>
         {/* Information */}
-        <Layout.Section>
-          <BlockStack align="space-around" gap={"200"}>
-            <Card>
-              <Box paddingBlockEnd={"500"}>
-                <TextField
-                  label={"Title"}
-                  autoComplete="off"
-                  {...title}
-                  helpText="This text will show in dashboard of admin"
-                />
-              </Box>
-            </Card>
+        <DiscountProvider>
+          <Layout.Section>
+            <BlockStack align="space-around" gap={"200"}>
+              <Card>
+                <Box paddingBlockEnd={"500"}>
+                  <TextField
+                    label={"Title"}
+                    autoComplete="off"
+                    {...title}
+                    helpText="This text will show in dashboard of admin"
+                  />
+                </Box>
+              </Card>
 
-            <ODConfigCard
-              odType={config.type}
-              products={config.containProduct}
-              steps={config.totalSteps}
-            />
+              <ODConfigCard
+                odType={config.type}
+                products={config.containProduct}
+                steps={config.totalSteps}
+              />
 
-            <CombinationCard
-              combinableDiscountTypes={combinesWith}
-              discountClass={DiscountClass.Product}
-              discountDescriptor="Discount"
-            />
+              <CombinationCard
+                combinableDiscountTypes={combinesWith}
+                discountClass={DiscountClass.Product}
+                discountDescriptor="Discount"
+              />
 
-            <ActiveDatesCard
-              startDate={startDate}
-              endDate={endDate}
-              timezoneAbbreviation="EST"
-            />
-          </BlockStack>
-        </Layout.Section>
+              <ActiveDatesCard
+                startDate={startDate}
+                endDate={endDate}
+                timezoneAbbreviation="EST"
+              />
+            </BlockStack>
+          </Layout.Section>
+        </DiscountProvider>
 
         <Layout.Section>
           <PageActions

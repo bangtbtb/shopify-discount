@@ -9,7 +9,7 @@ import {
 } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
-import { NavMenu } from "@shopify/app-bridge-react";
+import { NavMenu, ShopifyGlobal } from "@shopify/app-bridge-react";
 import { json } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
@@ -18,8 +18,9 @@ import { useEffect, useState } from "react";
 import { AppContextType } from "~/defs/fe";
 
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
-// import translations from "@shopify/polaris/locales/en.json";
-// import { useI18n, I18nContext } from "@shopify/react-i18n";
+import { I18nContext, I18nManager } from "@shopify/react-i18n";
+import { useAppBridge } from "@shopify/app-bridge-react";
+import { useI18nMultiple } from "~/components/i18n";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
@@ -32,7 +33,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (idx < 0) {
     try {
       billStatus = await billing.check();
-      console.log("Bill status: ", billStatus);
+      // console.log("Bill status: ", billStatus);
     } catch (error) {
       console.log("Get subscription error: ", error);
     }
@@ -50,20 +51,36 @@ export default function App() {
   const loc = useLocation();
 
   const [bill, setBill] = useState<BillingCheckResponseObject | null>(null);
-  // const [i18n] = useI18n({
-  //   id: "Polaris",
-  //   fallback: translations,
-  //   translations(locale) {
-  //     console.log("Load locale: ", locale);
 
-  //     return import(`translations/${locale}.json`).then(
-  //       (dictionary) => dictionary && dictionary.default,
+  // const [i18n] = useI18nMultiple();
+  // const [bridge, setBridge] = useState<ShopifyGlobal | null>(null);
+  // const [i18nManager, seti18nManager] = useState(
+  //   new I18nManager({
+  //     locale: "en",
+  //     onError(error) {
+  //       console.log("Load i18n error: ", error);
+  //     },
+  //   }),
+  // );
+
+  // useEffect(() => {
+  //   if (!bridge) {
+  //     var curBridge = useAppBridge();
+  //     seti18nManager(
+  //       new I18nManager({
+  //         locale: curBridge.config.locale,
+  //         onError(error) {
+  //           console.log("Load i18n error: ", error);
+  //         },
+  //       }),
   //     );
-  //   },
-  // });
+  //     setBridge(curBridge);
+  //     console.log("Reload bridge", curBridge);
+  //   }
+  // }, []);
 
   useEffect(() => {
-    console.log(`Path: ${loc.pathname} App subscription: `, billStatus);
+    // console.log(`Path: ${loc.pathname} App subscription: `, billStatus);
     if (billStatus) {
       setBill(billStatus);
     }
@@ -73,9 +90,10 @@ export default function App() {
         console.log("Redirect to pricing");
         nav("/app/pricing");
       }
-    } else {
-      console.log("Subscsription has length");
     }
+    // else {
+    //   console.log("Subscsription has length");
+    // }
   }, [billStatus]);
 
   useEffect(() => {
@@ -100,9 +118,7 @@ export default function App() {
         <Link to="/app/pricing">Pricing</Link>
         <Link to="/app/settings">Settings</Link>
       </NavMenu>
-      <DiscountProvider>
-        <Outlet context={{ bill } satisfies AppContextType} />
-      </DiscountProvider>
+      <Outlet context={{ bill } satisfies AppContextType} />
     </AppProvider>
   );
 }

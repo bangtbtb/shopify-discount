@@ -144,7 +144,7 @@ export default function PricingPage() {
     });
     setPlanInfos(newPlans);
 
-    console.log("Actived subs: ", activedSubs);
+    // console.log("Actived subs: ", activedSubs);
   }, [activedSubs]);
 
   return (

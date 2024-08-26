@@ -40,6 +40,7 @@ import {
 import { ActionStatus, VDApplyType, VDConfig } from "~/defs";
 import { ProductInfo } from "~/components/SelectProduct";
 import { StepData } from "~/components/ConfigStep";
+import { DiscountProvider } from "~/components/providers/DiscountProvider";
 
 interface AciontDataResponse {
   id: string;
@@ -256,17 +257,19 @@ export default function VolumeDiscountDetail() {
                 products={config.products}
               />
 
-              <CombinationCard
-                combinableDiscountTypes={combinesWith}
-                discountClass={DiscountClass.Product}
-                discountDescriptor="Discount"
-              />
+              <DiscountProvider>
+                <CombinationCard
+                  combinableDiscountTypes={combinesWith}
+                  discountClass={DiscountClass.Product}
+                  discountDescriptor="Discount"
+                />
 
-              <ActiveDatesCard
-                startDate={startDate}
-                endDate={endDate}
-                timezoneAbbreviation="EST"
-              />
+                <ActiveDatesCard
+                  startDate={startDate}
+                  endDate={endDate}
+                  timezoneAbbreviation="EST"
+                />
+              </DiscountProvider>
             </BlockStack>
           </Form>
         </Layout.Section>

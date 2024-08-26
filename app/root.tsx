@@ -5,8 +5,37 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import { ShopifyGlobal, useAppBridge } from "@shopify/app-bridge-react";
+import { useEffect, useState } from "react";
+import { I18nContext, I18nManager } from "@shopify/react-i18n";
 
 export default function App() {
+  const [bridge, setBridge] = useState<ShopifyGlobal | null>(null);
+  const [i18nManager, seti18nManager] = useState(
+    new I18nManager({
+      locale: "en",
+      onError(error) {
+        console.log("Load i18n error: ", error);
+      },
+    }),
+  );
+
+  useEffect(() => {
+    if (!bridge) {
+      var curBridge = useAppBridge();
+      seti18nManager(
+        new I18nManager({
+          locale: curBridge.config.locale,
+          onError(error) {
+            console.log("Load i18n error: ", error);
+          },
+        }),
+      );
+      setBridge(curBridge);
+      console.log("Reload bridge", curBridge);
+    }
+  }, []);
+
   return (
     <html>
       <head>
@@ -27,7 +56,9 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <Outlet />
+        <I18nContext.Provider value={i18nManager}>
+          <Outlet />
+        </I18nContext.Provider>
         <ScrollRestoration />
         <Scripts />
       </body>

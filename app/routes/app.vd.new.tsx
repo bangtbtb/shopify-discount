@@ -33,6 +33,7 @@ import { StepData } from "~/components/ConfigStep";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
 import { CollectionInfo } from "~/components/SelectCollection";
 import { randomNumber } from "~/models/utils";
+import { DiscountProvider } from "~/components/providers/DiscountProvider";
 
 interface ActionData {
   status: ActionStatus;
@@ -203,17 +204,19 @@ export default function VolDiscountCreate() {
                 products={config.products}
               />
 
-              <CombinationCard
-                combinableDiscountTypes={combinesWith}
-                discountClass={DiscountClass.Product}
-                discountDescriptor="Discount"
-              />
+              <DiscountProvider>
+                <CombinationCard
+                  combinableDiscountTypes={combinesWith}
+                  discountClass={DiscountClass.Product}
+                  discountDescriptor="Discount"
+                />
 
-              <ActiveDatesCard
-                startDate={startDate}
-                endDate={endDate}
-                timezoneAbbreviation="EST"
-              />
+                <ActiveDatesCard
+                  startDate={startDate}
+                  endDate={endDate}
+                  timezoneAbbreviation="EST"
+                />
+              </DiscountProvider>
             </BlockStack>
           </Form>
         </Layout.Section>
