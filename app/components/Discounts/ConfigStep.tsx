@@ -1,6 +1,6 @@
-import { InlineGrid, TextField } from "@shopify/polaris";
 import { DVT } from "~/defs";
-import TextFieldSelect from "./TextFieldSelect";
+import { InlineGrid, TextField } from "@shopify/polaris";
+import TextFieldSelect from "~/components/Shopify/TextFieldSelect";
 
 export type StepData = {
   type: DVT;

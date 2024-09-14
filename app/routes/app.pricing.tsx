@@ -22,7 +22,7 @@ import {
   CurrentPlanCard,
   PlanCardProps,
   PlanStack,
-} from "~/components/Billing";
+} from "~/components/Shopify/Billing";
 import { useEffect, useState } from "react";
 import { getShopName } from "~/models/utils";
 

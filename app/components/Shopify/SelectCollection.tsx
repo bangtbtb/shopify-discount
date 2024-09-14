@@ -9,10 +9,9 @@ import {
   TextField,
   Thumbnail,
 } from "@shopify/polaris";
-import { Field, useField, useForm } from "@shopify/react-form";
 
 import { ImageIcon, SearchIcon } from "@shopify/polaris-icons";
-import { Removeable } from "./Removeable";
+import { Removeable } from "../Common/Removeable";
 
 export interface CollectionInfo {
   id: string;

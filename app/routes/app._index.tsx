@@ -11,15 +11,23 @@ import {
   useLocation,
   useNavigate,
 } from "@remix-run/react";
-import { Page, Layout, Text, Card, Box } from "@shopify/polaris";
-import { useAppBridge } from "@shopify/app-bridge-react";
+import {
+  Page,
+  Layout,
+  Text,
+  Card,
+  Box,
+  InlineGrid,
+  Button,
+  Modal,
+} from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { dbGetDiscounts } from "~/models/db_discount";
-import { DiscountTable } from "~/components/DiscountTable";
+import { DiscountTable } from "~/components/Discounts/DiscountTable";
 import { Discount } from "@prisma/client";
-
-import { randomNumber } from "~/models/utils";
-import { LineChart } from "~/components/Chart";
+import { getFakeView, getFakeOrderOverview } from "~/fake/homepage";
+import ViewCounterChart from "~/components/DiscountChart/ViewCounterChart";
+import OrderAppliedChart from "~/components/DiscountChart/OrderAppliedChart";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
@@ -29,12 +37,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const page = Number.parseInt(searchParams.get("page") || "") || 1;
 
-  const { total, discounts } = await dbGetDiscounts({
+  const { discounts } = await dbGetDiscounts({
     shop: session.shop,
-    page,
+    page: 1,
   });
 
-  return json({ total, page, discounts });
+  return json({
+    page,
+    discounts,
+    discountView: getFakeView(),
+    orderOverview: getFakeOrderOverview(),
+  });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -42,18 +55,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Index() {
-  const { total, page, discounts } = useLoaderData<typeof loader>();
+  const { discounts, discountView, orderOverview } =
+    useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
 
-  const shopify = useAppBridge();
-  const isLoading =
-    ["loading", "submitting"].includes(fetcher.state) &&
-    fetcher.formMethod === "POST";
+  // const isLoading =
+  //   ["loading", "submitting"].includes(fetcher.state) &&
+  //   fetcher.formMethod === "POST";
 
   const [loadSuccess, setLoadSuccess] = useState(false);
 
   const nav = useNavigate();
   const loc = useLocation();
+  const [openModal, setOpenModal] = useState(false);
 
   const onClickDiscount = (d: SerializeFrom<Discount>) => {
     var dt = d.type === "Bundle" ? "od" : d.type === "Volume" ? "vd" : "sd";
@@ -61,49 +75,10 @@ export default function Index() {
     nav(`/app/${dt}/${d.id.slice(idxSplash + 1)}`);
   };
 
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "top" as const,
-      },
-      title: {
-        display: true,
-        text: "Chart.js Line Chart",
-      },
-    },
-  };
-
-  const labels = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-  ];
-
-  const data = {
-    labels,
-    datasets: [
-      {
-        label: "Dataset 1",
-        data: labels.map(() => randomNumber()),
-        borderColor: "rgb(255, 99, 132)",
-        backgroundColor: "rgba(255, 99, 132, 0.5)",
-      },
-      {
-        label: "Dataset 2",
-        data: labels.map(() => randomNumber()),
-        borderColor: "rgb(53, 162, 235)",
-        backgroundColor: "rgba(53, 162, 235, 0.5)",
-      },
-    ],
-  };
-
   useEffect(() => {
-    setLoadSuccess(true);
+    if (!loadSuccess) {
+      setLoadSuccess(true);
+    }
   }, [loadSuccess]);
 
   return (
@@ -134,20 +109,46 @@ export default function Index() {
         },
       ]}
     >
+      {/* Overview discount status was applied */}
       <Layout.Section>
-        {loadSuccess && discounts && (
+        <Box></Box>
+        <Text as="h2"> Overview</Text>
+        <Button onClick={() => setOpenModal(!openModal)}>Show modal</Button>
+        <ui-modal variant="small" src="">
+          <Text as="p">Hello modal</Text>
+        </ui-modal>
+        <Modal
+          open={openModal}
+          title="dfsdf"
+          onClose={() => setOpenModal(!openModal)}
+        >
+          <Text as="p">Hello modal</Text>
+        </Modal>
+
+        <InlineGrid gap={"400"} columns={{ xs: 1, sm: 1, md: 3, lg: 3, xl: 3 }}>
+          <Card>
+            <ViewCounterChart data={discountView} title="Total discount view" />
+          </Card>
+          <Card>
+            <OrderAppliedChart
+              applieds={orderOverview.applieds}
+              unapplieds={orderOverview.unapplied}
+            />
+          </Card>
+          <Card>
+            <ViewCounterChart data={discountView} />
+          </Card>
+        </InlineGrid>
+      </Layout.Section>
+
+      <Layout.Section>
+        <Text as="h2"> Overview</Text>
+        {loadSuccess && (
           <DiscountTable
             discounts={discounts ?? []}
             onClick={onClickDiscount}
           />
         )}
-      </Layout.Section>
-      <Layout.Section>
-        <Text as="h2">Performance</Text>
-        <Box minHeight="300" width="300">
-          <LineChart data={data} options={options} />
-        </Box>
-        <Card></Card>
       </Layout.Section>
     </Page>
   );

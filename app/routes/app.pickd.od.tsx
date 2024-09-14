@@ -62,7 +62,6 @@ export async function sfGetProductInfo(
 export const action = async ({ request }: ActionFunctionArgs) => {
   console.log(`------------------- Call pick bundle discount`);
   const { session, admin } = await authenticate.public.appProxy(request);
-  const { storefront } = await unauthenticated.storefront(session?.shop ?? "");
 
   var payload: RequestPayload = await request.json();
   console.log("Bunble form data: ", payload);

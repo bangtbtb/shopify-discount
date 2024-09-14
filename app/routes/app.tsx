@@ -9,18 +9,13 @@ import {
 } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
-import { NavMenu, ShopifyGlobal } from "@shopify/app-bridge-react";
+import { NavMenu } from "@shopify/app-bridge-react";
 import { json } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
-import { DiscountProvider } from "~/components/providers/DiscountProvider";
 import { BillingCheckResponseObject } from "@shopify/shopify-api";
 import { useEffect, useState } from "react";
 import { AppContextType } from "~/defs/fe";
-
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
-import { I18nContext, I18nManager } from "@shopify/react-i18n";
-import { useAppBridge } from "@shopify/app-bridge-react";
-import { useI18nMultiple } from "~/components/i18n";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
@@ -52,35 +47,8 @@ export default function App() {
 
   const [bill, setBill] = useState<BillingCheckResponseObject | null>(null);
 
-  // const [i18n] = useI18nMultiple();
-  // const [bridge, setBridge] = useState<ShopifyGlobal | null>(null);
-  // const [i18nManager, seti18nManager] = useState(
-  //   new I18nManager({
-  //     locale: "en",
-  //     onError(error) {
-  //       console.log("Load i18n error: ", error);
-  //     },
-  //   }),
-  // );
-
-  // useEffect(() => {
-  //   if (!bridge) {
-  //     var curBridge = useAppBridge();
-  //     seti18nManager(
-  //       new I18nManager({
-  //         locale: curBridge.config.locale,
-  //         onError(error) {
-  //           console.log("Load i18n error: ", error);
-  //         },
-  //       }),
-  //     );
-  //     setBridge(curBridge);
-  //     console.log("Reload bridge", curBridge);
-  //   }
-  // }, []);
-
   useEffect(() => {
-    // console.log(`Path: ${loc.pathname} App subscription: `, billStatus);
+    console.log(`Path: ${loc.pathname} App subscription: `, billStatus);
     if (billStatus) {
       setBill(billStatus);
     }
@@ -91,9 +59,6 @@ export default function App() {
         nav("/app/pricing");
       }
     }
-    // else {
-    //   console.log("Subscsription has length");
-    // }
   }, [billStatus]);
 
   useEffect(() => {
@@ -115,6 +80,7 @@ export default function App() {
           Home
         </Link>
         <Link to="/app">Home</Link>
+        <Link to="/app/dcs">Bundles</Link>
         <Link to="/app/pricing">Pricing</Link>
         <Link to="/app/settings">Settings</Link>
       </NavMenu>

@@ -42,6 +42,6 @@ export function JSONParse(
   });
 }
 
-export function randomNumber(digit: number = 6) {
-  return Math.floor(Math.random() * 1e6);
+export function randomNumber(digit: number = 3) {
+  return Math.floor(Math.random() * Math.pow(10, digit));
 }

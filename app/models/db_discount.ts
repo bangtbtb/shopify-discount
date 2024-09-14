@@ -177,211 +177,203 @@ export async function dbGetDiscounts(req: RGetDiscounts) {
   return { total: data[0], discounts: data[1] };
 }
 
-type FindFitDiscount = {
-  shop: string;
-  label: string;
-  totalPrice: bigint;
-  subTotal: bigint;
-  lineItems: LineItem[];
-  discount: DiscountApplication;
-};
+// type FindFitDiscount = {
+//   shop: string;
+//   label: string;
+//   totalPrice: bigint;
+//   subTotal: bigint;
+//   lineItems: LineItem[];
+//   discount: DiscountApplication;
+// };
 
-export async function dbFindFitDiscount(req: FindFitDiscount) {
-  var offset = 0;
-  var take = 10;
-  var done = false;
+// export async function dbFindFitDiscount(req: FindFitDiscount) {
+//   var offset = 0;
+//   var take = 10;
+//   var done = false;
 
-  var cond: Prisma.DiscountWhereInput = {
-    shop: req.shop,
-    label: req.label,
-    status: "ACTIVED",
-  };
+//   var cond: Prisma.DiscountWhereInput = {
+//     shop: req.shop,
+//     label: req.label,
+//     status: "ACTIVED",
+//   };
 
-  if (req.discount?.target_type === "shipping_line") {
-    cond.type = "Shipping";
-  } else {
-    cond.type = {
-      in: ["Bundle", "Volume"],
-    };
-  }
+//   if (req.discount?.target_type === "shipping_line") {
+//     cond.type = "Shipping";
+//   } else {
+//     cond.type = {
+//       in: ["Bundle", "Volume"],
+//     };
+//   }
 
-  while (!done) {
-    var discounts = await db.discount.findMany({
-      where: cond,
-      skip: offset,
-      take,
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+//   while (!done) {
+//     var discounts = await db.discount.findMany({
+//       where: cond,
+//       skip: offset,
+//       take,
+//       orderBy: {
+//         createdAt: "desc",
+//       },
+//     });
 
-    for (const d of discounts) {
-      isDiscountMatch(req, d);
-    }
-  }
-}
+//     for (const d of discounts) {
+//       isDiscountMatch(req, d);
+//     }
+//   }
+// }
 
-function isDiscountMatch(req: FindFitDiscount, discount: Discount) {
-  if (discount.type === "Bundle") {
-    return isDiscountMatchOD(req, discount);
-  }
+// function isDiscountMatch(req: FindFitDiscount, discount: Discount) {
+//   if (discount.type === "Bundle") {
+//     return isDiscountMatchOD(req, discount);
+//   }
 
-  if (discount.type === "Volume") {
-    return isDiscountMatchVD(req, discount);
-  }
+//   if (discount.type === "Volume") {
+//     return isDiscountMatchVD(req, discount);
+//   }
 
-  if (discount.type === "Shipping") {
-    return isDiscountMatchSD(req, discount);
-  }
+//   if (discount.type === "Shipping") {
+//     return isDiscountMatchSD(req, discount);
+//   }
 
-  return false;
-}
+//   return false;
+// }
 
-function isDiscountMatchOD(req: FindFitDiscount, discount: Discount) {
-  var config: ODConfig = JSON.parse(discount.metafield);
+// function isDiscountMatchOD(req: FindFitDiscount, discount: Discount) {
+//   var config: ODConfig = JSON.parse(discount.metafield);
 
-  if (discount.subType === "total") {
-    var step = config.total?.steps.reduce((prev, current) => {
-      return prev;
-    }, null);
+//   if (discount.subType === "total") {
+//     var step = config.total?.steps.reduce((prev, current) => {
+//       return prev;
+//     }, null);
 
-    return false;
-  }
+//     return false;
+//   }
 
-  if (discount.subType === "contain") {
-    var products = countProduct(req.lineItems);
-    var containAll = true;
-    config.contain?.productIds.forEach((v) => {
-      if (!products.has(v)) {
-        containAll = false;
-      }
-    });
+//   if (discount.subType === "contain") {
+//     var products = countProduct(req.lineItems);
+//     var containAll = true;
+//     config.contain?.productIds.forEach((v) => {
+//       if (!products.has(v)) {
+//         containAll = false;
+//       }
+//     });
 
-    if (!containAll) {
-      return false;
-    }
+//     if (!containAll) {
+//       return false;
+//     }
 
-    if (
-      config.contain?.value.type === "fix" &&
-      req.discount.value_type === "fixed_amount"
-    ) {
-      return req.discount.value == BigInt(config.contain?.value.value || 0);
-    }
+//     if (
+//       config.contain?.value.type === "fix" &&
+//       req.discount.value_type === "fixed_amount"
+//     ) {
+//       return req.discount.value == BigInt(config.contain?.value.value || 0);
+//     }
 
-    if (
-      config.contain?.value.type === "percent" &&
-      req.discount.value_type === "percentage"
-    ) {
-      return req.discount.value == BigInt(config.contain?.value.value || 0);
-    }
+//     if (
+//       config.contain?.value.type === "percent" &&
+//       req.discount.value_type === "percentage"
+//     ) {
+//       return req.discount.value == BigInt(config.contain?.value.value || 0);
+//     }
 
-    return false;
-  }
+//     return false;
+//   }
 
-  return false;
-}
+//   return false;
+// }
 
-function isDiscountMatchVD(req: FindFitDiscount, discount: Discount) {
-  var config: VDConfig = JSON.parse(discount.metafield);
-  var step = config.steps.reduce((prev, cur) => {
-    if (
-      cur.value.type == "fix" &&
-      req.discount.value_type === "fixed_amount" &&
-      cur.value.value === Number(req.discount.value)
-    ) {
-    }
-    return prev;
-  }, null);
+// function isDiscountMatchVD(req: FindFitDiscount, discount: Discount) {
+//   var config: VDConfig = JSON.parse(discount.metafield);
+//   var step = config.steps.reduce((prev, cur) => {
+//     if (
+//       cur.value.type == "fix" &&
+//       req.discount.value_type === "fixed_amount" &&
+//       cur.value.value === Number(req.discount.value)
+//     ) {
+//     }
+//     return prev;
+//   }, null);
 
-  if (discount.subType === "collection") {
-    return false;
-  }
+//   if (discount.subType === "collection") {
+//     return false;
+//   }
 
-  if (discount.subType === "products") {
-    return false;
-  }
+//   if (discount.subType === "products") {
+//     return false;
+//   }
 
-  return false;
-}
+//   return false;
+// }
 
-function isDiscountMatchSD(req: FindFitDiscount, discount: Discount): boolean {
-  var config: SDConfig = JSON.parse(discount.metafield);
+// function isDiscountMatchSD(req: FindFitDiscount, discount: Discount): boolean {
+//   var config: SDConfig = JSON.parse(discount.metafield);
 
-  if (discount.subType === "total") {
-    var step = config.steps?.reduce((prev, cur) =>
-      req.totalPrice >= cur.require ? cur : prev,
-    );
+//   if (discount.subType === "total") {
+//     var step = config.steps?.reduce((prev, cur) =>
+//       req.totalPrice >= cur.require ? cur : prev,
+//     );
 
-    if (!step || step.value.type) {
-      return false;
-    }
+//     if (!step || step.value.type) {
+//       return false;
+//     }
 
-    if (
-      step.value.type === "fix" &&
-      req.discount.value_type == "fixed_amount"
-    ) {
-      return req.discount.value == BigInt(step.value.value);
-    }
+//     if (
+//       step.value.type === "fix" &&
+//       req.discount.value_type == "fixed_amount"
+//     ) {
+//       return req.discount.value == BigInt(step.value.value);
+//     }
 
-    if (
-      step.value.type == "percent" &&
-      req.discount.value_type == "percentage"
-    ) {
-      return req.discount.value == BigInt(step.value.value);
-    }
+//     if (
+//       step.value.type == "percent" &&
+//       req.discount.value_type == "percentage"
+//     ) {
+//       return req.discount.value == BigInt(step.value.value);
+//     }
 
-    return false;
-  }
+//     return false;
+//   }
 
-  if (discount.subType === "volume") {
-    var products = countProduct(req.lineItems);
+//   if (discount.subType === "volume") {
+//     var products = countProduct(req.lineItems);
 
-    return false;
-  }
+//     return false;
+//   }
 
-  return false;
-}
+//   return false;
+// }
 
-function isNumberEqual(n1: number, n2: number): boolean {
-  return Math.abs(n1 - n2) < 1e3;
-}
+// interface ProductSum {
+//   id: string;
+//   total: number;
+//   variants: Array<{
+//     variant_id: number;
+//     quantity: number;
+//   }>;
+// }
 
-function isBigIntEqual(n1: bigint, n2: bigint): boolean {
-  return Math.abs(Number(n1 - n2)) < 1e3;
-}
+// function countProduct(lines: LineItem[]) {
+//   // Count product
+//   var pCounter = new Map<string, ProductSum>();
+//   lines.forEach((line) => {
+//     var productId = getGraphqlProductId(line.product_id);
+//     var sum = pCounter.get(productId);
+//     if (!sum) {
+//       sum = {
+//         id: productId,
+//         total: 0,
+//         variants: [],
+//       };
+//       pCounter.set(productId, sum);
+//     }
 
-interface ProductSum {
-  id: string;
-  total: number;
-  variants: Array<{
-    variant_id: number;
-    quantity: number;
-  }>;
-}
-
-function countProduct(lines: LineItem[]) {
-  // Count product
-  var pCounter = new Map<string, ProductSum>();
-  lines.forEach((line) => {
-    var productId = getGraphqlProductId(line.product_id);
-    var sum = pCounter.get(productId);
-    if (!sum) {
-      sum = {
-        id: productId,
-        total: 0,
-        variants: [],
-      };
-      pCounter.set(productId, sum);
-    }
-
-    sum.total += line.quantity;
-    sum.variants.push({
-      variant_id: line.variant_id,
-      quantity: line.quantity,
-    });
-  });
-  return pCounter;
-}
+//     sum.total += line.quantity;
+//     sum.variants.push({
+//       variant_id: line.variant_id,
+//       quantity: line.quantity,
+//     });
+//   });
+//   return pCounter;
+// }
 
 function getGraphqlProductId(id: string | number) {
   return "gid://shopify/Product/" + id;

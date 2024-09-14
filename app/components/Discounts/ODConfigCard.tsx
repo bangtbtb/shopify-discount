@@ -11,9 +11,9 @@ import {
 } from "@shopify/polaris";
 import { Field } from "@shopify/react-form";
 import { ODApplyType } from "~/defs";
-import { ProductInfo, SelectMultipleProducts } from "./SelectProduct";
+import { ProductInfo, SelectMultipleProducts } from "../Shopify/SelectProduct";
 import { StepComponent, StepData } from "./ConfigStep";
-import { Removeable } from "./Removeable";
+import { Removeable } from "../Common/Removeable";
 
 type ODConfigCardProps = {
   odType: Field<ODApplyType>;

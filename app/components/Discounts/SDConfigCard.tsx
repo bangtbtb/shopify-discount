@@ -11,9 +11,9 @@ import {
 import { Field } from "@shopify/react-form";
 import { SDApplyType } from "~/defs";
 import { StepComponent, StepData } from "./ConfigStep";
-import { ProductInfo, SelectMultipleProducts } from "./SelectProduct";
-import { CollectionInfo, SelectCollections } from "./SelectCollection";
-import { Removeable } from "./Removeable";
+import { ProductInfo, SelectMultipleProducts } from "../Shopify/SelectProduct";
+import { CollectionInfo, SelectCollections } from "../Shopify/SelectCollection";
+import { Removeable } from "../Common/Removeable";
 
 type SDConfigCardProps = {
   sdType: Field<SDApplyType>;

@@ -1,5 +1,5 @@
 import { Page, Text } from "@shopify/polaris";
-import { useI18nMultiple } from "~/components/i18n";
+import { useI18nMultiple } from "~/components/Common/i18n";
 
 export default function SettingPages() {
   const [i18n] = useI18nMultiple();

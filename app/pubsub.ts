@@ -5,7 +5,6 @@ import {
   deletePrismaDiscount,
   updatePrismaDiscount,
 } from "./models/db_discount";
-import { Discount } from "@prisma/client";
 
 const ggProject = process.env.GOOGLE_PROJECT;
 const ggSub = process.env.GOOGLE_SUB;
@@ -31,7 +30,7 @@ var init = false;
 //   });
 // }
 
-console.log("Import GooglePubSub");
+// console.log("Import GooglePubSub");
 
 export async function startGooglePubsub() {
   if (init) {

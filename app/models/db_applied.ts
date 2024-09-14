@@ -3,17 +3,17 @@ import db from "../db.server";
 
 export type DateGroup = "day" | "week" | "month" | "annual";
 
-export type OrderAppliedReport = {
+export type OrdersReport = {
   orderCount: number;
   subTotalPrice: bigint;
   createdAt: Date;
 };
 
-export async function createOrderApplied(
-  data: Prisma.OrderAppliedUncheckedCreateInput,
+export async function createOrders(
+  data: Prisma.OrdersUncheckedCreateInput,
   dApplieds?: Prisma.DiscountAppliedCreateInput[] | undefined,
 ) {
-  return db.orderApplied.create({
+  return db.orders.create({
     data: {
       ...data,
       applied: dApplieds
@@ -25,49 +25,50 @@ export async function createOrderApplied(
   });
 }
 
-type OrderAppliedReportRequest = {
+type OrdersReportRequest = {
   shop: string;
   groupInterval: DateGroup;
   from: string; // yyyy-mm-dd
   to: string; // yyyy-mm-dd
 };
 
-export async function getOrderAppliedReport(req: OrderAppliedReportRequest) {
-  var resp = await db.$queryRaw`
+type OrderReport = {
+  orderCount: number;
+  subTotalPrice: bigint;
+  wasApplied: boolean;
+  createdAt: Date;
+};
+
+export async function getOrdersAppliedReport(req: OrdersReportRequest) {
+  var resp: OrderReport[] = await db.$queryRaw`
   WITH tbl AS (
-  SELECT "subTotalPrice", 
-        DATE_TRUNC(${req.groupInterval}, "createdAt") as "createdAt"
-  FROM "OrderApplied"
-  WHERE "shop" = ${req.shop} AND
-           "createdAt" >=  ${new Date(req.from)} AND
-           "createdAt" < ${new Date(req.to)}
+        SELECT "subTotalPrice", "wasApplied",
+              DATE_TRUNC(${req.groupInterval}, "createdAt") as "createdAt"
+        FROM "Orders"
+        WHERE "shop" = ${req.shop} AND
+              "createdAt" >=  ${new Date(req.from)} AND
+              "createdAt" < ${new Date(req.to)}
   )
-  SELECT  count("createdAt") as "orderCount", sum("subTotalPrice") as "subTotalPrice", "createdAt" 
+  SELECT COUNT(DISTINCT("createdAt", "wasApplied") ) as "orderCount", 
+  		SUM("subTotalPrice")::numeric(24) as "subTotalPrice", 
+		 "wasApplied",
+		 "createdAt" 
   FROM tbl
-  GROUP BY "createdAt"`;
+  GROUP BY "createdAt", "wasApplied" 
+  ORDER BY "createdAt"`;
+
   return resp;
-  // return resp as Array<OrderAppliedReport>;
 }
 
-// WITH tbl AS (
-//   SELECT id, "subTotalPrice",
-//           DATE_TRUNC('${req.groupInterval}', "createdAt") as "createdAt"
-// 		FROM "OrderApplied"
-// 		WHERE "shop" = '${req.shop}' AND
-//           "createdAt" >=  ${new Date(req.from)} AND
-//           "createdAt" < ${new Date(req.to)}
-//   )
-//   SELECT  count("createdAt") as "orderCount", sum("subTotalPrice") as "subTotalPrice", "createdAt" FROM tbl
-//   GROUP BY "createdAt"`
-
-type GetOrderAppliedRequest = {
+type GetOrdersRequest = {
   shop: string;
   orderId: string;
   withApplied?: boolean;
+  page: number;
 };
 
-export async function getOrderApplied(req: GetOrderAppliedRequest) {
-  return db.orderApplied.findFirst({
+export async function getOrders(req: GetOrdersRequest) {
+  return db.orders.findFirst({
     where: {
       id: req.orderId,
       shop: req.shop,
@@ -80,21 +81,30 @@ export async function getOrderApplied(req: GetOrderAppliedRequest) {
 
 type GetOrderAppliedsRequest = {
   shop: string;
-  offset: number;
-  limit: number;
+  page: number;
+  withApplied?: boolean;
 };
 
 export async function getOrderApplieds(req: GetOrderAppliedsRequest) {
-  return db.orderApplied.findMany({
-    where: {
-      shop: req.shop,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    skip: req.offset,
-    take: req.limit,
-  });
+  const take = 20;
+
+  var where: Prisma.OrdersWhereInput = {
+    shop: req.shop,
+  };
+
+  var data = await db.$transaction([
+    db.orders.count({ where }),
+    db.orders.findMany({
+      take: take,
+      skip: (req.page - 1) * take,
+      where: where,
+      include: {
+        applied: req.withApplied,
+      },
+    }),
+  ]);
+
+  return { total: data[0], orders: data[1] };
 }
 
 type GetDiscountPerfomanceRequest = {
@@ -108,44 +118,18 @@ type GetDiscountPerfomanceRequest = {
 export async function getDiscountPerfomance(req: GetDiscountPerfomanceRequest) {
   var resp = await db.$queryRaw`
   WITH tbl AS (
-  SELECT "discountValue", "totalValue", DATE_TRUNC(${
-    req.groupInterval
-  }, "createdAt") as "createdAt"
-  FROM "DiscountApplied"
-  WHERE
-    "shop" = ${req.shop} AND
-    "discountId" = ${req.discountId} AND
-    "createdAt" >= ${new Date(req.from)} AND
-    "createdAt" < ${new Date(req.to)}
-)
-SELECT  count("createdAt") as "appliedCount", sum("discountValue") as "discountValue", "createdAt" FROM tbl
-GROUP BY "createdAt"`;
+    SELECT "discount", "total", DATE_TRUNC(${req.groupInterval}, "createdAt") as "createdAt"
+    FROM "DiscountApplied"
+    WHERE
+      "shop" = ${req.shop} AND
+      "createdAt" >= ${new Date(req.from)} AND
+      "createdAt" < ${new Date(req.to)} AND
+      "discountId" = ${req.discountId} 
+  )
+  SELECT  count("createdAt") as "appliedCount", sum("discount") as "discount", "createdAt" FROM tbl
+  GROUP BY "createdAt"`;
   return resp;
 }
-
-// WITH tbl AS (
-//   SELECT "discountValue", "totalValue", date_trunc('day', "createdAt") as createdAt
-//   FROM "DiscountApplied"
-//   WHERE
-//     "shop" = 'zinza002.myshopify.com' AND
-//     "discountId" = 'fake_d_1' AND
-//     "createdAt" >= '2020-01-01' AND
-//     "createdAt" < '2028-01-01'
-//   )
-
-// type GetDiscountAppliedRequest = {
-//   shop: string;
-//   discountId: string;
-// };
-
-// export async function getDiscountApplied(req: GetDiscountAppliedRequest) {
-//   return db.discountApplied.findFirst({
-//     where: {
-//       shop: req.shop,
-//       discountId: req.discountId,
-//     },
-//   });
-// }
 
 type GetDiscountAppliedsRequest = {
   shop: string;
@@ -155,12 +139,14 @@ type GetDiscountAppliedsRequest = {
 
 export async function getDiscountApplieds(req: GetDiscountAppliedsRequest) {
   const take = 20;
+  var where: Prisma.DiscountAppliedWhereInput = {
+    discountId: req.discountId,
+    shop: req.shop,
+  };
+
   return db.discountApplied.findMany({
     take: take,
     skip: (req.page - 1) * take,
-    where: {
-      discountId: req.discountId,
-      shop: req.shop,
-    },
+    where: where,
   });
 }

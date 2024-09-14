@@ -1,10 +1,20 @@
-import { ActionFunctionArgs, json } from "@remix-run/node";
+import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node";
 import { dbFindShippingDiscount } from "~/models/db_discount";
 import { authenticate } from "~/shopify.server";
 
 type RequestPayload = {
   pid: string;
   cids: Array<string>;
+};
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  console.log(`------------------- Call loader sd`);
+  const { admin, session } = await authenticate.public.appProxy(request);
+  return json({
+    content: "hello",
+    shop: session?.shop,
+    id: session?.id || "no_id",
+  });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {

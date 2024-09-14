@@ -61,7 +61,7 @@ model Discount {
   @@index([label])
 }
 
-model OrderApplied {
+model Orders {
   id            String            @id
   shop          String
   wasApplied    Boolean
@@ -74,15 +74,15 @@ model OrderApplied {
 }
 
 model DiscountApplied {
-  id             String        @id @default(uuid())
+  id             String    @id @default(uuid())
   shop           String
   discountId     String
   discount       Float // Discount value
   total          Float // Total  
   orderAppliedId String?
-  createdAt      DateTime      @default(now())
-  OrderApplied   OrderApplied? @relation(fields: [orderAppliedId], references: [id])
-  Discount       Discount?     @relation(fields: [discountId], references: [id])
+  createdAt      DateTime  @default(now())
+  OrderApplied   Orders?   @relation(fields: [orderAppliedId], references: [id])
+  Discount       Discount? @relation(fields: [discountId], references: [id])
 
-  @@index([discountId])
+  @@index([shop, createdAt, discountId])
 }

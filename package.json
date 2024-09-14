@@ -1,5 +1,5 @@
 {
-  "name": "volume-discount",
+  "name": "discount-app",
   "private": true,
   "scripts": {
     "build": "remix vite:build",

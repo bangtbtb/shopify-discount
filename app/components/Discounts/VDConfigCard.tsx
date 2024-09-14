@@ -1,15 +1,12 @@
 import {
-  BlockStack,
   Box,
   Button,
   Card,
-  Grid,
   InlineGrid,
   InlineStack,
   Layout,
   Select,
   Text,
-  TextField,
 } from "@shopify/polaris";
 import { useField, Field } from "@shopify/react-form";
 import { useEffect, useState } from "react";
@@ -18,15 +15,15 @@ import {
   SelectCollection,
   SelectCollectionProp,
   SelectCollections,
-} from "./SelectCollection";
+} from "../Shopify/SelectCollection";
 import {
   ProductInfo,
   SelectMultipleProductProp,
   SelectMultipleProducts,
-} from "./SelectProduct";
+} from "../Shopify/SelectProduct";
 import { VDApplyType } from "~/defs";
 import { StepComponent, StepData } from "./ConfigStep";
-import { Removeable } from "./Removeable";
+import { Removeable } from "../Common/Removeable";
 
 interface VBConfigCardProps {
   applyType: Field<VDApplyType>;

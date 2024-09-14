@@ -1,6 +1,6 @@
 import { Discount } from "@prisma/client";
 import { SerializeFrom } from "@remix-run/node";
-import { IndexTable } from "@shopify/polaris";
+import { IndexTable, Text } from "@shopify/polaris";
 
 type DiscountTableProps = {
   discounts: SerializeFrom<Discount>[];
@@ -13,6 +13,7 @@ export function DiscountTable({ discounts, onClick }: DiscountTableProps) {
       itemCount={discounts.length}
       selectable={false}
       headings={[{ title: "Title" }, { title: "Status" }, { title: "Type" }]}
+      emptyState={<Text as="p">Empty discount</Text>}
     >
       {discounts.map((d, idx) => (
         <IndexTable.Row
