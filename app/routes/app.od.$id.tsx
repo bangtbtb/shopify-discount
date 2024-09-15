@@ -23,10 +23,10 @@ import {
 } from "@shopify/polaris";
 import { useField, useForm } from "@shopify/react-form";
 import { useEffect, useMemo } from "react";
-import { StepData } from "~/components/ConfigStep";
-import ODConfigCard from "~/components/ODConfigCard";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
-import { ProductInfo } from "~/components/SelectProduct";
+import ODConfigCard from "~/components/Discounts/ODConfigCard";
+import { StepData } from "~/components/Discounts/ConfigStep";
+import { ProductInfo } from "~/components/Shopify/SelectProduct";
 import { ActionStatus, DVT, ODApplyType, ODConfig } from "~/defs";
 import {
   getBundleDiscount,

@@ -30,16 +30,18 @@ import {
   DateTime,
   DiscountClass,
 } from "@shopify/discount-app-components";
-import VDConfigCard, { VDStepConfigComponent } from "~/components/VDConfigCard";
-import { CollectionInfo } from "~/components/SelectCollection";
+import VDConfigCard, {
+  VDStepConfigComponent,
+} from "~/components/Discounts/VDConfigCard";
+import { StepData } from "~/components/Discounts/ConfigStep";
+import { CollectionInfo } from "~/components/Shopify/SelectCollection";
+import { ProductInfo } from "~/components/Shopify/SelectProduct";
 import {
   getVolumeDiscount,
   updateVolumeDiscount,
   VDConfigExt,
 } from "~/models/vd_model";
 import { ActionStatus, VDApplyType, VDConfig } from "~/defs";
-import { ProductInfo } from "~/components/SelectProduct";
-import { StepData } from "~/components/ConfigStep";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
 
 interface AciontDataResponse {

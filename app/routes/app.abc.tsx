@@ -1,14 +1,8 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { useSubmit } from "@remix-run/react";
-import { Button, Form, Page } from "@shopify/polaris";
+import { Page } from "@shopify/polaris";
 import { useField, useForm } from "@shopify/react-form";
-import { useState } from "react";
-import {
-  ProductInfo,
-  SelectMultipleProducts,
-  SelectProduct,
-  SelectProductProp,
-} from "~/components/SelectProduct";
+
 import { authenticate } from "~/shopify.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {

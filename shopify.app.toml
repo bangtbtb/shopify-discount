@@ -3,7 +3,7 @@
 client_id = "59c7dbfbeefd1f11ba1aa85228d3700a"
 name = "Simple Discount"
 handle = "sd-xxyy"
-application_url = "https://bt--task-mentioned.trycloudflare.com"
+application_url = "https://institution-calendars-clusters-prague.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_orders,read_products,unauthenticated_read_checkouts,unauthenticat
 
 [auth]
 redirect_urls = [
-  "https://bt--task-mentioned.trycloudflare.com/auth/callback",
-  "https://bt--task-mentioned.trycloudflare.com/auth/shopify/callback",
-  "https://bt--task-mentioned.trycloudflare.com/api/auth/callback"
+  "https://institution-calendars-clusters-prague.trycloudflare.com/auth/callback",
+  "https://institution-calendars-clusters-prague.trycloudflare.com/auth/shopify/callback",
+  "https://institution-calendars-clusters-prague.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

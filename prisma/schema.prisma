@@ -61,6 +61,16 @@ model Discount {
   @@index([label])
 }
 
+model DiscountViews {
+  id         String   @id @default(uuid()) // Discount id 
+  shop       String
+  views      BigInt
+  discountId String
+  createdAt  DateTime @default(now())
+
+  @@index([shop, createdAt, discountId])
+}
+
 model Orders {
   id            String            @id
   shop          String

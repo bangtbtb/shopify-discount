@@ -22,16 +22,18 @@ import {
   PageActions,
   TextField,
 } from "@shopify/polaris";
+import { DiscountAutomaticAppInput } from "~/types/admin.types";
 import { useField, useForm } from "@shopify/react-form";
 import { useEffect, useMemo } from "react";
 import { authenticate } from "~/shopify.server";
-import VDConfigCard, { VDStepConfigComponent } from "~/components/VDConfigCard";
 import { createVolumeDiscount } from "~/models/vd_model";
 import { ActionStatus, VDApplyType, VDConfig } from "~/defs";
-import { ProductInfo } from "~/components/SelectProduct";
-import { StepData } from "~/components/ConfigStep";
-import { DiscountAutomaticAppInput } from "~/types/admin.types";
-import { CollectionInfo } from "~/components/SelectCollection";
+import { CollectionInfo } from "~/components/Shopify/SelectCollection";
+import { ProductInfo } from "~/components/Shopify/SelectProduct";
+import VDConfigCard, {
+  VDStepConfigComponent,
+} from "~/components/Discounts/VDConfigCard";
+import { StepData } from "~/components/Discounts/ConfigStep";
 import { randomNumber } from "~/models/utils";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
 

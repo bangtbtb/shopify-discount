@@ -29,10 +29,11 @@ const ViewCounterChart = ({ title, data }: ViewCounterChartProps) => {
           labels: labels,
           datasets: [
             {
-              label: "View",
+              // label: "Discount view",
               data: dArr,
-              borderColor: "rgb(255, 99, 132)",
-              backgroundColor: "rgba(155, 99, 232, 0.5)",
+              borderColor: "rgba(10, 250, 132)",
+              // backgroundColor: "rgba(10, 250, 132)",
+              showLine: true,
               pointStyle: "rectRounded",
             },
           ],

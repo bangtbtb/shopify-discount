@@ -18,14 +18,14 @@ import {
 } from "@shopify/polaris";
 import { useField, useForm } from "@shopify/react-form";
 import { useEffect, useMemo } from "react";
-import { StepData } from "~/components/ConfigStep";
+import { StepData } from "~/components/Discounts/ConfigStep";
+import { SDConfigCard } from "~/components/Discounts/SDConfigCard";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
-import { SDConfigCard } from "~/components/SDConfigCard";
-import { CollectionInfo } from "~/components/SelectCollection";
-import { ProductInfo } from "~/components/SelectProduct";
+import { CollectionInfo } from "~/components/Shopify/SelectCollection";
+import { ProductInfo } from "~/components/Shopify/SelectProduct";
 import { ActionStatus, SDApplyType, SDConfig } from "~/defs";
 import { createShippingDiscount } from "~/models/sd_models";
-import { randomNumber } from "~/models/utils";
+import { randomDigit } from "~/models/utils";
 import { authenticate } from "~/shopify.server";
 import {
   DiscountAutomaticAppInput,
@@ -47,7 +47,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   const formConfig: SDConfig = {
     ...JSON.parse(formData.get("config")?.toString() || "{}"),
-    label: `SHIPPING_${randomNumber()}`,
+    label: `SHIPPING_${randomDigit()}`,
   };
 
   var resp = await createShippingDiscount(admin.graphql, {

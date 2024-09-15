@@ -3,7 +3,7 @@ import { StorefrontOperations } from "@shopify/storefront-api-client";
 import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients/types";
 import { dbFindBundleDiscount } from "~/models/db_discount";
 import { getSimleProductInfo } from "~/models/gql_resource";
-import { authenticate, unauthenticated } from "~/shopify.server";
+import { authenticate } from "~/shopify.server";
 
 type RequestPayload = {
   pid: string;

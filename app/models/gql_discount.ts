@@ -1,7 +1,7 @@
 import { AdminOperations } from "@shopify/admin-api-client";
 import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients/types";
 import { DiscountAutomaticAppInput, MetafieldInput } from "~/types/admin.types";
-import { createPrismaDiscount, updatePrismaDiscount } from "./db_discount";
+import { dbCreateDiscount, dbUpdateDiscount } from "./db_discount";
 import { ADT } from "@prisma/client";
 
 export type FuncType =
@@ -113,7 +113,7 @@ export async function gqlCreateDiscount(
   const rsDiscount =
     respJson?.data?.discountAutomaticAppCreate?.automaticAppDiscount;
   if (rsDiscount) {
-    await createPrismaDiscount({
+    await dbCreateDiscount({
       id: rsDiscount.discountId,
       shop: req.shop,
       metafield: req.metafield.value ?? "",
@@ -203,7 +203,7 @@ export async function gqlUpdateDiscount(
   var rs = respJson.data?.discountAutomaticAppUpdate;
   const rsDiscount = rs?.automaticAppDiscount;
   if (!rs?.userErrors.length && rsDiscount) {
-    await updatePrismaDiscount(rsDiscount.discountId, {
+    await dbUpdateDiscount(rsDiscount.discountId, {
       title: rsDiscount.title,
       status: rsDiscount.status,
       subType: req.subType,

@@ -1,13 +1,10 @@
 import { Prisma } from "@prisma/client";
 import db from "../db.server";
+import { OrdersReport } from "~/defs/gui";
+
+import { format } from "date-fns";
 
 export type DateGroup = "day" | "week" | "month" | "annual";
-
-export type OrdersReport = {
-  orderCount: number;
-  subTotalPrice: bigint;
-  createdAt: Date;
-};
 
 export async function createOrders(
   data: Prisma.OrdersUncheckedCreateInput,
@@ -25,30 +22,31 @@ export async function createOrders(
   });
 }
 
-type OrdersReportRequest = {
-  shop: string;
-  groupInterval: DateGroup;
-  from: string; // yyyy-mm-dd
-  to: string; // yyyy-mm-dd
-};
-
-type OrderReport = {
+type RawOrdersReport = {
   orderCount: number;
   subTotalPrice: bigint;
   wasApplied: boolean;
   createdAt: Date;
 };
 
-export async function getOrdersAppliedReport(req: OrdersReportRequest) {
-  var resp: OrderReport[] = await db.$queryRaw`
+type OrdersReportRequest = {
+  groupInterval: DateGroup;
+  shop: string;
+  from: Date;
+  to: Date;
+};
+
+export async function getOrdersReport(req: OrdersReportRequest) {
+  var resp: RawOrdersReport[] = await db.$queryRaw`
   WITH tbl AS (
         SELECT "subTotalPrice", "wasApplied",
               DATE_TRUNC(${req.groupInterval}, "createdAt") as "createdAt"
         FROM "Orders"
         WHERE "shop" = ${req.shop} AND
-              "createdAt" >=  ${new Date(req.from)} AND
-              "createdAt" < ${new Date(req.to)}
+              "createdAt" >=  ${req.from} AND
+              "createdAt" < ${req.to}
   )
+
   SELECT COUNT(DISTINCT("createdAt", "wasApplied") ) as "orderCount", 
   		SUM("subTotalPrice")::numeric(24) as "subTotalPrice", 
 		 "wasApplied",
@@ -57,7 +55,7 @@ export async function getOrdersAppliedReport(req: OrdersReportRequest) {
   GROUP BY "createdAt", "wasApplied" 
   ORDER BY "createdAt"`;
 
-  return resp;
+  return convertOrderReport(resp, req.groupInterval);
 }
 
 type GetOrdersRequest = {
@@ -126,7 +124,10 @@ export async function getDiscountPerfomance(req: GetDiscountPerfomanceRequest) {
       "createdAt" < ${new Date(req.to)} AND
       "discountId" = ${req.discountId} 
   )
-  SELECT  count("createdAt") as "appliedCount", sum("discount") as "discount", "createdAt" FROM tbl
+  SELECT  count("createdAt") as "appliedCount", 
+          sum("discount") as "discount", 
+          "createdAt" 
+  FROM tbl
   GROUP BY "createdAt"`;
   return resp;
 }
@@ -149,4 +150,40 @@ export async function getDiscountApplieds(req: GetDiscountAppliedsRequest) {
     skip: (req.page - 1) * take,
     where: where,
   });
+}
+
+function convertOrderReport(data: RawOrdersReport[], interval: DateGroup) {
+  var rs: OrdersReport[] = [];
+  if (interval === "annual") {
+    rs = data.map((v) => ({
+      orderCount: BigInt(v.orderCount),
+      subTotalPrice: BigInt(v.subTotalPrice),
+      wasApplied: v.wasApplied,
+      date: format(v.createdAt, "yyyy"),
+    }));
+  } else if (interval === "month") {
+    rs = data.map((v) => ({
+      orderCount: BigInt(v.orderCount),
+      subTotalPrice: BigInt(v.subTotalPrice),
+      wasApplied: v.wasApplied,
+      date: format(v.createdAt, "yyyy-MM"),
+    }));
+  } else if (interval === "week" || interval === "day") {
+    console.log("Convert order report day or week");
+
+    rs = data.map((v) => ({
+      orderCount: BigInt(v.orderCount),
+      subTotalPrice: BigInt(v.subTotalPrice),
+      wasApplied: v.wasApplied,
+      date: format(v.createdAt, "yyyy-MM-dd"),
+    }));
+  } else {
+    rs = data.map((v) => ({
+      orderCount: BigInt(v.orderCount),
+      subTotalPrice: BigInt(v.subTotalPrice),
+      wasApplied: v.wasApplied,
+      date: format(v.createdAt, "yyyy-MM-dd"),
+    }));
+  }
+  return rs;
 }

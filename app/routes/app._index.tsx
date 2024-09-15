@@ -25,28 +25,52 @@ import { authenticate } from "../shopify.server";
 import { dbGetDiscounts } from "~/models/db_discount";
 import { DiscountTable } from "~/components/Discounts/DiscountTable";
 import { Discount } from "@prisma/client";
-import { getFakeView, getFakeOrderOverview } from "~/fake/homepage";
+import { getFakeOrderOverview } from "~/fake/homepage";
 import ViewCounterChart from "~/components/DiscountChart/ViewCounterChart";
-import OrderAppliedChart from "~/components/DiscountChart/OrderAppliedChart";
+import {
+  OrderAppliedCounterChart,
+  OrderAppliedValueChart,
+  OrderReportParsed,
+  parseOrderReports,
+} from "~/components/DiscountChart/OrderAppliedChart";
+import { getOrdersReport } from "~/models/db_applied";
+import { dayDuration } from "~/models/utils";
+import { format as dateFormat } from "date-fns";
+import { dbGetShopDiscountView } from "~/models/db_dc_view";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
 
-  const { searchParams } = new URL(request.url);
-  const { session } = await authenticate.admin(request);
+  // const { searchParams } = new URL(request.url);
+  // const page = Number.parseInt(searchParams.get("page") || "") || 1;
 
-  const page = Number.parseInt(searchParams.get("page") || "") || 1;
+  var now = new Date();
+  var from = new Date();
+  from.setTime(now.getTime() - 190 * dayDuration);
+
+  const discountView = await dbGetShopDiscountView({
+    from: from,
+    to: now,
+    groupInterval: "month",
+    shop: session.shop,
+  });
 
   const { discounts } = await dbGetDiscounts({
     shop: session.shop,
     page: 1,
   });
 
+  const orderReport = await getOrdersReport({
+    shop: session.shop,
+    groupInterval: "month",
+    from: new Date(dateFormat(from, "yyyy-MM-dd")),
+    to: now,
+  });
+
   return json({
-    page,
     discounts,
-    discountView: getFakeView(),
-    orderOverview: getFakeOrderOverview(),
+    orderReport,
+    discountView,
   });
 };
 
@@ -55,19 +79,20 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Index() {
-  const { discounts, discountView, orderOverview } =
+  const { discounts, discountView, orderReport } =
     useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
+  const nav = useNavigate();
 
+  // const loc = useLocation();
   // const isLoading =
   //   ["loading", "submitting"].includes(fetcher.state) &&
   //   fetcher.formMethod === "POST";
 
   const [loadSuccess, setLoadSuccess] = useState(false);
-
-  const nav = useNavigate();
-  const loc = useLocation();
   const [openModal, setOpenModal] = useState(false);
+  const [orderReportParsed, setOrderReportParsed] =
+    useState<OrderReportParsed | null>(null);
 
   const onClickDiscount = (d: SerializeFrom<Discount>) => {
     var dt = d.type === "Bundle" ? "od" : d.type === "Volume" ? "vd" : "sd";
@@ -76,10 +101,12 @@ export default function Index() {
   };
 
   useEffect(() => {
-    if (!loadSuccess) {
-      setLoadSuccess(true);
-    }
+    !loadSuccess && setLoadSuccess(true);
   }, [loadSuccess]);
+
+  useEffect(() => {
+    orderReport && setOrderReportParsed(parseOrderReports(orderReport));
+  }, [orderReport]);
 
   return (
     <Page
@@ -113,42 +140,42 @@ export default function Index() {
       <Layout.Section>
         <Box></Box>
         <Text as="h2"> Overview</Text>
-        <Button onClick={() => setOpenModal(!openModal)}>Show modal</Button>
-        <ui-modal variant="small" src="">
-          <Text as="p">Hello modal</Text>
-        </ui-modal>
-        <Modal
-          open={openModal}
-          title="dfsdf"
-          onClose={() => setOpenModal(!openModal)}
-        >
-          <Text as="p">Hello modal</Text>
-        </Modal>
 
         <InlineGrid gap={"400"} columns={{ xs: 1, sm: 1, md: 3, lg: 3, xl: 3 }}>
           <Card>
-            <ViewCounterChart data={discountView} title="Total discount view" />
+            <ViewCounterChart data={discountView} title="Total Discount View" />
+            {/* <Text as="p">dfdf</Text> */}
           </Card>
           <Card>
-            <OrderAppliedChart
-              applieds={orderOverview.applieds}
-              unapplieds={orderOverview.unapplied}
-            />
+            {orderReportParsed ? (
+              <OrderAppliedCounterChart
+                title="Order counter chart"
+                labels={orderReportParsed.labels}
+                appliedValue={orderReportParsed.appliedValue}
+                unappliedValue={orderReportParsed.unappliedValue}
+              />
+            ) : (
+              <></>
+            )}
           </Card>
           <Card>
-            <ViewCounterChart data={discountView} />
+            {orderReportParsed ? (
+              <OrderAppliedValueChart
+                title="Order value chart"
+                labels={orderReportParsed.labels}
+                appliedValue={orderReportParsed.appliedValue}
+                unappliedValue={orderReportParsed.unappliedValue}
+              />
+            ) : (
+              <></>
+            )}
           </Card>
         </InlineGrid>
       </Layout.Section>
 
       <Layout.Section>
-        <Text as="h2"> Overview</Text>
-        {loadSuccess && (
-          <DiscountTable
-            discounts={discounts ?? []}
-            onClick={onClickDiscount}
-          />
-        )}
+        <Text as="h2">Recent discount</Text>
+        <DiscountTable discounts={discounts ?? []} onClick={onClickDiscount} />
       </Layout.Section>
     </Page>
   );

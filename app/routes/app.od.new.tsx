@@ -18,13 +18,13 @@ import {
 } from "@shopify/polaris";
 import { useField, useForm } from "@shopify/react-form";
 import { useEffect, useMemo } from "react";
-import { StepData } from "~/components/ConfigStep";
-import ODConfigCard from "~/components/ODConfigCard";
+import ODConfigCard from "~/components/Discounts/ODConfigCard";
+import { StepData } from "~/components/Discounts/ConfigStep";
+import { ProductInfo } from "~/components/Shopify/SelectProduct";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
-import { ProductInfo } from "~/components/SelectProduct";
 import { ActionStatus, DVT, ODApplyType, ODConfig } from "~/defs";
 import { createBundleDiscount } from "~/models/od_models";
-import { randomNumber } from "~/models/utils";
+import { randomDigit } from "~/models/utils";
 import { authenticate } from "~/shopify.server";
 import {
   DiscountAutomaticAppInput,
@@ -46,7 +46,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   const config: ODConfig = {
     ...JSON.parse(formData.get("config")?.toString() || "{}"),
-    label: `BUNDLE_${randomNumber()}`,
+    label: `BUNDLE_${randomDigit()}`,
   };
 
   var resp = await createBundleDiscount(admin.graphql, {

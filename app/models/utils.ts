@@ -2,23 +2,8 @@
   return this.toString();
 };
 
-// export type JSONSpecialFields = {
-//   [key: string]: boolean;
-// };
-
-// const bigIntFiels: JSONSpecialFields = {
-//   price: true,
-//   total_tax: true,
-//   total_price: true,
-// };
-
-export function getShopName(shop?: string) {
-  if (shop) {
-    var idx = shop.indexOf(".");
-    return shop.slice(0, idx);
-  }
-  return "";
-}
+export const hourDuration = 1000 * 60 * 60;
+export const dayDuration = 24 * hourDuration;
 
 const onlyNumber = new RegExp(`^\\d+$`);
 
@@ -42,6 +27,32 @@ export function JSONParse(
   });
 }
 
-export function randomNumber(digit: number = 3) {
+export function getGraphqlProductId(id: string | number) {
+  return "gid://shopify/Product/" + id;
+}
+
+export function randomDigit(digit: number = 6) {
   return Math.floor(Math.random() * Math.pow(10, digit));
 }
+
+export function randomIndex(max: number, min: number = 0) {
+  return Math.floor(Math.random() * (max - min) + min);
+}
+
+type InitArrayFunc = (index: number) => any;
+
+export function initArray(length: number, v: number | string | InitArrayFunc) {
+  var arr = new Array(length);
+  for (let idx = 0; idx < arr.length; idx++) {
+    if (typeof v === "function") {
+      arr[idx] = v(idx);
+    } else {
+      arr[idx] = v;
+    }
+  }
+  return arr;
+}
+
+// export function getProductId(id: string | number) {
+//   return "gid://shopify/Product/" + id;
+// }

@@ -10,9 +10,12 @@ import {
   Tooltip,
   Legend,
   ChartOptions,
+  ChartType,
 } from "chart.js/auto";
 import { ClientOnly } from "remix-utils/client-only";
 import type { ChartProps } from "node_modules/react-chartjs-2/dist/types";
+import { useState } from "react";
+import { InlineGrid, Select, Text } from "@shopify/polaris";
 
 ChartJS.register(
   CategoryScale,
@@ -71,6 +74,34 @@ export const clearLineChartOption: ChartOptions<"line"> = {
   },
 };
 
+export const clearBarOption: ChartOptions<"bar"> = {
+  responsive: true,
+  plugins: {
+    title: {
+      display: false,
+      text: "",
+    },
+    legend: {
+      display: true,
+    },
+  },
+  scales: {
+    x: {
+      display: false,
+      title: {
+        display: true,
+      },
+    },
+    y: {
+      display: false,
+      title: {
+        display: true,
+        text: "Value",
+      },
+    },
+  },
+};
+
 export function LineChart(props: Omit<ChartProps<"line">, "type">) {
   return <ClientOnly fallback={null}>{() => <Line {...props} />}</ClientOnly>;
 }
@@ -78,3 +109,40 @@ export function LineChart(props: Omit<ChartProps<"line">, "type">) {
 export function BarChart(props: Omit<ChartProps<"bar">, "type">) {
   return <ClientOnly fallback={null}>{() => <Bar {...props} />}</ClientOnly>;
 }
+
+// type LineBarToggleProps = Omit<ChartProps<"bar">, "type"> & {
+//   title?: string;
+// };
+
+// export function LineBarToggle(props: Omit<ChartProps<"line">, "type" & "options">) {
+//   const { title, ...rest } = props;
+//   const [chartType, setChartType] = useState<ChartType>("line");
+
+//   return (
+//     <>
+//       <InlineGrid columns={2}>
+//         <Text as="legend">{props.title}</Text>
+//         <Select
+//           label=""
+//           value={chartType}
+//           options={[
+//             {
+//               label: "Line",
+//               value: "line",
+//             },
+//             {
+//               label: "StackBar",
+//               value: "bar",
+//             },
+//           ]}
+//           onChange={(v) => setChartType(v as ChartType)}
+//         />
+//       </InlineGrid>
+//       {chartType === "line" && (
+//         <LineChart options={clearLineChartOption} {...rest} />
+//       )}
+
+//       {chartType === "bar" && <BarChart options={clearBarOption} {...rest} />}
+//     </>
+//   );
+// }

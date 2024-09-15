@@ -251,48 +251,6 @@ export interface DefaultAddress {
   default: boolean;
 }
 
-export interface DiscountApplication {
-  target_type: "line_item" | "shipping_line";
-  type: string;
-  value: bigint;
-  value_type: "percentage" | "fixed_amount";
-  allocation_method: "across" | "each";
-  target_selection: "all" | "entitled" | "explicit";
-  title: string;
-}
-
-export interface LineItem {
-  id: number;
-  admin_graphql_api_id: string;
-  attributed_staffs: any[];
-  current_quantity: number;
-  fulfillable_quantity: number;
-  fulfillment_service: string;
-  fulfillment_status: any;
-  gift_card: boolean;
-  grams: number;
-  name: string;
-  price: bigint;
-  price_set: PriceSet;
-  product_exists: boolean;
-  product_id: number;
-  properties: any[];
-  quantity: number;
-  requires_shipping: boolean;
-  sku: string;
-  taxable: boolean;
-  title: string;
-  total_discount: bigint;
-  total_discount_set: PriceSet;
-  variant_id: number;
-  variant_inventory_management: string;
-  variant_title: string;
-  vendor: string;
-  tax_lines: TaxLine[];
-  duties: any[];
-  discount_allocations: DiscountAllocation[];
-}
-
 export interface DiscountAllocation {
   amount: bigint;
   amount_set: PriceSet;

@@ -24,11 +24,11 @@ import {
 import { useField, useForm } from "@shopify/react-form";
 
 import { useEffect, useMemo } from "react";
-import { StepData } from "~/components/ConfigStep";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
-import { SDConfigCard } from "~/components/SDConfigCard";
-import { CollectionInfo } from "~/components/SelectCollection";
-import { ProductInfo } from "~/components/SelectProduct";
+import { StepData } from "~/components/Discounts/ConfigStep";
+import { SDConfigCard } from "~/components/Discounts/SDConfigCard";
+import { CollectionInfo } from "~/components/Shopify/SelectCollection";
+import { ProductInfo } from "~/components/Shopify/SelectProduct";
 import { ActionStatus, SDApplyType, SDConfig } from "~/defs";
 import {
   getShippingDiscount,

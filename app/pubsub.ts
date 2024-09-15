@@ -1,10 +1,7 @@
 import { Message, PubSub } from "@google-cloud/pubsub";
 import { Storage } from "@google-cloud/storage";
 import { AttributesEvent, DiscountEvent, OrderCreateEvent } from "./defs";
-import {
-  deletePrismaDiscount,
-  updatePrismaDiscount,
-} from "./models/db_discount";
+import { dbDeleteDiscount, dbUpdateDiscount } from "./models/db_discount";
 
 const ggProject = process.env.GOOGLE_PROJECT;
 const ggSub = process.env.GOOGLE_SUB;
@@ -83,7 +80,7 @@ async function onDiscountCreate(
   msg.ack();
   // var discount = data as DiscountEvent;
   // try {
-  //   await deletePrismaDiscount(discount.admin_graphql_api_id);
+  //   await dbDeleteDiscount(discount.admin_graphql_api_id);
   // } catch (error) {
   //   console.error("Handle event discount delete error: ", error);
   // }
@@ -95,7 +92,7 @@ async function onDiscountUpdate(
   discount: DiscountEvent,
 ) {
   try {
-    await updatePrismaDiscount(discount.admin_graphql_api_id, {
+    await dbUpdateDiscount(discount.admin_graphql_api_id, {
       title: discount.title,
       status: discount.status,
     });
@@ -113,7 +110,7 @@ async function onDiscountDelete(
 ) {
   var discount = data as DiscountEvent;
   try {
-    await deletePrismaDiscount(discount.admin_graphql_api_id);
+    await dbDeleteDiscount(discount.admin_graphql_api_id);
   } catch (error) {
     console.error("Handle event discount delete error: ", error);
   }
