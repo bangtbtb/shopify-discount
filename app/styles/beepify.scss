@@ -1,0 +1,175 @@
+h2 {
+  color: #1b1b1b;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  padding: 0.5rem 0rem;
+}
+
+.flex-row-space {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+}
+
+.flex-column-revert {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column-reverse;
+  flex-wrap: nowrap;
+  justify-content: end;
+  align-items: end;
+}
+
+// .btn {
+// }
+
+.fit_img {
+  //   border: 1px solid green;
+  object-fit: cover;
+  border-radius: 8px;
+  width: 100%;
+  height: 100%;
+}
+
+/* https://codepen.io/51fe/pen/JLGamL */
+.steps {
+  position: relative;
+  margin: 0 0 2rem 0;
+  padding: 0;
+  counter-reset: step;
+  width: 100%;
+}
+
+/*Step Description*/
+.steps li {
+  display: block;
+  list-style-type: none;
+  font-size: 12px;
+  text-align: left;
+  width: 25%;
+  position: relative;
+  float: left;
+}
+
+/*Step Description*/
+.steps li .first {
+  height: 2.25rem;
+}
+
+.steps li span {
+  display: block;
+  position: relative;
+}
+
+/*Step Number*/
+.steps li:before {
+  width: 2rem;
+  height: 2rem;
+  line-height: 2rem;
+  border-radius: 2rem;
+  font-size: 1rem;
+  position: absolute;
+  display: block;
+  content: counter(step); /*Set the counter content*/
+  counter-increment: step; /*Increment the counter value*/
+  border: 1px solid green;
+  background-color: #019875;
+  color: #fff;
+  text-align: center;
+  font-weight: 700;
+  margin: 0 auto 8px 0;
+  z-index: 2;
+}
+
+/*Connection line*/
+.steps li ~ li:after {
+  content: "";
+  width: 100%;
+  height: 2px;
+  background-color: #019875;
+  position: absolute;
+  left: -100%;
+  top: 1rem;
+  z-index: 1; /*Place behind the digital layer*/
+}
+
+/*Turn the connection line before the current/completed step green*/
+.steps li.active:after {
+  background-color: #019875;
+}
+
+/*Gray out the number and connection line after the current/completed step*/
+.steps li.active ~ li:before,
+.steps li.active ~ li:after {
+  background-color: #777;
+}
+
+@media only screen and (max-width: 768px) {
+  .steps {
+    margin: 0 0 1rem 0;
+  }
+
+  .steps li .first {
+    height: 1.5rem;
+    line-height: 1rem;
+    border-radius: 1rem;
+  }
+
+  .steps li:before {
+    width: 1rem;
+    height: 1rem;
+    line-height: 1rem;
+    border-radius: 1rem;
+    font-size: 10px;
+    /* background-color: red; */
+  }
+
+  .steps li ~ li:after {
+    top: 0.5rem;
+  }
+}
+
+@media only screen and (min-width: 768px) and (max-width: 1280px) {
+  .steps {
+    margin: 0 0 1.5rem 0;
+  }
+
+  .steps li .first {
+    height: 2rem;
+  }
+
+  .steps li:before {
+    width: 1.5rem;
+    height: 1.5rem;
+    line-height: 1.5rem;
+    border-radius: 1.5rem;
+    font-size: 1rem;
+  }
+
+  .steps li ~ li:after {
+    top: 0.75rem;
+  }
+}
+
+@media only screen and (min-width: 1280px) {
+  .steps {
+    margin: 0 0 2rem 0;
+  }
+
+  .steps li .first {
+    height: 2.5rem;
+  }
+
+  .steps li:before {
+    width: 2rem;
+    height: 2rem;
+    line-height: 2rem;
+    border-radius: 2rem;
+    font-size: 1rem;
+  }
+}

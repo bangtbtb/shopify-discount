@@ -1,3 +1,5 @@
+import { DiscountApplication } from "./discount";
+
 // DiscountValueType
 export type DVT = "percent" | "fix";
 
@@ -5,12 +7,8 @@ export type DiscountValue = {
   value: number;
   type: DVT;
 };
-// ----------------------- Basic discount config ---------------------
 
-export type BasicDiscountConfig = {
-  label: string;
-  applyType: VDApplyType;
-};
+// ----------------------- Basic discount config ---------------------
 
 export type RewardStep = {
   require: number; // Condition

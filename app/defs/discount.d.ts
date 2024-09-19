@@ -7,51 +7,55 @@ export type DiscountValue = {
 };
 // ----------------------- Basic discount config ---------------------
 
-export type BasicDiscountConfig = {
-  label: string;
-  applyType: VDApplyType;
+export type RewardStep = {
+  require: number; // Condition
+  value: DiscountValue; // Reward
+  // label: string;
+};
+
+export type ProductCondition = {
+  id: string; // Product id
+  quantity?: number; // Atleast 1
+  // variants?: string[]; // Undefine <=> all
 };
 
 // ----------------------------- Order discount (bundle) --------------
 
 export type ODApplyType = "total" | "contain";
 
-export type ODTotalStep = {
-  total: number; // Condition
-  value: DiscountValue; // Reward
-};
-
 export type ODTotalConfig = {
-  steps: ODTotalStep[];
+  steps: RewardStep[];
 };
 
 export type ODContainConfig = {
   value: DiscountValue;
-  allOrder: boolean | undefined;
-  productIds: string[];
+  allOrder?: boolean;
+  productIds: ProductCondition[];
 };
+
+// export type ODBXGY = {
+//   requireds: ProductCondition[]; // Require product ids
+//   rewards: ProductCondition[];
+//   rewardValue: DiscountValue;
+// };
 
 export type ODConfig = {
   label: string;
   applyType: ODApplyType;
-  total?: ODTotalConfig | undefined;
-  contain?: ODContainConfig | undefined;
+  total?: ODTotalConfig;
+  contain?: ODContainConfig;
+  // bxgy?: ODBXGY;
 };
 
 // ----------------------------- Shipping discount --------------
 
 export type SDApplyType = "total" | "volume";
 
-export type SDStep = {
-  require: number;
-  value: DiscountValue;
-};
-
 export type SDConfig = {
   label: string;
   applyType: SDApplyType;
-  local?: string[] | undefined;
-  steps: SDStep[] | undefined;
+  local?: string[];
+  steps: RewardStep[] | undefined;
   collIds: string[] | undefined;
   productIds: string[] | undefined;
 };
@@ -60,18 +64,12 @@ export type SDConfig = {
 
 export type VDApplyType = "collection" | "products";
 
-export type VDStep = {
-  require: number;
-  value: DiscountValue;
-};
-
 export type VDConfig = {
   label: string;
   applyType: VDApplyType;
-  steps: VDStep[];
-  // colId: string | undefined;
-  collIds: string[] | undefined;
-  productIds: string[] | undefined;
+  steps: RewardStep[];
+  collIds?: string[];
+  productIds?: string[];
 };
 
 export interface DiscountApplication {
@@ -114,4 +112,26 @@ export interface LineItem {
   tax_lines: TaxLine[];
   duties: any[];
   discount_allocations: DiscountAllocation[];
+}
+
+// --------------------- DIscount GUI ---------------------
+
+type GUIDiscountType =
+  | "bundle"
+  | "total_order"
+  | "volume"
+  | "shipping_volume"
+  | "shipping_total";
+
+export interface DiscountUseCaseDesc {
+  id: string;
+  value: string;
+}
+
+export interface DiscountCreateDesc {
+  id: GUIDiscountType;
+  title: string;
+  desc: string;
+  usecase?: DiscountUseCaseDesc[];
+  illustration: React.ReactElement;
 }

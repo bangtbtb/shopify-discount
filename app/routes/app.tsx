@@ -15,9 +15,15 @@ import { authenticate } from "../shopify.server";
 import { BillingCheckResponseObject } from "@shopify/shopify-api";
 import { useEffect, useState } from "react";
 import { AppContextType } from "~/defs/fe";
-import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
+// import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
-export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
+import beepifyCss from "~/styles/beepify.scss?url";
+import polarisStyles from "~/styles/polaris.css?url";
+
+export const links = () => [
+  { rel: "stylesheet", href: polarisStyles },
+  { rel: "stylesheet", href: beepifyCss },
+];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing } = await authenticate.admin(request);

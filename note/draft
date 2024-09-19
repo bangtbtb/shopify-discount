@@ -33,3 +33,55 @@
 - Select local in shipping discount
 - Delete discount function
 - Bundle for all or not
+
+# USECASE
+
+## 1. Bundle
+
+- Discount by total value of bill
+- Discount by bundle of products
+
+## 2. Shipping
+
+- Contain product or collection
+- Contain specific product
+
+## 3. Volume discount
+
+- Discount by volume of product or collection
+- Each product or collection will be discount by volume
+
+1. Volume discount
+
+1. Upsell a specific product
+
+- Volume discount, quantity break
+
+2. Bundle discount
+
+- Buy
+
+3. Buy more, sell more
+
+- Discount by total value of bill
+
+UI
+
+### Sell multiple products together!
+
+- Fixed bundle
+
+  - Desc: Sell specific products together with a discount
+  - Usecase:
+
+- Bill value
+
+  - Desc: Discount on total bill value
+  - Usecase:
+
+### Upsell on a specific product
+
+- Volume discount
+  - Desc: Sell multiple units of a product with a discount
+
+### Shipping discount
