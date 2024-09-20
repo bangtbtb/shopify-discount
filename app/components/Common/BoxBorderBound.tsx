@@ -20,11 +20,3 @@ export function BoxBorderBound(props: BoxBorderBoundProps) {
     </fieldset>
   );
 }
-
-type ColumnRevertProp = {
-  children?: React.ReactElement;
-};
-
-export function ColumnRevert(props: ColumnRevertProp) {
-  return <div className="flex-column-revert">{props.children}</div>;
-}

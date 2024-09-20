@@ -116,12 +116,13 @@ export interface LineItem {
 
 // --------------------- DIscount GUI ---------------------
 
-type GUIDiscountType =
+type DiscountTypeGUI =
   | "bundle"
   | "total_order"
   | "volume"
   | "shipping_volume"
-  | "shipping_total";
+  | "shipping_total"
+  | "none";
 
 export interface DiscountUseCaseDesc {
   id: string;
@@ -129,9 +130,53 @@ export interface DiscountUseCaseDesc {
 }
 
 export interface DiscountCreateDesc {
-  id: GUIDiscountType;
+  id: DiscountTypeGUI;
   title: string;
   desc: string;
   usecase?: DiscountUseCaseDesc[];
   illustration: React.ReactElement;
+}
+
+export type FontWeight = "bold" | "regular" | "light";
+
+export interface FontConfig {
+  size: number;
+  color: string;
+  weight: FontWeight;
+}
+
+export interface FrameConfig {
+  bgColor: string;
+  borderColor: string;
+}
+
+export type GUIProductConfig = FrameConfig & {
+  name: FontConfig;
+  price: FontConfig;
+};
+
+export type GUIButtonConfig = {
+  frame: FrameConfigField;
+  fontConfig: FontConfigField;
+};
+
+export type GUIBundleTotalConfig = {
+  frame: FrameConfig;
+  label: FontConfig;
+  price: FontConfig;
+  comparePrice: FontConfig;
+};
+
+export interface GUIBundleConfig {
+  title: FontConfig;
+  product: GUIProductConfig;
+  button: GUIButtonConfig;
+  total: GUIBundleTotalConfig;
+  // highLightedTag: FontConfig;
+}
+
+export interface GUIVolumeConfig {
+  title: FontConfig;
+  offerTitle: FontConfig;
+  highlight: FrameConfig;
 }

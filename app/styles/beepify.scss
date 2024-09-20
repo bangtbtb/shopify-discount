@@ -1,12 +1,3 @@
-h2 {
-  color: #1b1b1b;
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: normal;
-  padding: 0.5rem 0rem;
-}
-
 .flex-row-space {
   display: flex;
   width: 100%;
@@ -23,6 +14,13 @@ h2 {
   flex-wrap: nowrap;
   justify-content: end;
   align-items: end;
+}
+
+.suffix-color {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 1rem;
+  background-color: #777;
 }
 
 // .btn {
@@ -99,9 +97,9 @@ h2 {
 }
 
 /*Turn the connection line before the current/completed step green*/
-.steps li.active:after {
-  background-color: #019875;
-}
+// .steps li.active:after {
+//   background-color: #019875;
+// }
 
 /*Gray out the number and connection line after the current/completed step*/
 .steps li.active ~ li:before,
@@ -172,4 +170,63 @@ h2 {
     border-radius: 2rem;
     font-size: 1rem;
   }
+}
+
+// ------------------------------- Preview ------------------------------
+
+.flex_row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  .remain {
+    flex-grow: 1;
+  }
+}
+
+.frame {
+  display: "block";
+  border-width: 1px;
+  border-radius: 6px;
+}
+
+.flex_row.elm {
+  gap: 12px;
+  padding: "20px";
+  border-radius: 0.5rem;
+  background-color: #fff;
+}
+
+.card_grey {
+  padding: "20px";
+  border-radius: 0.5rem;
+  background-color: #fff;
+  gap: 0.75rem;
+}
+
+.flex_column {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.product_title {
+  background-color: #e4e4e4;
+  color: #1b1b1b;
+  border-radius: 4px;
+  padding: 8px;
+  width: fit-content;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.old {
+  text-decoration: line-through;
+  color: #1f1f1f;
 }

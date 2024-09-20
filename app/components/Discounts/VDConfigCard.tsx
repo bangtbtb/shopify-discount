@@ -8,19 +8,9 @@ import {
   Select,
   Text,
 } from "@shopify/polaris";
-import { useField, Field } from "@shopify/react-form";
-import { useEffect, useState } from "react";
-import {
-  CollectionInfo,
-  SelectCollection,
-  SelectCollectionProp,
-  SelectCollections,
-} from "../Shopify/SelectCollection";
-import {
-  ProductInfo,
-  SelectMultipleProductProp,
-  SelectMultipleProducts,
-} from "../Shopify/SelectProduct";
+import { Field } from "@shopify/react-form";
+import { CollectionInfo, SelectCollections } from "../Shopify/SelectCollection";
+import { ProductInfo, SelectMultipleProducts } from "../Shopify/SelectProduct";
 import { VDApplyType } from "~/defs";
 import { StepComponent, StepData } from "./ConfigStep";
 import { Removeable } from "../Common/Removeable";

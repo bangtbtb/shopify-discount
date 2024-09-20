@@ -1,22 +1,28 @@
 import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node";
-import { Page } from "@shopify/polaris";
-
 import {
-  CreateDiscountCard,
-  FixBundleIllustration,
-} from "~/components/Discounts/CreateDiscountCard";
-import { DiscountCreateDesc } from "~/defs/discount";
+  useActionData,
+  useLoaderData,
+  useNavigation,
+  useSubmit,
+} from "@remix-run/react";
+import { Page } from "@shopify/polaris";
+import { useEffect, useMemo } from "react";
+import { BundleDetail } from "~/components/Discounts/CreateDiscount";
+import { BundleTheme } from "~/components/Discounts/ThemeDiscount";
+import { ActionType, ODConfig, SDConfig, VDConfig } from "~/defs";
+import { DiscountCreateDesc, DiscountTypeGUI } from "~/defs/discount";
+import { DiscountAutomaticAppInput } from "~/types/admin.types";
 
-const discountType: DiscountCreateDesc[] = [
-  {
-    id: "bundle_total",
-    title: "Discount on total bill value",
-    usecase: [],
-  },
-];
+export const loader = async ({ request, params }: LoaderFunctionArgs) => {
+  const dcType: string | undefined = params.dcType;
+  if (!dcType) {
+    return json({
+      dcType: "none" as DiscountTypeGUI,
+      errors: { message: "Discount type is not support" },
+    });
+  }
 
-export const loader = async ({}: LoaderFunctionArgs) => {
-  return json({});
+  return json({ dcType: dcType as DiscountTypeGUI });
 };
 
 export const action = async ({}: ActionFunctionArgs) => {
@@ -24,5 +30,48 @@ export const action = async ({}: ActionFunctionArgs) => {
 };
 
 export default function DiscountsCreate(props: any) {
-  return <Page title="Select Discount unknown"></Page>;
+  const submitForm = useSubmit();
+  const navigation = useNavigation();
+
+  const { dcType } = useLoaderData<typeof loader>();
+  const actData = useActionData<ActionType>();
+
+  const todaysDate = useMemo(() => new Date().toString(), []);
+  const isLoading = navigation.state == "submitting";
+
+  useEffect(() => {
+    if (!actData || !actData.status) {
+      return;
+    }
+    if (actData.status === "success") {
+      window.shopify.toast.show("Create discount success", { duration: 5000 });
+    }
+
+    if (actData.status === "failed") {
+      window.shopify.toast.show("Create discount failed", {
+        duration: 5000,
+        isError: true,
+      });
+    }
+  }, [actData]);
+
+  const onSubmit = (
+    discount: DiscountAutomaticAppInput,
+    config: ODConfig | SDConfig | VDConfig,
+  ) => {
+    submitForm(
+      {
+        discount: JSON.stringify(discount),
+        config: JSON.stringify(config),
+      },
+      { method: "POST" },
+    );
+    return { status: "success" };
+  };
+
+  return (
+    <Page title="Select Discount unknown">
+      <BundleDetail></BundleDetail>
+    </Page>
+  );
 }

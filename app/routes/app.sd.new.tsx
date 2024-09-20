@@ -23,7 +23,7 @@ import { SDConfigCard } from "~/components/Discounts/SDConfigCard";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
 import { CollectionInfo } from "~/components/Shopify/SelectCollection";
 import { ProductInfo } from "~/components/Shopify/SelectProduct";
-import { ActionStatus, SDApplyType, SDConfig } from "~/defs";
+import { ActionStatus, ActionType, SDApplyType, SDConfig } from "~/defs";
 import { createShippingDiscount } from "~/models/sd_models";
 import { randomDigit } from "~/models/utils";
 import { authenticate } from "~/shopify.server";
@@ -32,13 +32,9 @@ import {
   DiscountUserError,
 } from "~/types/admin.types";
 
-type ActionType = {
-  status: ActionStatus;
-  errors: DiscountUserError[] | undefined;
-};
-
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
+
   const formData = await request.formData();
 
   const discount: DiscountAutomaticAppInput = JSON.parse(

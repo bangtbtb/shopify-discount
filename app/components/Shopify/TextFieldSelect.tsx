@@ -19,6 +19,7 @@ export default function TextFieldSelect(props: TextFieldSelectProps) {
   return (
     <TextField
       label={props.label}
+      type="number"
       autoComplete="off"
       value={props.value}
       onChange={props.onChangeValue}

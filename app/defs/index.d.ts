@@ -1,3 +1,4 @@
+import { DiscountUserError } from "~/types/admin.types";
 import { DiscountApplication } from "./discount";
 
 // DiscountValueType
@@ -69,7 +70,12 @@ export type VDConfig = {
 
 // ----------------------------- Common --------------
 
-type ActionStatus = "success" | "failed" | "";
+export type ActionStatus = "success" | "failed" | "";
+
+export type ActionType = {
+  status: ActionStatus;
+  errors: DiscountUserError[] | undefined;
+};
 
 // ------------------------------------- PubSub -----------------
 

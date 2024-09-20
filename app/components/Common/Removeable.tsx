@@ -1,4 +1,4 @@
-import { Box, Button, InlineGrid, InlineStack } from "@shopify/polaris";
+import { Button, InlineGrid, InlineStack } from "@shopify/polaris";
 
 import { XIcon } from "@shopify/polaris-icons";
 
@@ -10,13 +10,11 @@ interface RemoveableProps {
 
 export function Removeable({ index, children, onRemove }: RemoveableProps) {
   return (
-    <InlineStack align="space-between">
-      {/* <Box key={`content-${index}`}>{children}</Box> */}
+    <InlineStack align="space-between" gap={"200"}>
       {children}
       <InlineGrid alignItems="center">
         <Button
           key={`btn-rm-${index}`}
-          tone="critical"
           onClick={() => onRemove(index)}
           icon={XIcon}
         ></Button>

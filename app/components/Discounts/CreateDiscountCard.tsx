@@ -17,11 +17,12 @@ import {
   DeliveryIcon,
 } from "@shopify/polaris-icons";
 import { useState } from "react";
-import { BoxBorderBound, ColumnRevert } from "../Common/BoxBorderBound";
+import { BoxBorderBound } from "../Common/BoxBorderBound";
 import { TShirt } from "../Common/Icons";
 import { useNavigate } from "@remix-run/react";
 import { DiscountUseCaseDesc } from "~/defs/discount";
 import { StepList } from "../Common/StepList";
+import { ColumnRevert } from "../Common";
 
 type CreateDiscountCardProps = {
   title?: string;
@@ -59,7 +60,10 @@ export function CreateDiscountCard(props: CreateDiscountCardProps) {
             <Box>
               <Button
                 onClick={() => {
-                  props.path ?? nav(props.path);
+                  console.log("Navigate to ", props.path);
+                  if (props.path) {
+                    nav(props.path);
+                  }
                 }}
                 variant="primary"
               >
@@ -68,85 +72,6 @@ export function CreateDiscountCard(props: CreateDiscountCardProps) {
             </Box>
           </ColumnRevert>
         </InlineGrid>
-      </BlockStack>
-    </Card>
-  );
-}
-
-export function CreateDiscountCard2(props: CreateDiscountCardProps) {
-  const [openCollapse, setOpenCollapse] = useState(false);
-  const nav = useNavigate();
-
-  return (
-    <Card>
-      <BlockStack>
-        <Grid>
-          <Grid.Cell columnSpan={{ xs: 6, sm: 6, md: 3, lg: 4, xl: 4 }}>
-            <InlineStack align="center">
-              <Box>
-                {typeof props.illustration === "string" ? (
-                  <img className="fit_img" src={props.illustration} />
-                ) : (
-                  props.illustration
-                )}
-
-                {/* <img className="fit_img" src="/assets/volume-discount.svg" /> */}
-              </Box>
-            </InlineStack>
-          </Grid.Cell>
-
-          <Grid.Cell columnSpan={{ xs: 6, sm: 6, md: 3, lg: 8, xl: 8 }}>
-            <Box
-              // borderColor="border-critical"
-              // borderWidth="0165"
-              minHeight="100%"
-              padding={"100"}
-            >
-              <InlineGrid columns={1} alignItems="start">
-                <Text as="p">{props.title}</Text>
-                <Box minHeight="70px"></Box>
-                <InlineStack align="space-between" aria-colcount={1}>
-                  <Box />
-                  <InlineStack gap={"200"}>
-                    {props.usecases && (
-                      <Button
-                        icon={openCollapse ? ChevronUpIcon : ChevronDownIcon}
-                        onClick={() => setOpenCollapse(!openCollapse)}
-                      >
-                        Usecase
-                      </Button>
-                    )}
-
-                    <Button
-                      onClick={() => {
-                        props.path ?? nav(props.path);
-                      }}
-                      variant="primary"
-                    >
-                      Create
-                    </Button>
-                  </InlineStack>
-                </InlineStack>
-              </InlineGrid>
-            </Box>
-          </Grid.Cell>
-        </Grid>
-
-        <Box minHeight="8px" />
-        {props.usecases && (
-          <Collapsible
-            id="dfdfs"
-            open={openCollapse}
-            transition={{ duration: "0.5s" }}
-          >
-            {props.usecases &&
-              props.usecases.map((uc, idx) => (
-                <Text key={`usecase-${idx}`} as="p">
-                  {uc.value}
-                </Text>
-              ))}
-          </Collapsible>
-        )}
       </BlockStack>
     </Card>
   );
@@ -256,10 +181,10 @@ export function ShippingBillIllustratrion() {
         <Text as="p" variant="bodyLg" tone="base">
           100$
         </Text>
-        <Text as="p" variant="bodyLg" tone="base">
+        <Text as="p" variant="bodyLg" tone="critical">
           200$
         </Text>
-        <Text as="p" variant="bodyLg" tone="success">
+        <Text as="p" variant="bodyLg" tone="base">
           400$
         </Text>
       </InlineGrid>
@@ -304,10 +229,10 @@ export function ShippingVolumeBreakIllustratrion() {
         <Text as="p" variant="bodyLg" tone="base">
           2 units
         </Text>
-        <Text as="p" variant="bodyLg" tone="base">
+        <Text as="p" variant="bodyLg" tone="critical">
           4 units
         </Text>
-        <Text as="p" variant="bodyLg" tone="success">
+        <Text as="p" variant="bodyLg" tone="base">
           6 units
         </Text>
       </InlineGrid>
