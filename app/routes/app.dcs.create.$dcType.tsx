@@ -7,10 +7,9 @@ import {
 } from "@remix-run/react";
 import { Page } from "@shopify/polaris";
 import { useEffect, useMemo } from "react";
-import { BundleDetail } from "~/components/Discounts/CreateDiscount";
-import { BundleTheme } from "~/components/Discounts/ThemeDiscount";
+import { BundleDetail } from "~/components/Discounts/BundleDiscount";
 import { ActionType, ODConfig, SDConfig, VDConfig } from "~/defs";
-import { DiscountCreateDesc, DiscountTypeGUI } from "~/defs/discount";
+import { DiscountTypeGUI } from "~/defs/discount";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {

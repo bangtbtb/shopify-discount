@@ -1,12 +1,10 @@
 import {
   BlockStack,
   Text,
-  Grid,
   Select,
   SelectOption,
   Box,
   Icon,
-  InlineGrid,
   InlineStack,
 } from "@shopify/polaris";
 
@@ -25,13 +23,14 @@ import {
   RenderFrame,
   RenderTextTheme,
 } from "./ThemeField";
-import CardWithHeading from "~/components/Common/CardWithHeading";
+import CardWithHeading from "~/components/Common";
 import { ProductInfo } from "../Shopify/SelectProduct";
 import { DVT } from "~/defs";
 import { useEffect, useState } from "react";
 import { PlusIcon } from "@shopify/polaris-icons";
 import { Field } from "@shopify/react-form";
-import { CardOverflow } from "../Common/CardOverflow";
+
+export type ProductInfoBundle = ProductInfo & { requireVol: number };
 
 type BundleThemeType = {
   title: FontConfigField;
@@ -108,10 +107,6 @@ export function BundleTheme({
         Typography & Colour
       </Text>
 
-      <CardOverflow>
-        <FontTheme {...title} />
-      </CardOverflow>
-
       <CardWithHeading title="Title Config">
         <FontTheme {...title} />
       </CardWithHeading>
@@ -162,12 +157,6 @@ type BundleThemePreviewProps = {
 type PriceWithDiscount = {
   price: number;
   priceDiscount: number;
-};
-
-type BundlePriceDiscount = {
-  total: number;
-  totalDiscount: number;
-  prices: PriceWithDiscount[];
 };
 
 export function BundleThemePreview({

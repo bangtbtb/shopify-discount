@@ -10,19 +10,12 @@ import {
   InlineStack,
   Text,
 } from "@shopify/polaris";
-import {
-  CartFilledIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  DeliveryIcon,
-} from "@shopify/polaris-icons";
-import { useState } from "react";
-import { BoxBorderBound } from "../Common/BoxBorderBound";
+import { DeliveryIcon } from "@shopify/polaris-icons";
 import { TShirt } from "../Common/Icons";
 import { useNavigate } from "@remix-run/react";
 import { DiscountUseCaseDesc } from "~/defs/discount";
 import { StepList } from "../Common/StepList";
-import { ColumnRevert } from "../Common";
+import { ColumnRevert, BoxBorderBound } from "../Common";
 
 type CreateDiscountCardProps = {
   title?: string;

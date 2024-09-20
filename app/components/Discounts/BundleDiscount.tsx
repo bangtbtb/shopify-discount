@@ -9,7 +9,7 @@ import {
   ProductInfoBundle,
 } from "./ThemeDiscount";
 import { useEffect, useRef, useState } from "react";
-import { ProductInfo, SelectMultipleProducts } from "../Shopify/SelectProduct";
+import { SelectMultipleProducts } from "../Shopify/SelectProduct";
 import { useField } from "@shopify/react-form";
 import TextFieldSelect from "../Shopify/TextFieldSelect";
 
