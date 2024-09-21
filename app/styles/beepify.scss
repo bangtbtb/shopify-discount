@@ -1,11 +1,3 @@
-.flex-row-space {
-  display: flex;
-  width: 100%;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: space-between;
-}
-
 .flex_column_reverse {
   display: flex;
   width: 100%;
@@ -174,12 +166,22 @@
 
 // ------------------------------- Preview ------------------------------
 
+.flex_row_center {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: end;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .flex_row {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.5rem;
 
   .remain {
     flex-grow: 1;
@@ -200,9 +202,8 @@
 }
 
 .card_grey {
-  padding: "20px";
   border-radius: 0.5rem;
-  background-color: #fff;
+  background-color: #f1f1f1;
   gap: 0.75rem;
 }
 
@@ -229,4 +230,58 @@
 .old {
   text-decoration: line-through;
   color: #1f1f1f;
+}
+
+.midline {
+  width: 100%;
+  text-align: center;
+  line-height: 0.1em;
+  margin: 10px 0 20px;
+  border-bottom: 1px solid #000;
+}
+
+.midline span {
+  background: #fff;
+  padding: 0 10px;
+}
+
+.vd_title {
+  display: flex;
+  width: 100%;
+  margin-bottom: 20px;
+  margin-left: 20px;
+  margin-right: 20px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  text-align: center;
+}
+
+.vd_title h3 {
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 20px;
+  color: var(--clgreen);
+  width: fit-content;
+  position: relative;
+}
+
+.vd_title h3:before,
+.vd_title h3:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 500%;
+  height: 2px;
+  background-color: #c8c8c8;
+}
+
+.vd_title h3:before {
+  right: 100%;
+  margin-right: 10px;
+}
+
+.vd_title h3:after {
+  left: 100%;
+  margin-left: 10px;
 }

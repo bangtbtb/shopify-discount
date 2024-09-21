@@ -6,6 +6,7 @@ export type StepData = {
   type: DVT;
   value: string;
   require: string;
+  label?: string;
 };
 
 interface StepComponentProps extends StepData {

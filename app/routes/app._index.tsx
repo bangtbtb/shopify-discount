@@ -5,27 +5,12 @@ import type {
   SerializeFrom,
 } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import {
-  useFetcher,
-  useLoaderData,
-  useLocation,
-  useNavigate,
-} from "@remix-run/react";
-import {
-  Page,
-  Layout,
-  Text,
-  Card,
-  Box,
-  InlineGrid,
-  Button,
-  Modal,
-} from "@shopify/polaris";
+import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
+import { Page, Layout, Text, Card, InlineGrid } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { dbGetDiscounts } from "~/models/db_discount";
 import { DiscountTable } from "~/components/Discounts/DiscountTable";
 import { Discount } from "@prisma/client";
-import { getFakeOrderOverview } from "~/fake/homepage";
 import ViewCounterChart from "~/components/DiscountChart/ViewCounterChart";
 import {
   OrderAppliedCounterChart,
@@ -37,6 +22,7 @@ import { getOrdersReport } from "~/models/db_applied";
 import { dayDuration } from "~/models/utils";
 import { format as dateFormat } from "date-fns";
 import { dbGetShopDiscountView } from "~/models/db_dc_view";
+import { Midline } from "~/components/Common";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -90,7 +76,6 @@ export default function Index() {
   //   fetcher.formMethod === "POST";
 
   const [loadSuccess, setLoadSuccess] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
   const [orderReportParsed, setOrderReportParsed] =
     useState<OrderReportParsed | null>(null);
 
@@ -109,36 +94,15 @@ export default function Index() {
   }, [orderReport]);
 
   return (
-    <Page
-      actionGroups={[
-        {
-          title: "Create discount",
-          actions: [
-            {
-              content: "Bundle",
-              onAction: () => {
-                nav("/app/od/new");
-              },
-            },
-            {
-              content: "Volume",
-              onAction: () => {
-                nav("/app/vd/new");
-              },
-            },
-            {
-              content: "Shipping",
-              onAction: () => {
-                nav("/app/sd/new");
-              },
-            },
-          ],
-        },
-      ]}
-    >
+    <Page title="Home">
+      <Midline content={"ddd"} borderWidth={"3px"}></Midline>
+
+      <div className="vd_title">
+        <h3>dfdf</h3>
+      </div>
+
       {/* Overview discount status was applied */}
       <Layout.Section>
-        <Box></Box>
         <Text as="h2"> Overview</Text>
 
         <InlineGrid gap={"400"} columns={{ xs: 1, sm: 1, md: 3, lg: 3, xl: 3 }}>

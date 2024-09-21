@@ -3,7 +3,7 @@
 client_id = "59c7dbfbeefd1f11ba1aa85228d3700a"
 name = "Simple Discount"
 handle = "sd-xxyy"
-application_url = "https://texts-peter-articles-nicholas.trycloudflare.com"
+application_url = "https://discretion-fleece-cam-le.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_orders,read_products,unauthenticated_read_checkouts,unauthenticat
 
 [auth]
 redirect_urls = [
-  "https://texts-peter-articles-nicholas.trycloudflare.com/auth/callback",
-  "https://texts-peter-articles-nicholas.trycloudflare.com/auth/shopify/callback",
-  "https://texts-peter-articles-nicholas.trycloudflare.com/api/auth/callback"
+  "https://discretion-fleece-cam-le.trycloudflare.com/auth/callback",
+  "https://discretion-fleece-cam-le.trycloudflare.com/auth/shopify/callback",
+  "https://discretion-fleece-cam-le.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

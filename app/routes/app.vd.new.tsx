@@ -34,7 +34,7 @@ import VDConfigCard, {
   VDStepConfigComponent,
 } from "~/components/Discounts/VDConfigCard";
 import { StepData } from "~/components/Discounts/ConfigStep";
-import { randomNumber } from "~/models/utils";
+import { randomDigit } from "~/models/utils";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
 
 interface ActionData {
@@ -52,7 +52,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   const config: VDConfig = {
     ...JSON.parse(formData.get("config")?.toString() || "{}"),
-    label: `VOLUME_${randomNumber()}`,
+    label: `VOLUME_${randomDigit()}`,
   };
 
   var resp = await createVolumeDiscount(admin.graphql, {

@@ -11,7 +11,7 @@ import {
 } from "@shopify/polaris";
 
 import { ImageIcon, SearchIcon } from "@shopify/polaris-icons";
-import { Removeable } from "../Common/Removeable";
+import { Removeable } from "~/components/Common";
 
 export interface CollectionInfo {
   id: string;

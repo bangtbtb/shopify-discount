@@ -87,16 +87,7 @@ export function FontTheme({ size, color, weight }: FontThemeProps) {
       </Box>
 
       <Box minWidth="70px">
-        <Select
-          label="Weight"
-          options={[
-            { label: "Light", value: "light" },
-            { label: "Regular", value: "regular" },
-            { label: "Bold", value: "bold" },
-          ]}
-          value={weight.value as string}
-          onChange={(v) => weight.onChange(v as FontWeight)}
-        />
+        <SelectFontWeight label="Weight" {...weight} />
       </Box>
     </InlineStack>
   );
@@ -156,8 +147,7 @@ export function RenderTextTheme({
     setStyle({
       fontSize: size.value + "px",
       color: color.value,
-      fontWeight:
-        weight.value === "bold" ? 700 : weight.value === "regular" ? 500 : 200,
+      fontWeight: weight.value,
     });
   }, [size.value, color.value, weight.value]);
 
@@ -211,30 +201,6 @@ export function RenderBundleButton({
   const { bgColor, borderColor } = frame;
   const { size, color, weight } = fontConfig;
 
-  // const [style, setStyle] = useState<React.CSSProperties>({
-  //   display: "block",
-  //   backgroundColor: bgColor.value,
-  //   borderColor: borderColor.value,
-  //   borderWidth: "1px",
-  //   borderRadius: "4px",
-  //   fontSize: size.value + "px",
-  //   color: color.value,
-  //   fontWeight: weight.value,
-  // });
-
-  // useEffect(() => {
-  //   setStyle({
-  //     display: "block",
-  //     backgroundColor: bgColor.value,
-  //     borderColor: borderColor.value,
-  //     borderWidth: "1px",
-  //     borderRadius: "4px",
-  //     fontSize: size.value + "px",
-  //     color: color.value,
-  //     fontWeight: weight.value,
-  //   });
-  // }, [frame.bgColor.value, frame.borderColor.value]);
-
   return (
     <button
       style={{
@@ -252,5 +218,28 @@ export function RenderBundleButton({
     >
       {content}
     </button>
+  );
+}
+
+type SelectFontWeight = {
+  label?: string;
+  value: FontWeight;
+  onChange: (v: FontWeight) => void;
+};
+
+export function SelectFontWeight({ label, value, onChange }: SelectFontWeight) {
+  return (
+    <Select
+      label={label}
+      value={value}
+      options={[
+        { label: "Light", value: "300" },
+        { label: "Normal", value: "400" },
+        { label: "Medium", value: "500" },
+        { label: "SemiBold", value: "600" },
+        { label: "Bold", value: "700" },
+      ]}
+      onChange={(v) => onChange(v as FontWeight)}
+    ></Select>
   );
 }

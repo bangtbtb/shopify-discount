@@ -77,3 +77,17 @@ export function Removeable({ index, children, onRemove }: RemoveableProps) {
     </InlineStack>
   );
 }
+
+type MidlineProps = React.CSSProperties & {
+  content?: string | React.ReactElement;
+};
+
+export function Midline(props: MidlineProps) {
+  const { content, ...rest } = props;
+
+  return (
+    <div className="vd_title">
+      <h3 style={rest}>content</h3>
+    </div>
+  );
+}

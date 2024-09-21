@@ -13,7 +13,7 @@ import { SDApplyType } from "~/defs";
 import { StepComponent, StepData } from "./ConfigStep";
 import { ProductInfo, SelectMultipleProducts } from "../Shopify/SelectProduct";
 import { CollectionInfo, SelectCollections } from "../Shopify/SelectCollection";
-import { Removeable } from "../Common/Removeable";
+import { Removeable } from "~/components/Common";
 
 type SDConfigCardProps = {
   sdType: Field<SDApplyType>;

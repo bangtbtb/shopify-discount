@@ -29,10 +29,11 @@ import { DVT } from "~/defs";
 import { useEffect, useState } from "react";
 import { PlusIcon } from "@shopify/polaris-icons";
 import { Field } from "@shopify/react-form";
+import { CombinableDiscountTypes } from "@shopify/discount-app-components";
 
 export type ProductInfoBundle = ProductInfo & { requireVol: number };
 
-type BundleThemeType = {
+export type BundleThemeType = {
   title: FontConfigField;
   productFrame: FrameConfigField;
   productName: FontConfigField;
@@ -42,11 +43,13 @@ type BundleThemeType = {
 };
 
 export function createBundleThemeType(): BundleThemeType {
+  console.log("Create bundle theme type");
+
   return {
     title: createFontConfigField({
       color: "#1B1B1B",
       size: 16,
-      weight: "bold",
+      weight: "700",
     }),
     productFrame: createFrameConfigField({
       bgColor: "#F5F5F5",
@@ -55,12 +58,12 @@ export function createBundleThemeType(): BundleThemeType {
     productName: createFontConfigField({
       color: "#1B1B1B",
       size: 14,
-      weight: "regular",
+      weight: "400",
     }),
     productPrice: createFontConfigField({
       color: "#1B1B1B",
       size: 16,
-      weight: "bold",
+      weight: "700",
     }),
     total: {
       frame: createFrameConfigField({
@@ -70,29 +73,80 @@ export function createBundleThemeType(): BundleThemeType {
       label: createFontConfigField({
         color: "#1B1B1B",
         size: 14,
-        weight: "bold",
+        weight: "700",
       }),
       price: createFontConfigField({
         color: "#008060",
         size: 18,
-        weight: "bold",
+        weight: "700",
       }),
       comparePrice: createFontConfigField({
         color: "#e93636",
         size: 14,
-        weight: "regular",
+        weight: "400",
       }),
     },
     button: createButtonConfigField(
       {
         color: "#FFFFFF",
         size: 18,
-        weight: "bold",
+        weight: "700",
       },
       { bgColor: "#008060", borderColor: "#008060" },
     ),
   };
 }
+
+export const defaultBundleThemeType: BundleThemeType = {
+  title: createFontConfigField({
+    color: "#1B1B1B",
+    size: 16,
+    weight: "700",
+  }),
+  productFrame: createFrameConfigField({
+    bgColor: "#F5F5F5",
+    borderColor: "#F5F5F5",
+  }),
+  productName: createFontConfigField({
+    color: "#1B1B1B",
+    size: 14,
+    weight: "400",
+  }),
+  productPrice: createFontConfigField({
+    color: "#1B1B1B",
+    size: 16,
+    weight: "700",
+  }),
+  total: {
+    frame: createFrameConfigField({
+      bgColor: "#F5F5F5",
+      borderColor: "#F5F5F5",
+    }),
+    label: createFontConfigField({
+      color: "#1B1B1B",
+      size: 14,
+      weight: "700",
+    }),
+    price: createFontConfigField({
+      color: "#008060",
+      size: 18,
+      weight: "700",
+    }),
+    comparePrice: createFontConfigField({
+      color: "#e93636",
+      size: 14,
+      weight: "400",
+    }),
+  },
+  button: createButtonConfigField(
+    {
+      color: "#FFFFFF",
+      size: 18,
+      weight: "700",
+    },
+    { bgColor: "#008060", borderColor: "#008060" },
+  ),
+};
 
 export function BundleTheme({
   title,
@@ -138,6 +192,9 @@ export function BundleTheme({
 
 export type BundleContentField = {
   title: Field<string>;
+  startDate: Field<Date>;
+  endDate: Field<Date | null>;
+  combines: Field<CombinableDiscountTypes>;
   buttonContent: Field<string>;
   footerText: Field<string>;
 };
@@ -152,11 +209,6 @@ type BundleThemePreviewProps = {
   products?: ProductInfo[];
   discountType: DVT;
   discountValue: number;
-};
-
-type PriceWithDiscount = {
-  price: number;
-  priceDiscount: number;
 };
 
 export function BundleThemePreview({

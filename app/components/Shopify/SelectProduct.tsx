@@ -8,10 +8,12 @@ import {
   Text,
   TextField,
   Thumbnail,
+  Tooltip,
 } from "@shopify/polaris";
 
 import { ImageIcon, SearchIcon } from "@shopify/polaris-icons";
-import { Removeable } from "~/components/Common/Removeable";
+import { BsTrash } from "react-icons/bs";
+import { Removeable } from "~/components/Common";
 
 type Money = string;
 
@@ -195,35 +197,62 @@ export function SelectMultipleProducts({
       {/* Products */}
       {showDefault && (
         <BlockStack gap={"200"}>
-          {/* Products {products.length} */}
           {products?.map((pInfo, index) => (
-            <Removeable key={index} index={index} onRemove={onRemoveProduct}>
-              <InlineStack key={index} blockAlign="center" gap="200">
-                <Thumbnail
-                  source={pInfo.image || ImageIcon}
-                  alt={pInfo.imageAlt}
-                  transparent
-                />
-                {/* <Box width="89" minHeight="71">
-          <img
-            className="fit_img"
-            src={pInfo.image}
-            alt={pInfo.imageAlt}
-          />
-        </Box> */}
-                <Box minWidth="4px" />
-
-                <InlineGrid alignItems="start" gap={"1200"}>
-                  <Text as="span" variant="headingMd" fontWeight="semibold">
-                    {pInfo.title}
-                  </Text>
-                </InlineGrid>
-              </InlineStack>
-            </Removeable>
+            <SelectedProduct
+              key={index}
+              product={pInfo}
+              onRemove={() => onRemoveProduct(index)}
+            />
           ))}
         </BlockStack>
       )}
       {children}
     </InlineGrid>
+  );
+}
+type SelectedProductProps = {
+  product: ProductInfo;
+  actions?: React.ReactElement[];
+  onRemove?: () => void;
+};
+
+export function SelectedProduct({
+  product,
+  actions,
+  onRemove,
+}: SelectedProductProps) {
+  return (
+    <div className="flex_row card_grey" style={{ flexWrap: "nowrap" }}>
+      <div style={{ minWidth: "92px", height: "71px" }}>
+        <img className="fit_img" src={product.image} alt="" />
+      </div>
+
+      <div className="remain flex_column" style={{ wordWrap: "break-word" }}>
+        <Text as="p" variant="headingSm" breakWord={true}>
+          {product.title}
+        </Text>
+
+        <div
+          className="flex_row_center"
+          style={{
+            padding: "0 0.5rem",
+          }}
+        >
+          {actions}
+
+          {onRemove && (
+            <BsTrash
+              color="red"
+              size={20}
+              onClick={() => {
+                if (!!onRemove) {
+                  onRemove();
+                }
+              }}
+            />
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -100,7 +100,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   return json({ status, errors });
 };
 
-export default function VolumeDiscountDetail() {
+export default function VolumeDiscountDetailPage() {
   const submitForm = useSubmit();
   const ldata = useLoaderData<AciontDataResponse>();
   const actData = useActionData<AciontDataResponse>();

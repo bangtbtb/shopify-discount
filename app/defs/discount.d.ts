@@ -137,7 +137,8 @@ export interface DiscountCreateDesc {
   illustration: React.ReactElement;
 }
 
-export type FontWeight = "bold" | "regular" | "light";
+// bold:700, semibol:600 medium:500, regular: normal, light: 300
+export type FontWeight = "700" | "600" | "500" | "400" | "300";
 
 export interface FontConfig {
   size: number;

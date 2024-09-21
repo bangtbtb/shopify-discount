@@ -1,17 +1,30 @@
-import { Box, Card, Grid, BlockStack, TextField } from "@shopify/polaris";
+import {
+  Box,
+  Card,
+  Grid,
+  BlockStack,
+  TextField,
+  Text,
+  Tooltip,
+} from "@shopify/polaris";
 import { DVT, ODConfig, SDConfig, VDConfig } from "~/defs";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
 import {
   BundleContentField,
   BundleTheme,
   BundleThemePreview,
+  BundleThemeType,
   createBundleThemeType,
   ProductInfoBundle,
-} from "./ThemeDiscount";
+} from "./BundleThemeDiscount";
 import { useEffect, useRef, useState } from "react";
-import { SelectMultipleProducts } from "../Shopify/SelectProduct";
+import {
+  SelectedProduct,
+  SelectMultipleProducts,
+} from "../Shopify/SelectProduct";
 import { useField } from "@shopify/react-form";
 import TextFieldSelect from "../Shopify/TextFieldSelect";
+import { CombinableDiscountTypes } from "@shopify/discount-app-components";
 
 type BundleComponentProps = {
   onSubmit?: (
@@ -25,6 +38,13 @@ export function BundleDetail(props: BundleComponentProps) {
 
   const content: BundleContentField = {
     title: useField<string>("Bund product offer"),
+    startDate: useField<Date>(new Date()),
+    endDate: useField(null),
+    combines: useField<CombinableDiscountTypes>({
+      orderDiscounts: false,
+      productDiscounts: false,
+      shippingDiscounts: true,
+    }),
     footerText: useField<string>("Total"),
     buttonContent: useField<string>("Add To Cart"),
   };
@@ -75,21 +95,42 @@ export function BundleDetail(props: BundleComponentProps) {
               onChange={(newPs) =>
                 setProducts(newPs.map((p) => ({ ...p, requireVol: 1 })))
               }
+              showDefault={false}
             >
-              {/* <BlockStack>
+              <BlockStack gap={"300"}>
                 {products.map((p, idx) => (
-                  <div
-                    key={idx}
-                    className="flex_row"
-                    style={{ padding: "0.75rem", gap: "1rem" }}
-                  >
-                    <div style={{ minWidth: "92px", height: "71px" }}>
-                      <img className="fit_img" src={p.image} alt="" />
-                    </div>
-                    <TextField label="" value={}> </TextField>
-                  </div>
+                  <SelectedProduct
+                    product={p}
+                    onRemove={() => {
+                      var newProducts = [...products];
+                      newProducts.splice(idx, 1);
+                      setProducts(newProducts);
+                    }}
+                    actions={[
+                      <Box maxWidth="3rem">
+                        <Tooltip content="Require volume">
+                          <TextField
+                            label=""
+                            autoComplete="off"
+                            size="slim"
+                            // type="number"
+                            value={p.requireVol.toString()}
+                            onChange={(v) => {
+                              var newP = {
+                                ...p,
+                                requireVol: Number.parseInt(v),
+                              };
+                              var newPs = [...products];
+                              newPs[idx] = newP;
+                              setProducts(newPs);
+                            }}
+                          />
+                        </Tooltip>
+                      </Box>,
+                    ]}
+                  ></SelectedProduct>
                 ))}
-              </BlockStack> */}
+              </BlockStack>
             </SelectMultipleProducts>
           </BlockStack>
         </Card>

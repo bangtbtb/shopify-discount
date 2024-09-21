@@ -13,7 +13,7 @@ import { Field } from "@shopify/react-form";
 import { ODApplyType } from "~/defs";
 import { ProductInfo, SelectMultipleProducts } from "../Shopify/SelectProduct";
 import { StepComponent, StepData } from "./ConfigStep";
-import { Removeable } from "../Common/Removeable";
+import { Removeable } from "~/components/Common";
 
 type ODConfigCardProps = {
   odType: Field<ODApplyType>;

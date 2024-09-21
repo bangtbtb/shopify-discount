@@ -8,6 +8,7 @@ import {
 import { Page } from "@shopify/polaris";
 import { useEffect, useMemo } from "react";
 import { BundleDetail } from "~/components/Discounts/BundleDiscount";
+import { VolumeDiscountComponent } from "~/components/Discounts/VolumeDiscount";
 import { ActionType, ODConfig, SDConfig, VDConfig } from "~/defs";
 import { DiscountTypeGUI } from "~/defs/discount";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
@@ -70,7 +71,8 @@ export default function DiscountsCreate(props: any) {
 
   return (
     <Page title="Select Discount unknown">
-      <BundleDetail></BundleDetail>
+      {dcType === "bundle" && <BundleDetail />}
+      {dcType === "volume" && <VolumeDiscountComponent />}
     </Page>
   );
 }
