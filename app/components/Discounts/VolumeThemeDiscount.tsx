@@ -1,10 +1,5 @@
 import { Field, useField } from "@shopify/react-form";
-import {
-  createFontConfigField,
-  createFrameConfigField,
-  FontConfigField,
-  FrameConfigField,
-} from "~/components/Discounts/ThemeField";
+
 import {
   ProductInfo,
   SelectedProduct,
@@ -24,6 +19,7 @@ import { DiscountAutomaticApp } from "~/types/admin.types";
 import { SerializeFrom } from "@remix-run/node";
 import { VDConfigExt } from "~/models/vd_model";
 import { randomIndex } from "~/models/utils";
+import { FontConfig, FrameConfig } from "~/defs/theme";
 
 export type VolumeDiscountContentField = {
   title: Field<string>;
@@ -37,14 +33,14 @@ export type VolumeDiscountContentField = {
 };
 
 export type VolumeDiscountTheme = {
-  title: FontConfigField;
-  offerTitle: FontConfigField;
-  discountLabel: FontConfigField;
-  price: FontConfigField;
-  comparePrice: FontConfigField;
-  tagMostPopular: FontConfigField;
-  total: FontConfigField;
-  selected: FrameConfigField;
+  title: Field<FontConfig>;
+  offerTitle: Field<FontConfig>;
+  discountLabel: Field<FontConfig>;
+  price: Field<FontConfig>;
+  comparePrice: Field<FontConfig>;
+  tagMostPopular: Field<FontConfig>;
+  total: Field<FontConfig>;
+  selected: Field<FrameConfig>;
   unselectedBar: Field<string>;
   unselectedBg: Field<string>;
 };
@@ -101,51 +97,51 @@ export function createVolumeDiscountContent(
   return data;
 }
 
-export function createVolumeDiscountTheme(): VolumeDiscountTheme {
-  return {
-    title: createFontConfigField({
-      color: "#4289FF",
-      size: 21,
-      weight: "700",
-    }),
-    offerTitle: createFontConfigField({
-      color: "#000000",
-      size: 14,
-      weight: "500",
-    }),
-    discountLabel: createFontConfigField({
-      color: "#ffffff",
-      size: 15,
-      weight: "500",
-    }),
-    price: createFontConfigField({
-      color: "#000000",
-      size: 14,
-      weight: "600",
-    }),
-    comparePrice: createFontConfigField({
-      color: "#9d9d9d",
-      size: 11,
-      weight: "500",
-    }),
-    tagMostPopular: createFontConfigField({
-      color: "#4289FF",
-      size: 14,
-      weight: "600",
-    }),
-    total: createFontConfigField({
-      color: "#1B1B1B",
-      size: 14,
-      weight: "500",
-    }),
-    selected: createFrameConfigField({
-      bgColor: "#F9FAFF",
-      borderColor: "#4289FF",
-    }),
-    unselectedBar: useField("#ffffff"),
-    unselectedBg: useField("#4289ff"),
-  };
-}
+// export function createVolumeDiscountTheme(): VolumeDiscountTheme {
+//   return {
+//     title: createFontConfigField({
+//       color: "#4289FF",
+//       size: 21,
+//       weight: "700",
+//     }),
+//     offerTitle: createFontConfigField({
+//       color: "#000000",
+//       size: 14,
+//       weight: "500",
+//     }),
+//     discountLabel: createFontConfigField({
+//       color: "#ffffff",
+//       size: 15,
+//       weight: "500",
+//     }),
+//     price: createFontConfigField({
+//       color: "#000000",
+//       size: 14,
+//       weight: "600",
+//     }),
+//     comparePrice: createFontConfigField({
+//       color: "#9d9d9d",
+//       size: 11,
+//       weight: "500",
+//     }),
+//     tagMostPopular: createFontConfigField({
+//       color: "#4289FF",
+//       size: 14,
+//       weight: "600",
+//     }),
+//     total: createFontConfigField({
+//       color: "#1B1B1B",
+//       size: 14,
+//       weight: "500",
+//     }),
+//     selected: createFrameConfigField({
+//       bgColor: "#F9FAFF",
+//       borderColor: "#4289FF",
+//     }),
+//     unselectedBar: useField("#ffffff"),
+//     unselectedBg: useField("#4289ff"),
+//   };
+// }
 
 type VolumeDiscountPreviewProps = {};
 

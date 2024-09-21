@@ -6,7 +6,14 @@ import type {
 } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
-import { Page, Layout, Text, Card, InlineGrid } from "@shopify/polaris";
+import {
+  Page,
+  Layout,
+  Text,
+  Card,
+  InlineGrid,
+  TextField,
+} from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { dbGetDiscounts } from "~/models/db_discount";
 import { DiscountTable } from "~/components/Discounts/DiscountTable";
@@ -23,6 +30,7 @@ import { dayDuration } from "~/models/utils";
 import { format as dateFormat } from "date-fns";
 import { dbGetShopDiscountView } from "~/models/db_dc_view";
 import { Midline } from "~/components/Common";
+import { useField } from "@shopify/react-form";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);

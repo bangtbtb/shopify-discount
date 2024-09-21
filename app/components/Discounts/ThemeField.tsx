@@ -1,5 +1,5 @@
 import { useField, Field } from "@shopify/react-form";
-import { FontConfig, FontWeight, FrameConfig } from "~/defs/discount";
+import { FontConfig, FontWeight, FrameConfig } from "~/defs/theme";
 import { ColorPickerField } from "../Common/ColorPickerField";
 import {
   InlineStack,
@@ -11,117 +11,140 @@ import {
 } from "@shopify/polaris";
 import { useEffect, useState } from "react";
 import CSS from "csstype";
+import { NumberField } from "../Shopify/NumberField";
 
-export type FontConfigField = {
-  size: Field<string>;
-  color: Field<string>;
-  weight: Field<FontWeight>;
-};
+// export type FontConfigField = {
+//   size: Field<string>;
+//   color: Field<string>;
+//   weight: Field<FontWeight>;
+// };
 
-export type FrameConfigField = {
-  bgColor: Field<string>;
-  borderColor: Field<string>;
-};
+// export type FrameConfigField = {
+//   bgColor: Field<string>;
+//   borderColor: Field<string>;
+// };
 
-export type GUIButtonConfigField = {
-  frame: FrameConfigField;
-  fontConfig: FontConfigField;
-};
+// export type GUIButtonConfigField = {
+//   frame: FrameConfigField;
+//   fontConfig: FontConfigField;
+// };
 
-export type GUIBundleTotalConfigField = {
-  frame: FrameConfigField;
-  label: FontConfigField;
-  price: FontConfigField;
-  comparePrice: FontConfigField;
-};
+// export type GUIBundleTotalConfigField = {
+//   frame: FrameConfigField;
+//   label: FontConfigField;
+//   price: FontConfigField;
+//   comparePrice: FontConfigField;
+// };
 
-export function createFontConfigField(dFont: FontConfig): FontConfigField {
-  return {
-    size: useField<string>(dFont.size.toString()),
-    color: useField<string>(dFont.color),
-    weight: useField<FontWeight>(dFont.weight),
-  };
-}
+// export function createFontConfigField(dFont: FontConfig): FontConfigField {
+//   return {
+//     size: useField<string>(dFont.size.toString()),
+//     color: useField<string>(dFont.color),
+//     weight: useField<FontWeight>(dFont.weight),
+//   };
+// }
 
-export function createFrameConfigField(dFrame: FrameConfig): FrameConfigField {
-  return {
-    bgColor: useField<string>(dFrame.bgColor),
-    borderColor: useField<string>(dFrame.borderColor),
-  };
-}
+// export function createFrameConfigField(dFrame: FrameConfig): FrameConfigField {
+//   return {
+//     bgColor: useField<string>(dFrame.bgColor),
+//     borderColor: useField<string>(dFrame.borderColor),
+//   };
+// }
 
-export function createButtonConfigField(
-  dFont: FontConfig,
-  dFrame: FrameConfig,
-): GUIButtonConfigField {
-  return {
-    fontConfig: createFontConfigField(dFont),
-    frame: createFrameConfigField(dFrame),
-  };
-}
+// export function createButtonConfigField(
+//   dFont: FontConfig,
+//   dFrame: FrameConfig,
+// ): GUIButtonConfigField {
+//   return {
+//     fontConfig: createFontConfigField(dFont),
+//     frame: createFrameConfigField(dFrame),
+//   };
+// }
 
 // export function createBundleFootTot(params: type) {}
 
-type FontThemeProps = {
-  size: Field<string>;
-  color: Field<string>;
-  weight: Field<FontWeight>;
+type FontThemeProps = FontConfig & {
+  onChange: (newConfig: FontConfig) => void;
 };
 
-export function FontTheme({ size, color, weight }: FontThemeProps) {
+export function FontTheme({ size, color, weight, onChange }: FontThemeProps) {
   return (
     <InlineStack aria-colcount={3} gap={"100"} align="space-between">
       <Box width="160px">
-        <ColorPickerField label="Color" hexColor={color} />
+        <ColorPickerField
+          label="Color"
+          hexColor={color}
+          onChange={(newHex) => onChange({ size, color: newHex, weight })}
+        />
       </Box>
       <Box maxWidth="70px">
-        <TextField
+        <NumberField
           label="Size"
           autoComplete="off"
           type="number"
           // suffix={"px"}
           max={64}
           min={8}
-          {...size}
+          num={size}
+          onChangeNum={(v) => onChange({ size: v, color, weight })}
         />
       </Box>
 
       <Box minWidth="70px">
-        <SelectFontWeight label="Weight" {...weight} />
+        <SelectFontWeight
+          label="Weight"
+          value={weight}
+          onChange={(v) => onChange({ size, color, weight: v })}
+        />
       </Box>
     </InlineStack>
   );
 }
 
-type FrameConfigThemeProps = {
-  bgColor: Field<string>;
-  borderColor: Field<string>;
+type FrameThemeProps = FrameConfig & {
+  onChange: (newConfig: FrameConfig) => void;
 };
 
-export function FrameConfigTheme({
+export function FrameTheme({
   bgColor,
   borderColor,
-}: FrameConfigThemeProps) {
+  onChange,
+}: FrameThemeProps) {
   return (
     <InlineGrid columns={2} gap={"200"}>
-      <ColorPickerField label="Background color" hexColor={bgColor} />
-      <ColorPickerField label="Border color" hexColor={borderColor} />
+      <ColorPickerField
+        label="Background color"
+        hexColor={bgColor}
+        onChange={(v) => onChange({ bgColor: v, borderColor })}
+      />
+      <ColorPickerField
+        label="Border color"
+        hexColor={borderColor}
+        onChange={(v) => onChange({ bgColor, borderColor: v })}
+      />
     </InlineGrid>
   );
 }
 
-export function ButtonConfigTheme(props: GUIButtonConfigField) {
+type ButtonThemeProps = {
+  font: FontConfig;
+  frame: FrameConfig;
+  onChangeFont: (newFont: FontConfig) => void;
+  onChangeFrame: (newConfig: FrameConfig) => void;
+};
+
+export function ButtonTheme(props: ButtonThemeProps) {
   return (
     <BlockStack>
-      <FontTheme {...props.fontConfig} />
-      <FrameConfigTheme {...props.frame} />
+      <FontTheme {...props.font} onChange={props.onChangeFont} />
+      <FrameTheme {...props.frame} onChange={props.onChangeFrame} />
     </BlockStack>
   );
 }
 
 // ------------------------- Preview -------------------------
 
-type RenderTextTheme = FontThemeProps & {
+type RenderTextTheme = FontConfig & {
   as: "span" | "p" | "h3";
   content: string | number;
   align?: CSS.Property.TextAlign;
@@ -137,19 +160,20 @@ export function RenderTextTheme({
   align,
 }: RenderTextTheme) {
   const [style, setStyle] = useState<React.CSSProperties>({
-    fontSize: size.value + "px",
-    color: color.value,
-    fontWeight: weight.value,
+    fontSize: size + "px",
+    color: color,
+    fontWeight: weight,
     textAlign: align,
   });
 
   useEffect(() => {
     setStyle({
-      fontSize: size.value + "px",
-      color: color.value,
-      fontWeight: weight.value,
+      fontSize: `${size}px`,
+      color: color,
+      fontWeight: weight,
+      textAlign: align,
     });
-  }, [size.value, color.value, weight.value]);
+  }, [size, color, weight]);
 
   if (as === "h3") {
     return <h3 style={style}>{content}</h3>;
@@ -161,7 +185,7 @@ export function RenderTextTheme({
   );
 }
 
-type RenderFrameProps = FrameConfigThemeProps & {
+type RenderFrameProps = FrameConfig & {
   children?: React.ReactElement;
 };
 
@@ -171,16 +195,16 @@ export function RenderFrame({
   children,
 }: RenderFrameProps) {
   const [style, setStyle] = useState<React.CSSProperties>({
-    backgroundColor: bgColor.value,
-    borderColor: borderColor.value,
+    backgroundColor: bgColor,
+    borderColor: borderColor,
   });
 
   useEffect(() => {
     setStyle({
-      backgroundColor: bgColor.value,
-      borderColor: borderColor.value,
+      backgroundColor: bgColor,
+      borderColor: borderColor,
     });
-  }, [bgColor.value, borderColor.value]);
+  }, [bgColor, borderColor]);
 
   return (
     <div className="frame" style={style}>
@@ -189,29 +213,31 @@ export function RenderFrame({
   );
 }
 
-type RenderBundleButtonProps = GUIButtonConfigField & {
+type RenderBundleButtonProps = {
+  font: FontConfig;
+  frame: FrameConfig;
   content: string;
 };
 
 export function RenderBundleButton({
+  font,
   frame,
-  fontConfig,
   content,
 }: RenderBundleButtonProps) {
   const { bgColor, borderColor } = frame;
-  const { size, color, weight } = fontConfig;
+  const { size, color, weight } = font;
 
   return (
     <button
       style={{
         display: "block",
-        backgroundColor: bgColor.value,
-        borderColor: borderColor.value,
+        backgroundColor: bgColor,
+        borderColor: borderColor,
         borderWidth: "1px",
         borderRadius: "4px",
-        fontSize: size.value + "px",
-        color: color.value,
-        fontWeight: weight.value,
+        fontSize: size + "px",
+        color: color,
+        fontWeight: weight,
         textAlign: "center",
         padding: "10px 0",
       }}
@@ -240,6 +266,6 @@ export function SelectFontWeight({ label, value, onChange }: SelectFontWeight) {
         { label: "Bold", value: "700" },
       ]}
       onChange={(v) => onChange(v as FontWeight)}
-    ></Select>
+    />
   );
 }

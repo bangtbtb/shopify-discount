@@ -34,7 +34,7 @@ export default function App() {
       setBridge(curBridge);
       console.log("Reload bridge", curBridge);
     }
-  }, []);
+  }, [bridge]);
 
   return (
     <html>

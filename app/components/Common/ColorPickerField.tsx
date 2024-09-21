@@ -70,13 +70,14 @@ export function ColorPickerExtend({
 
 export type ColorPickerFieldProps = {
   label: string;
-  hexColor: Field<string>;
+  hexColor: string;
+  onChange: (newHex: string) => void;
 };
 
 export function ColorPickerField(props: ColorPickerFieldProps) {
   const refBox = useRef<HTMLElement>(null);
   const [showEditor, setShowEditor] = useState(false);
-  const [color, setColor] = useState<HSBAColor>(hex2HSBA(props.hexColor.value));
+  const [color, setColor] = useState<HSBAColor>(hex2HSBA(props.hexColor));
 
   const handleClickOutside = (ev: MouseEvent) => {
     if (refBox.current) {
@@ -105,14 +106,14 @@ export function ColorPickerField(props: ColorPickerFieldProps) {
         <TextField
           label={props.label}
           autoComplete="off"
-          value={props.hexColor.value}
+          value={props.hexColor}
           onFocus={() => {
             setShowEditor(!showEditor);
           }}
           suffix={
             <div
               className="suffix-color"
-              style={{ backgroundColor: props.hexColor.value }}
+              style={{ backgroundColor: props.hexColor }}
               onClick={() => !showEditor && setShowEditor(true)}
             />
           }
@@ -144,11 +145,11 @@ export function ColorPickerField(props: ColorPickerFieldProps) {
         >
           <ColorPickerExtend
             allowAlpha
-            hex={props.hexColor.value}
+            hex={props.hexColor}
             color={color}
             onChangeColor={(newColor, newHex) => {
               setColor(newColor);
-              props.hexColor.onChange(newHex);
+              props.onChange(newHex);
             }}
           />
         </div>

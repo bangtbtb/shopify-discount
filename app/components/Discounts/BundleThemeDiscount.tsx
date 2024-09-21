@@ -9,16 +9,9 @@ import {
 } from "@shopify/polaris";
 
 import {
-  ButtonConfigTheme,
-  createButtonConfigField,
-  createFontConfigField,
-  createFrameConfigField,
-  FontConfigField,
+  ButtonTheme,
   FontTheme,
-  FrameConfigField,
-  FrameConfigTheme,
-  GUIBundleTotalConfigField,
-  GUIButtonConfigField,
+  FrameTheme,
   RenderBundleButton,
   RenderFrame,
   RenderTextTheme,
@@ -30,129 +23,84 @@ import { useEffect, useState } from "react";
 import { PlusIcon } from "@shopify/polaris-icons";
 import { Field } from "@shopify/react-form";
 import { CombinableDiscountTypes } from "@shopify/discount-app-components";
+import { FontConfig, FrameConfig } from "~/defs/theme";
 
 export type ProductInfoBundle = ProductInfo & { requireVol: number };
 
 export type BundleThemeType = {
-  title: FontConfigField;
-  productFrame: FrameConfigField;
-  productName: FontConfigField;
-  productPrice: FontConfigField;
-  total: GUIBundleTotalConfigField;
-  button: GUIButtonConfigField;
-};
-
-export function createBundleThemeType(): BundleThemeType {
-  console.log("Create bundle theme type");
-
-  return {
-    title: createFontConfigField({
-      color: "#1B1B1B",
-      size: 16,
-      weight: "700",
-    }),
-    productFrame: createFrameConfigField({
-      bgColor: "#F5F5F5",
-      borderColor: "#F5F5F5",
-    }),
-    productName: createFontConfigField({
-      color: "#1B1B1B",
-      size: 14,
-      weight: "400",
-    }),
-    productPrice: createFontConfigField({
-      color: "#1B1B1B",
-      size: 16,
-      weight: "700",
-    }),
-    total: {
-      frame: createFrameConfigField({
-        bgColor: "#F5F5F5",
-        borderColor: "#F5F5F5",
-      }),
-      label: createFontConfigField({
-        color: "#1B1B1B",
-        size: 14,
-        weight: "700",
-      }),
-      price: createFontConfigField({
-        color: "#008060",
-        size: 18,
-        weight: "700",
-      }),
-      comparePrice: createFontConfigField({
-        color: "#e93636",
-        size: 14,
-        weight: "400",
-      }),
-    },
-    button: createButtonConfigField(
-      {
-        color: "#FFFFFF",
-        size: 18,
-        weight: "700",
-      },
-      { bgColor: "#008060", borderColor: "#008060" },
-    ),
-  };
-}
-
-export const defaultBundleThemeType: BundleThemeType = {
-  title: createFontConfigField({
-    color: "#1B1B1B",
-    size: 16,
-    weight: "700",
-  }),
-  productFrame: createFrameConfigField({
-    bgColor: "#F5F5F5",
-    borderColor: "#F5F5F5",
-  }),
-  productName: createFontConfigField({
-    color: "#1B1B1B",
-    size: 14,
-    weight: "400",
-  }),
-  productPrice: createFontConfigField({
-    color: "#1B1B1B",
-    size: 16,
-    weight: "700",
-  }),
+  title: Field<FontConfig>;
+  productFrame: Field<FrameConfig>;
+  productName: Field<FontConfig>;
+  productPrice: Field<FontConfig>;
   total: {
-    frame: createFrameConfigField({
-      bgColor: "#F5F5F5",
-      borderColor: "#F5F5F5",
-    }),
-    label: createFontConfigField({
-      color: "#1B1B1B",
-      size: 14,
-      weight: "700",
-    }),
-    price: createFontConfigField({
-      color: "#008060",
-      size: 18,
-      weight: "700",
-    }),
-    comparePrice: createFontConfigField({
-      color: "#e93636",
-      size: 14,
-      weight: "400",
-    }),
-  },
-  button: createButtonConfigField(
-    {
-      color: "#FFFFFF",
-      size: 18,
-      weight: "700",
-    },
-    { bgColor: "#008060", borderColor: "#008060" },
-  ),
+    frame: Field<FrameConfig>;
+    label: Field<FontConfig>;
+    price: Field<FontConfig>;
+    comparePrice: Field<FontConfig>;
+  };
+  button: {
+    frame: Field<FrameConfig>;
+    font: Field<FontConfig>;
+  };
 };
+
+// export const defaultBundleThemeType: BundleThemeType = {
+//   title: createFontConfigField({
+//     color: "#1B1B1B",
+//     size: 16,
+//     weight: "700",
+//   }),
+//   productFrame: createFrameConfigField({
+//     bgColor: "#F5F5F5",
+//     borderColor: "#F5F5F5",
+//   }),
+//   productName: createFontConfigField({
+//     color: "#1B1B1B",
+//     size: 14,
+//     weight: "400",
+//   }),
+//   productPrice: createFontConfigField({
+//     color: "#1B1B1B",
+//     size: 16,
+//     weight: "700",
+//   }),
+//   total: {
+//     frame: createFrameConfigField({
+//       bgColor: "#F5F5F5",
+//       borderColor: "#F5F5F5",
+//     }),
+//     label: createFontConfigField({
+//       color: "#1B1B1B",
+//       size: 14,
+//       weight: "700",
+//     }),
+//     price: createFontConfigField({
+//       color: "#008060",
+//       size: 18,
+//       weight: "700",
+//     }),
+//     comparePrice: createFontConfigField({
+//       color: "#e93636",
+//       size: 14,
+//       weight: "400",
+//     }),
+//   },
+//   button: createButtonConfigField(
+//     {
+//       color: "#FFFFFF",
+//       size: 18,
+//       weight: "700",
+//     },
+//     { bgColor: "#008060", borderColor: "#008060" },
+//   ),
+// };
 
 export function BundleTheme({
   title,
   productName,
   productPrice,
   productFrame,
+  total,
   button,
 }: BundleThemeType) {
   return (
@@ -162,30 +110,35 @@ export function BundleTheme({
       </Text>
 
       <CardWithHeading title="Title Config">
-        <FontTheme {...title} />
+        <FontTheme {...title.value} onChange={title.onChange} />
       </CardWithHeading>
 
       <CardWithHeading title="Product Name Config">
-        <FontTheme {...productName} />
+        <FontTheme {...productName.value} onChange={productName.onChange} />
       </CardWithHeading>
 
       <CardWithHeading title="Product Price Config">
-        <FontTheme {...productPrice} />
+        <FontTheme {...productPrice.value} onChange={productPrice.onChange} />
       </CardWithHeading>
 
       <CardWithHeading title="Product Card Config">
-        <FrameConfigTheme {...productFrame} />
+        <FrameTheme {...productFrame.value} onChange={productFrame.onChange} />
       </CardWithHeading>
 
       <CardWithHeading title="Total config">
-        <FontTheme {...productPrice} />
-        <FontTheme {...productPrice} />
-        <FrameConfigTheme {...productFrame} />
+        <FontTheme {...total.label.value} onChange={total.label.onChange} />
+        <FontTheme {...total.price.value} onChange={total.price.onChange} />
+        <FontTheme
+          {...total.comparePrice.value}
+          onChange={total.comparePrice.onChange}
+        />
+
+        <FrameTheme {...total.frame.value} onChange={total.frame.onChange} />
       </CardWithHeading>
 
-      <CardWithHeading title="Button Config">
-        <ButtonConfigTheme {...button} />
-      </CardWithHeading>
+      {/* <CardWithHeading title="Button Config">
+        <ButtonTheme font={buttonfont} frame={button.frame}  onChangeFont={}/>
+      </CardWithHeading> */}
     </BlockStack>
   );
 }
@@ -198,10 +151,6 @@ export type BundleContentField = {
   buttonContent: Field<string>;
   footerText: Field<string>;
 };
-
-export function BundleThemeContent(props: BundleContentField) {
-  return <BlockStack></BlockStack>;
-}
 
 type BundleThemePreviewProps = {
   theme: BundleThemeType;
@@ -307,7 +256,7 @@ export function BundleThemePreview({
         as="h3"
         align="center"
         content={content.title.value}
-        {...title}
+        {...title.value}
       />
 
       {/* Products */}
@@ -321,7 +270,9 @@ export function BundleThemePreview({
               priceDiscount={discountPrices[idx]}
               volume={0}
               product={pinfo}
-              {...{ productFrame, productName, productPrice }}
+              productFrame={productFrame.value}
+              productName={productName.value}
+              productPrice={productPrice.value}
               onChangePricing={(newPrice) => onPriceChange(newPrice, idx)}
             />
           ) : (
@@ -331,7 +282,9 @@ export function BundleThemePreview({
                 priceDiscount={discountPrices[idx]}
                 volume={0}
                 product={pinfo}
-                {...{ productFrame, productName, productPrice }}
+                productFrame={productFrame.value}
+                productName={productName.value}
+                productPrice={productPrice.value}
                 onChangePricing={(newPrice) => onPriceChange(newPrice, idx)}
               />
               <Icon source={PlusIcon} />
@@ -351,13 +304,13 @@ export function BundleThemePreview({
       )}
 
       {/* Total */}
-      <RenderFrame {...total.frame}>
+      <RenderFrame {...total.frame.value}>
         <div className="flex_row" style={{ margin: "1rem" }}>
           <div>
             <RenderTextTheme
               as="p"
               content={content.footerText.value}
-              {...total.label}
+              {...total.label.value}
             />
           </div>
 
@@ -366,14 +319,18 @@ export function BundleThemePreview({
             <RenderTextTheme
               as="span"
               content={discountTotalValue}
-              {...total.price}
+              {...total.price.value}
             />
           </div>
         </div>
       </RenderFrame>
 
       {/* Add to cart button */}
-      <RenderBundleButton content={content.buttonContent.value} {...button} />
+      <RenderBundleButton
+        content={content.buttonContent.value}
+        font={button.font.value}
+        frame={button.frame.value}
+      />
     </div>
   );
 }
@@ -383,9 +340,9 @@ type BundleProductPreviewProps = {
   price: number;
   priceDiscount: number;
   product: ProductInfo;
-  productFrame: FrameConfigField;
-  productName: FontConfigField;
-  productPrice: FontConfigField;
+  productFrame: FrameConfig;
+  productName: FontConfig;
+  productPrice: FontConfig;
   onChangePricing: (pricing: number) => void;
 };
 
