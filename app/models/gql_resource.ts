@@ -29,6 +29,14 @@ export async function getSimleProductInfo(
               currencyCode
             }
           }
+          variants(first: 30) {
+            edges {
+              node {
+                id
+                price
+              }
+            }
+          }
         }
       }
     `,

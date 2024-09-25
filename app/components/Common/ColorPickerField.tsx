@@ -83,7 +83,6 @@ export function ColorPickerField(props: ColorPickerFieldProps) {
     if (refBox.current) {
       const eleBounds = refBox.current.getBoundingClientRect();
       let ret = ev.clientX >= eleBounds.left && ev.clientX <= eleBounds.right;
-      console.log(ret);
       if (!ret) {
         setShowEditor(false);
       }

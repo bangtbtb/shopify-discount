@@ -36,15 +36,6 @@ export function DiscountTable({ discounts, onClick }: DiscountTableProps) {
         selectable={false}
         headings={[{ title: "Title" }, { title: "Status" }, { title: "Type" }]}
         emptyState={
-          // <InlineGrid alignItems="center" columns={1} >
-          //   <Box>
-          //     <Text as="p">No discount found. Please create it</Text>
-          //   </Box>
-          //   <Box>
-          //     <Button variant="primary">Create new one</Button>
-          //   </Box>
-          // </InlineGrid>
-
           <EmptyState
             heading="No discount found. Please create it"
             action={{
@@ -53,13 +44,9 @@ export function DiscountTable({ discounts, onClick }: DiscountTableProps) {
                 nav("/app/dcs/create_select");
               },
             }}
-            // secondaryAction={{
-            //   content: "Learn more",
-            //   url: "https://help.shopify.com",
-            // }}
             image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
           >
-            <p>Track and receive your incoming inventory from suppliers.</p>
+            {/* <p>Track and receive your incoming inventory from suppliers.</p> */}
           </EmptyState>
         }
       >

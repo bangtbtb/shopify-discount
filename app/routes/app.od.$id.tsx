@@ -120,9 +120,9 @@ export default function BundleDetailPage() {
         label: useField(""),
         applyType: useField<ODApplyType>("contain"),
         totalSteps: useField<Array<StepData>>([
-          { type: "percent", value: "5", require: "2" },
-          { type: "percent", value: "15", require: "3" },
-          { type: "percent", value: "15", require: "4" },
+          { type: "percent", value: 5, require: 2 },
+          { type: "percent", value: 10, require: 3 },
+          { type: "percent", value: 15, require: 4 },
         ]),
         allOrder: useField(true),
         containProduct: useField<Array<ProductInfo>>([]),
@@ -159,10 +159,10 @@ export default function BundleDetailPage() {
           form.config.applyType === "total"
             ? {
                 steps: form.config.totalSteps.map((v) => ({
-                  require: Number.parseFloat(v.require),
+                  require: v.require,
                   value: {
                     type: v.type,
-                    value: Number.parseFloat(v.value),
+                    value: v.value,
                   },
                 })),
               }
@@ -199,9 +199,9 @@ export default function BundleDetailPage() {
     srcConfig.total?.steps &&
       config.totalSteps.onChange(
         srcConfig.total?.steps.map((v) => ({
-          require: v.require.toString(),
           type: v.value.type,
-          value: v.value.value.toString(),
+          require: v.require,
+          value: v.value.value,
         })),
       );
     config.containProduct.onChange(srcConfig.products || []);

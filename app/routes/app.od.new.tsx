@@ -110,9 +110,9 @@ export default function NewODPage() {
         label: useField(""),
         type: useField<ODApplyType>("contain"),
         totalSteps: useField<Array<StepData>>([
-          { type: "percent", value: "5", require: "2" },
-          { type: "percent", value: "15", require: "3" },
-          { type: "percent", value: "15", require: "4" },
+          { type: "percent", value: 5, require: 2 },
+          { type: "percent", value: 10, require: 3 },
+          { type: "percent", value: 15, require: 4 },
         ]),
         allOrder: useField(true),
         containProduct: useField<Array<ProductInfo>>([]),
@@ -148,10 +148,10 @@ export default function NewODPage() {
           form.config.type === "total"
             ? {
                 steps: form.config.totalSteps.map((v) => ({
-                  require: Number.parseFloat(v.require),
+                  require: v.require,
                   value: {
                     type: v.type,
-                    value: Number.parseFloat(v.value),
+                    value: v.value,
                   },
                 })),
               }

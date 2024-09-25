@@ -4,11 +4,15 @@ import {
   Button,
   Card,
   CardProps,
+  Collapsible,
   InlineGrid,
   InlineStack,
   Text,
 } from "@shopify/polaris";
 import { XIcon } from "@shopify/polaris-icons";
+import { useEffect, useState } from "react";
+import { BsChevronDown, BsChevronUp } from "react-icons/bs";
+import { randomDigit } from "~/models/utils";
 
 type ColumnRevertProp = {
   children?: React.ReactElement;
@@ -22,17 +26,26 @@ type BoxBorderBoundProps = {
   headerAlign?: CSS.Property.TextAlign;
   header?: string | React.ReactElement;
   children?: React.ReactElement;
+  borderWidth?: CSS.Property.BorderWidth;
+  borderColor?: CSS.Property.BorderColor;
 };
 
 export function BoxBorderBound(props: BoxBorderBoundProps) {
   return (
-    <fieldset style={{ borderRadius: "8px", display: "inline-block" }}>
+    <fieldset
+      style={{
+        borderRadius: "8px",
+        display: "block",
+        width: "100%",
+        borderWidth: props.borderWidth || "1px",
+        borderColor: props.borderColor,
+      }}
+    >
       <legend
         style={{
           textAlign: props.headerAlign,
         }}
       >
-        {/* <span style="font-size: 2rem"> Span text </span> */}
         {props.header}
       </legend>
       {props.children}
@@ -40,19 +53,52 @@ export function BoxBorderBound(props: BoxBorderBoundProps) {
   );
 }
 
-type CardWithHeadingProps = CardProps & {
-  title: string;
+type CardCollapseProps = CardProps & {
+  title?: string | React.ReactNode;
+  collapse?: boolean;
+  initCollapse?: boolean;
+  actions?: React.ReactNode;
 };
 
-export default function CardWithHeading(props: CardWithHeadingProps) {
-  const { title, ...rest } = props;
+export function CardCollapse(props: CardCollapseProps) {
+  const { title, actions, ...rest } = props;
+  const [openContent, setOpenContent] = useState(
+    props.initCollapse == undefined ? true : props.initCollapse,
+  );
+  const isTitleString = typeof title === "string";
+
+  const [collapseId, setCollapseId] = useState("");
+  useEffect(() => {
+    if (!collapseId) {
+      setCollapseId(randomDigit(8).toString());
+    }
+  });
+
   return (
     <Card {...rest}>
-      <Text as="h3" variant="headingMd">
-        {title}
-      </Text>
-      <Box width="1rem" />
-      {props.children}
+      <InlineStack gap={"300"} align="space-between">
+        {/* Heading */}
+        {isTitleString && (
+          <Text as="h3" variant="headingMd">
+            {title}
+          </Text>
+        )}
+
+        {!isTitleString && title}
+        <InlineStack>
+          {props.collapse &&
+            (openContent ? (
+              <BsChevronUp size={20} onClick={() => setOpenContent(false)} />
+            ) : (
+              <BsChevronDown size={20} onClick={() => setOpenContent(true)} />
+            ))}
+          {actions}
+        </InlineStack>
+      </InlineStack>
+      <Collapsible id={collapseId} open={openContent}>
+        <Box minHeight="1rem" />
+        {props.children}
+      </Collapsible>
     </Card>
   );
 }
@@ -78,6 +124,21 @@ export function Removeable({ index, children, onRemove }: RemoveableProps) {
   );
 }
 
+interface ActionComponentProps {
+  children?: React.ReactNode;
+  actions?: React.ReactElement[];
+}
+
+export function ActionComponent({ children, actions }: ActionComponentProps) {
+  return (
+    <InlineStack align="space-between" gap={"200"}>
+      {children}
+
+      <InlineGrid alignItems="center">{actions}</InlineGrid>
+    </InlineStack>
+  );
+}
+
 type MidlineProps = React.CSSProperties & {
   content?: string | React.ReactElement;
 };
@@ -87,7 +148,7 @@ export function Midline(props: MidlineProps) {
 
   return (
     <div className="vd_title">
-      <h3 style={rest}>content</h3>
+      <h3 style={rest}>{content}</h3>
     </div>
   );
 }

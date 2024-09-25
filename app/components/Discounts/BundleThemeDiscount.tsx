@@ -9,179 +9,229 @@ import {
 } from "@shopify/polaris";
 
 import {
-  ButtonTheme,
+  ButtonThemeEditor,
   FontTheme,
   FrameTheme,
   RenderBundleButton,
   RenderFrame,
   RenderTextTheme,
 } from "./ThemeField";
-import CardWithHeading from "~/components/Common";
-import { ProductInfo } from "../Shopify/SelectProduct";
-import { DVT } from "~/defs";
+import { ProductInfo, ProductVariant } from "../Shopify/SelectProduct";
+import { DiscountValue, DVT } from "~/defs";
 import { useEffect, useState } from "react";
 import { PlusIcon } from "@shopify/polaris-icons";
-import { Field } from "@shopify/react-form";
-import { CombinableDiscountTypes } from "@shopify/discount-app-components";
-import { FontConfig, FrameConfig } from "~/defs/theme";
+import { BundleProductConfig, BundleThemeConfig } from "~/defs/theme";
+import { BoxBorderBound, CardCollapse } from "../Common";
+import { initArray } from "~/models/utils";
 
 export type ProductInfoBundle = ProductInfo & { requireVol: number };
 
-export type BundleThemeType = {
-  title: Field<FontConfig>;
-  productFrame: Field<FrameConfig>;
-  productName: Field<FontConfig>;
-  productPrice: Field<FontConfig>;
-  total: {
-    frame: Field<FrameConfig>;
-    label: Field<FontConfig>;
-    price: Field<FontConfig>;
-    comparePrice: Field<FontConfig>;
-  };
-  button: {
-    frame: Field<FrameConfig>;
-    font: Field<FontConfig>;
-  };
+export type BundleContent = {
+  title: string;
+  total: string;
+  button: string;
 };
 
-// export const defaultBundleThemeType: BundleThemeType = {
-//   title: createFontConfigField({
-//     color: "#1B1B1B",
-//     size: 16,
-//     weight: "700",
-//   }),
-//   productFrame: createFrameConfigField({
-//     bgColor: "#F5F5F5",
-//     borderColor: "#F5F5F5",
-//   }),
-//   productName: createFontConfigField({
-//     color: "#1B1B1B",
-//     size: 14,
-//     weight: "400",
-//   }),
-//   productPrice: createFontConfigField({
-//     color: "#1B1B1B",
-//     size: 16,
-//     weight: "700",
-//   }),
-//   total: {
-//     frame: createFrameConfigField({
-//       bgColor: "#F5F5F5",
-//       borderColor: "#F5F5F5",
-//     }),
-//     label: createFontConfigField({
-//       color: "#1B1B1B",
-//       size: 14,
-//       weight: "700",
-//     }),
-//     price: createFontConfigField({
-//       color: "#008060",
-//       size: 18,
-//       weight: "700",
-//     }),
-//     comparePrice: createFontConfigField({
-//       color: "#e93636",
-//       size: 14,
-//       weight: "400",
-//     }),
-//   },
-//   button: createButtonConfigField(
-//     {
-//       color: "#FFFFFF",
-//       size: 18,
-//       weight: "700",
-//     },
-//     { bgColor: "#008060", borderColor: "#008060" },
-//   ),
-// };
+export const defaultBundleTheme: BundleThemeConfig = {
+  title: {
+    color: "#1B1B1B",
+    size: 16,
+    weight: "700",
+  },
+  product: {
+    frame: {
+      bgColor: "#F5F5F5",
+      borderColor: "#F5F5F5",
+    },
+    name: {
+      color: "#1B1B1B",
+      size: 14,
+      weight: "400",
+    },
+    price: {
+      color: "#1B1B1B",
+      size: 16,
+      weight: "700",
+    },
+  },
+  total: {
+    frame: {
+      bgColor: "#F5F5F5",
+      borderColor: "#F5F5F5",
+    },
+    label: {
+      color: "#1B1B1B",
+      size: 14,
+      weight: "700",
+    },
+    price: {
+      color: "#008060",
+      size: 18,
+      weight: "700",
+    },
+    comparePrice: {
+      color: "#e93636",
+      size: 14,
+      weight: "400",
+    },
+  },
+  button: {
+    font: {
+      color: "#FFFFFF",
+      size: 18,
+      weight: "700",
+    },
+    frame: { bgColor: "#008060", borderColor: "#008060" },
+  },
+};
+
+export type BundleThemeProps = BundleThemeConfig & {
+  onChangeTheme: (k: string, v: any) => void;
+};
 
 export function BundleTheme({
   title,
-  productName,
-  productPrice,
-  productFrame,
+  product,
   total,
   button,
-}: BundleThemeType) {
+  onChangeTheme,
+}: BundleThemeProps) {
   return (
     <BlockStack gap={"400"}>
-      <Text as="h2" variant="headingSm">
+      <Text as="h2" variant="headingLg">
         Typography & Colour
       </Text>
 
-      <CardWithHeading title="Title Config">
-        <FontTheme {...title.value} onChange={title.onChange} />
-      </CardWithHeading>
-
-      <CardWithHeading title="Product Name Config">
-        <FontTheme {...productName.value} onChange={productName.onChange} />
-      </CardWithHeading>
-
-      <CardWithHeading title="Product Price Config">
-        <FontTheme {...productPrice.value} onChange={productPrice.onChange} />
-      </CardWithHeading>
-
-      <CardWithHeading title="Product Card Config">
-        <FrameTheme {...productFrame.value} onChange={productFrame.onChange} />
-      </CardWithHeading>
-
-      <CardWithHeading title="Total config">
-        <FontTheme {...total.label.value} onChange={total.label.onChange} />
-        <FontTheme {...total.price.value} onChange={total.price.onChange} />
+      <CardCollapse title="Title Config" collapse={true}>
         <FontTheme
-          {...total.comparePrice.value}
-          onChange={total.comparePrice.onChange}
+          {...title}
+          onChange={(v) => {
+            console.log("On change title theme ", title, v);
+
+            onChangeTheme("title", v);
+          }}
         />
+      </CardCollapse>
 
-        <FrameTheme {...total.frame.value} onChange={total.frame.onChange} />
-      </CardWithHeading>
+      <CardCollapse title="Product Config" collapse>
+        <BlockStack gap={"300"}>
+          <BoxBorderBound header={"Name"}>
+            <FontTheme
+              {...product.name}
+              onChange={(v) =>
+                onChangeTheme("product", {
+                  ...product,
+                  name: v,
+                })
+              }
+            />
+          </BoxBorderBound>
+          <BoxBorderBound header={"Price"}>
+            <FontTheme
+              {...product.price}
+              onChange={(v) =>
+                onChangeTheme("product", {
+                  ...product,
+                  price: v,
+                })
+              }
+            />
+          </BoxBorderBound>
 
-      {/* <CardWithHeading title="Button Config">
-        <ButtonTheme font={buttonfont} frame={button.frame}  onChangeFont={}/>
-      </CardWithHeading> */}
+          <BoxBorderBound header={"Card"}>
+            <FrameTheme
+              {...product.frame}
+              onChange={(v) =>
+                onChangeTheme("product", {
+                  ...product,
+                  frame: v,
+                })
+              }
+            />
+          </BoxBorderBound>
+        </BlockStack>
+      </CardCollapse>
+
+      <CardCollapse title="Total config" collapse>
+        <BlockStack gap={"300"}>
+          <BoxBorderBound
+            header={
+              <Text as="h4" variant="headingSm">
+                Label
+              </Text>
+            }
+          >
+            <Box paddingBlockStart={"200"} paddingBlockEnd={"200"}>
+              <FontTheme
+                {...total.label}
+                onChange={(v) => onChangeTheme("total", { ...total, label: v })}
+              />
+            </Box>
+          </BoxBorderBound>
+          <BoxBorderBound>
+            <FontTheme
+              {...total.price}
+              onChange={(v) => onChangeTheme("total", { ...total, price: v })}
+            />
+          </BoxBorderBound>
+
+          <FontTheme
+            {...total.comparePrice}
+            onChange={(v) =>
+              onChangeTheme("total", { ...total, comparePrice: v })
+            }
+          />
+
+          <FrameTheme
+            {...total.frame}
+            onChange={(v) => onChangeTheme("total", { ...total, frame: v })}
+          />
+        </BlockStack>
+      </CardCollapse>
+
+      <CardCollapse title="Button Config" collapse>
+        <ButtonThemeEditor
+          font={button.font}
+          frame={button.frame}
+          onChangeFont={(v) => onChangeTheme("button", { ...button, font: v })}
+          onChangeFrame={(v) =>
+            onChangeTheme("button", { ...button, frame: v })
+          }
+        />
+      </CardCollapse>
     </BlockStack>
   );
 }
 
-export type BundleContentField = {
-  title: Field<string>;
-  startDate: Field<Date>;
-  endDate: Field<Date | null>;
-  combines: Field<CombinableDiscountTypes>;
-  buttonContent: Field<string>;
-  footerText: Field<string>;
-};
-
 type BundleThemePreviewProps = {
-  theme: BundleThemeType;
-  content: BundleContentField;
-  products?: ProductInfo[];
-  discountType: DVT;
-  discountValue: number;
+  theme: BundleThemeConfig;
+  content: BundleContent;
+  products?: ProductInfoBundle[];
+  discount: DiscountValue;
 };
 
 export function BundleThemePreview({
   theme,
   content,
   products,
-  discountType,
-  discountValue,
+  discount,
 }: BundleThemePreviewProps) {
-  const { title, productFrame, productName, productPrice, total, button } =
-    theme;
+  const { title, product, total, button } = theme;
 
   const [prices, setPrices] = useState<number[]>(
-    products?.map((p) => Number.parseFloat(p.variants[0].price ?? "0")) ?? [],
+    products?.map(
+      (p) => Number.parseFloat(p.variants[0].price ?? "0") * p.requireVol,
+    ) ?? [],
   );
 
   const [discountPrices, setDiscountPrices] = useState<number[]>(
     prices.map((v) => {
-      if (discountType === "fix") {
-        return v - discountValue;
+      if (discount.type === "fix") {
+        return v - discount.value;
       }
 
-      if (discountType === "percent") {
-        return v - (v / 100.0) * discountValue;
+      if (discount.type === "percent") {
+        return v - (v / 100.0) * discount.value;
       }
       return v;
     }),
@@ -196,30 +246,19 @@ export function BundleThemePreview({
   );
 
   useEffect(() => {
-    console.log("Discount value: ", discountValue);
-
     let newPrices =
-      products?.map((p) => Number.parseFloat(p.variants[0].price ?? "0")) ?? [];
+      products?.map(
+        (p) => Number.parseFloat(p.variants[0].price ?? "0") * p.requireVol,
+      ) ?? [];
     let newDiscountPrices = newPrices.map((v) => {
-      if (discountType === "fix") {
-        return v - discountValue;
+      if (discount.type === "fix") {
+        return v - discount.value;
       }
-      if (discountType === "percent") {
-        return v - (v / 100.0) * discountValue;
+      if (discount.type === "percent") {
+        return v - (v / 100.0) * discount.value;
       }
       return v;
     });
-
-    console.log("newPrices: ", newPrices);
-    console.log("newPricesDiscount: ", newDiscountPrices);
-    console.log(
-      "total: ",
-      newPrices.reduce((prev, current) => prev + current, 0),
-    );
-    console.log(
-      "totalDiscount: ",
-      newDiscountPrices.reduce((prev, current) => prev + current, 0),
-    );
 
     setPrices(newPrices);
     setDiscountPrices(newDiscountPrices);
@@ -227,7 +266,7 @@ export function BundleThemePreview({
     setDiscountTotalValue(
       newDiscountPrices.reduce((prev, current) => prev + current, 0),
     );
-  }, [products, discountType, discountValue]);
+  }, [products, discount.type, discount.value]);
 
   const onPriceChange = (newPrice: number, idx: number) => {
     var newPrices = [...prices];
@@ -255,12 +294,11 @@ export function BundleThemePreview({
       <RenderTextTheme
         as="h3"
         align="center"
-        content={content.title.value}
-        {...title.value}
+        content={content.title}
+        {...title}
       />
 
       {/* Products */}
-
       {products?.length ? (
         products.map((pinfo, idx) =>
           idx === products.length - 1 ? (
@@ -268,11 +306,8 @@ export function BundleThemePreview({
               key={idx}
               price={prices[idx]}
               priceDiscount={discountPrices[idx]}
-              volume={0}
               product={pinfo}
-              productFrame={productFrame.value}
-              productName={productName.value}
-              productPrice={productPrice.value}
+              productTheme={product}
               onChangePricing={(newPrice) => onPriceChange(newPrice, idx)}
             />
           ) : (
@@ -280,11 +315,8 @@ export function BundleThemePreview({
               <BundleProductPreview
                 price={prices[idx]}
                 priceDiscount={discountPrices[idx]}
-                volume={0}
                 product={pinfo}
-                productFrame={productFrame.value}
-                productName={productName.value}
-                productPrice={productPrice.value}
+                productTheme={product}
                 onChangePricing={(newPrice) => onPriceChange(newPrice, idx)}
               />
               <Icon source={PlusIcon} />
@@ -304,22 +336,18 @@ export function BundleThemePreview({
       )}
 
       {/* Total */}
-      <RenderFrame {...total.frame.value}>
+      <RenderFrame {...total.frame}>
         <div className="flex_row" style={{ margin: "1rem" }}>
           <div>
-            <RenderTextTheme
-              as="p"
-              content={content.footerText.value}
-              {...total.label.value}
-            />
+            <RenderTextTheme as="p" content={content.total} {...total.label} />
           </div>
 
           <div className="flex_row" style={{ textAlign: "right" }}>
-            <span className="old">{totalValue}</span>
+            <span className="old_price">{totalValue}</span>
             <RenderTextTheme
               as="span"
               content={discountTotalValue}
-              {...total.price.value}
+              {...total.price}
             />
           </div>
         </div>
@@ -327,45 +355,55 @@ export function BundleThemePreview({
 
       {/* Add to cart button */}
       <RenderBundleButton
-        content={content.buttonContent.value}
-        font={button.font.value}
-        frame={button.frame.value}
+        content={content.button}
+        font={button.font}
+        frame={button.frame}
       />
     </div>
   );
 }
 
 type BundleProductPreviewProps = {
-  volume: number;
   price: number;
   priceDiscount: number;
-  product: ProductInfo;
-  productFrame: FrameConfig;
-  productName: FontConfig;
-  productPrice: FontConfig;
+  product: ProductInfoBundle;
+  productTheme: BundleProductConfig;
   onChangePricing: (pricing: number) => void;
 };
 
 export function BundleProductPreview({
-  volume,
-  price,
   priceDiscount,
+  price,
   product,
-  productFrame,
-  productName,
-  productPrice,
+  productTheme,
   onChangePricing,
 }: BundleProductPreviewProps) {
-  const [variant, setVariant] = useState(product.variants[0]);
-  const [variantOptions] = useState<SelectOption[]>(
+  const [variants, setVariants] = useState<Array<Partial<ProductVariant>>>(
+    initArray(product.requireVol, product.variants[0]),
+  );
+
+  const [variantOptions, setVariantOptions] = useState<SelectOption[]>(
     product.variants.map((v) => ({
       label: v.title || "",
       value: v.id ?? "",
     })),
   );
 
+  useEffect(() => {
+    setVariants(initArray(product.requireVol, product.variants[0]));
+  }, [product.requireVol]);
+
+  useEffect(() => {
+    setVariantOptions(
+      product.variants.map((v) => ({
+        label: v.title || "",
+        value: v.id ?? "",
+      })),
+    );
+  }, [product]);
+
   return (
-    <RenderFrame {...productFrame}>
+    <RenderFrame {...productTheme.frame}>
       <div className="flex_row" style={{ padding: "0.75rem", gap: "1rem" }}>
         {/* Image */}
         <div style={{ minWidth: "92px", height: "71px" }}>
@@ -377,25 +415,46 @@ export function BundleProductPreview({
           style={{ justifyContent: "space-between" }}
         >
           {/* Title */}
-          <RenderTextTheme as="p" content={product.title} {...productName} />
+          <RenderTextTheme
+            as="p"
+            content={product.title}
+            {...productTheme.name}
+          />
 
-          <div className="flex_row" style={{ justifyContent: "start" }}>
-            <span className="product_title">{`x ${volume}`}</span>
+          <div
+            className="flex_row"
+            style={{ justifyContent: "start", flexWrap: "wrap" }}
+          >
+            <span className="product_title">{`x ${product.requireVol}`}</span>
 
-            {product.variants.length > 1 && (
-              <Select
-                label=""
-                value={variant.title}
-                options={variantOptions}
-                onChange={(variantId) => {
-                  var target = product.variants.find((v) => v.id === variantId);
-                  if (target) {
-                    setVariant(target);
-                    onChangePricing(Number.parseInt(target.price ?? "") || 0);
-                  }
-                }}
-              />
-            )}
+            {product.variants.length > 1 &&
+              variants.map((vari, idx) => (
+                <Select
+                  key={idx}
+                  label=""
+                  value={vari.id}
+                  options={variantOptions}
+                  onChange={(variantId) => {
+                    var target = product.variants.find(
+                      (v) => v.id === variantId,
+                    );
+
+                    if (target) {
+                      var newVars = [...variants];
+                      newVars[idx] = target;
+                      setVariants(newVars);
+                      // console.log("New variants: ", newVars);
+                      var sumPrice = newVars.reduce(
+                        (prev, current) =>
+                          prev + (Number.parseFloat(current.price ?? "0") || 0),
+                        0,
+                      );
+                      console.log("SUmary: ", sumPrice);
+                      onChangePricing(sumPrice);
+                    }
+                  }}
+                />
+              ))}
           </div>
         </div>
 
@@ -404,8 +463,12 @@ export function BundleProductPreview({
           className="flex_column"
           style={{ width: "fit-content", height: "71px", textAlign: "right" }}
         >
-          <RenderTextTheme as="p" content={priceDiscount} {...productPrice} />
-          <span className="old">{price}</span>
+          <RenderTextTheme
+            as="p"
+            content={priceDiscount}
+            {...productTheme.price}
+          />
+          <span className="old_price">{price}</span>
         </div>
       </div>
     </RenderFrame>

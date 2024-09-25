@@ -13,8 +13,8 @@ export type FrameConfig = {
 };
 
 export type ButtonConfig = {
-  frame: FontConfig;
-  font: FrameConfig;
+  frame: FrameConfig;
+  font: FontConfig;
 };
 
 export type GUIBundleTotalConfig = {
@@ -24,16 +24,40 @@ export type GUIBundleTotalConfig = {
   comparePrice: FontConfig;
 };
 
+export interface BundleProductConfig {
+  frame: FrameConfig;
+  name: FontConfig;
+  price: FontConfig;
+}
+
 export interface BundleThemeConfig {
   title: FontConfig;
-  productFrame: FrameConfig;
-  productName: FontConfig;
-  productPrice: FontConfig;
+  product: {
+    frame: FrameConfig;
+    name: FontConfig;
+    price: FontConfig;
+  };
   total: GUIBundleTotalConfig;
   button: ButtonConfig;
 }
 
-export type GUIProductConfig = FrameConfig & {
-  name: FontConfig;
+export interface VolumeDiscountTheme {
+  title: FontConfig;
+  offerTitle: FontConfig;
+  discountLabel: FontConfig;
   price: FontConfig;
-};
+  comparePrice: FontConfig;
+  tagPopular: FontConfig;
+  total: FontConfig;
+  selected: {
+    label: FontConfig;
+    frame: FrameConfig;
+  };
+  unselected: {
+    label: FontConfig;
+    frame: FrameConfig;
+  };
+  // unselectedBar: string;
+  // unselectedBg: string;
+  button: ButtonConfig;
+}

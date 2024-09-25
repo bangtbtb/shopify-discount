@@ -8,12 +8,10 @@ import {
   Text,
   TextField,
   Thumbnail,
-  Tooltip,
 } from "@shopify/polaris";
 
 import { ImageIcon, SearchIcon } from "@shopify/polaris-icons";
 import { BsTrash } from "react-icons/bs";
-import { Removeable } from "~/components/Common";
 
 type Money = string;
 

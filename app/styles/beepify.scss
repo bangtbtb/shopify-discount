@@ -99,6 +99,18 @@
   background-color: #777;
 }
 
+.preview_ctn {
+  // display: block;
+  position: relative;
+}
+
+@media only screen and (min-width: 1008px) {
+  .preview_ctn {
+    position: sticky;
+    top: 20px;
+  }
+}
+
 @media only screen and (max-width: 768px) {
   .steps {
     margin: 0 0 1rem 0;
@@ -168,7 +180,7 @@
 
 .flex_row_center {
   display: flex;
-  width: 100%;
+  // width: 100%;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: end;
@@ -189,7 +201,6 @@
 }
 
 .frame {
-  display: "block";
   border-width: 1px;
   border-radius: 6px;
 }
@@ -227,9 +238,9 @@
   font-weight: 600;
 }
 
-.old {
+.old_price {
   text-decoration: line-through;
-  color: #1f1f1f;
+  color: #b5b4b4;
 }
 
 .midline {
@@ -247,7 +258,6 @@
 
 .vd_title {
   display: flex;
-  width: 100%;
   margin-bottom: 20px;
   margin-left: 20px;
   margin-right: 20px;
@@ -284,4 +294,174 @@
 .vd_title h3:after {
   left: 100%;
   margin-left: 10px;
+}
+
+.vd_ctn {
+  // padding-right: 0.5rem;
+  // padding-left: 0.5rem;
+  gap: 0;
+}
+
+.vd_label_ctn {
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  flex-direction: column;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+  background-color: rgb(66, 137, 255);
+  position: relative;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 16.16px;
+  min-width: 80px;
+  word-break: break-all;
+  overflow: hidden;
+  min-height: 80px;
+  border-color: #e0e0e0;
+  border-width: 2px;
+}
+
+.vd_label_ctn.active {
+  min-width: 0;
+  transition: ease-in-out;
+}
+
+.vd_label_ctn.active p {
+  display: none;
+  overflow: hidden;
+  transition: cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.dd {
+  background-color: #4289ff;
+  box-shadow: #4289ff 0px 0px 0px 1px;
+  display: -webkit-box !important;
+  display: -ms-flexbox !important;
+  display: flex !important;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #fff;
+  -webkit-box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 0 2px #0003;
+  margin-right: 15px;
+}
+
+// vertical dash
+.vertical_dash {
+  border-right: 5px dashed white;
+  height: 100%;
+  // width: 100%;
+  // top: 4px;
+  left: 2.5px;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 16.16px;
+}
+
+.vd_offer_ctn {
+  // border-color: #e0e0e0;
+  // border-width: 2px;
+  // border-left-style: dashed;
+  padding: 1.5rem 1rem;
+  align-items: center;
+}
+
+.custom-select {
+  position: relative;
+  font-family: Arial;
+  display: inline-block;
+}
+
+.custom-select select {
+  display: none; /*hide original SELECT element:*/
+}
+
+.select-selected {
+  display: flex;
+  flex-direction: row;
+  background-color: #cdc2c2;
+  border-radius: 4px;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+/*style the arrow inside the select element:*/
+.select-selected:after {
+  content: "";
+  top: 14px;
+  right: 10px;
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  border-color: #000 transparent transparent transparent;
+}
+
+/*point the arrow upwards when the select box is open (active):*/
+.select-selected.select-arrow-active:after {
+  border-color: transparent transparent #fff transparent;
+  top: 7px;
+}
+
+/*style the items (options), including the selected item:*/
+.select-items div,
+.select-selected {
+  color: #000;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-color: transparent transparent rgba(0, 0, 0, 0.1) transparent;
+  cursor: pointer;
+  user-select: none;
+}
+
+/*style items (options):*/
+.select-items {
+  position: absolute;
+  background-color: #cdc2c2;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 99;
+}
+
+/*hide the items when the select box is closed:*/
+.select-hide {
+  display: none;
+}
+
+.select-items div:hover,
+.same-as-selected {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+// ----------- animation -------------------------
+
+.ani {
+  -webkit-animation-duration: 1s;
+  animation-duration: 1s;
+  -webkit-animation-duration: var(--animate-duration);
+  animation-duration: var(--animate-duration);
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+@keyframes bounceOutLeft {
+  20% {
+    opacity: 1;
+    -webkit-transform: translate3d(20px, 0, 0) scaleX(0.9);
+    transform: translate3d(20px, 0, 0) scaleX(0.9);
+  }
+
+  to {
+    opacity: 0;
+    -webkit-transform: translate3d(-2000px, 0, 0) scaleX(2);
+    transform: translate3d(-2000px, 0, 0) scaleX(2);
+  }
+}
+.ani_bounceOutLeft {
+  -webkit-animation-name: bounceOutLeft;
+  animation-name: bounceOutLeft;
 }

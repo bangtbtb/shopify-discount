@@ -39,18 +39,23 @@ export function randomIndex(max: number, min: number = 0) {
   return Math.floor(Math.random() * (max - min) + min);
 }
 
-type InitArrayFunc = (index: number) => any;
+type InitArrayFunc<T> = (index: number) => T;
 
-export function initArray(length: number, v: number | string | InitArrayFunc) {
-  var arr = new Array(length);
+export function initArray<T>(length: number, v: T | InitArrayFunc<T>) {
+  if (length <= 0) {
+    return [];
+  }
+
+  var arr = new Array<T>(length);
   for (let idx = 0; idx < arr.length; idx++) {
-    if (typeof v === "function") {
-      arr[idx] = v(idx);
-    } else {
-      arr[idx] = v;
-    }
+    arr[idx] = v instanceof Function ? v(idx) : v;
   }
   return arr;
+}
+
+export function getShopName(name: string) {
+  let idx = name.indexOf(".");
+  return idx > 0 ? name.slice(0, idx) : name;
 }
 
 // export function getProductId(id: string | number) {

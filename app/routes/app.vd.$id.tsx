@@ -143,10 +143,10 @@ export default function VolumeDiscountDetailPage() {
       var fcg: VDConfig = {
         label: form.config.label,
         steps: form.config.steps.map((v) => ({
-          require: Number.parseInt(v.require),
+          require: v.require,
           value: {
             type: v.type,
-            value: Number.parseInt(v.value),
+            value: v.value,
           },
         })),
         applyType: form.config.applyType,
@@ -187,9 +187,9 @@ export default function VolumeDiscountDetailPage() {
     config.label.onChange(srcConfig.label);
     config.steps.onChange(
       srcConfig.steps.map((v) => ({
-        require: v.require.toString(),
+        require: v.require,
         type: v.value.type,
-        value: v.value.value.toString(),
+        value: v.value.value,
       })),
     );
 

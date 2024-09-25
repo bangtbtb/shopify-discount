@@ -13,7 +13,7 @@ import { CollectionInfo, SelectCollections } from "../Shopify/SelectCollection";
 import { ProductInfo, SelectMultipleProducts } from "../Shopify/SelectProduct";
 import { VDApplyType } from "~/defs";
 import { StepComponent, StepData } from "./ConfigStep";
-import { Removeable } from "~/components/Common";
+import { CardCollapse, Removeable } from "~/components/Common";
 
 interface VBConfigCardProps {
   applyType: Field<VDApplyType>;
@@ -65,27 +65,31 @@ export default function VDConfigCard({
 }
 
 type VDStepConfigComponentProps = {
+  title?: string;
   steps: Field<Array<StepData>>;
 };
 
-export function VDStepConfigComponent({ steps }: VDStepConfigComponentProps) {
+export function VDStepConfigComponent({
+  title,
+  steps,
+}: VDStepConfigComponentProps) {
   const onAddStep = () => {
     var newArr = [...steps.value];
     if (steps.value.length) {
       const latest = steps.value[steps.value.length - 1];
       newArr.push({
-        require: (Number.parseInt(latest.require) + 1).toString(),
+        require: latest.require + 1,
         type: latest.type,
-        value:
-          latest.type == "percent"
-            ? (Number.parseFloat(latest.value) + 5).toString()
-            : latest.value,
+        value: latest.type == "percent" ? latest.value + 5 : latest.value,
+
+        label: "Offer " + newArr.length + 1,
       });
     } else {
       newArr.push({
-        require: "1",
+        require: 1,
         type: "percent",
-        value: "5",
+        value: 5,
+        label: "Offer " + newArr.length + 1,
       });
     }
 
@@ -100,40 +104,40 @@ export function VDStepConfigComponent({ steps }: VDStepConfigComponentProps) {
   };
 
   return (
-    <Card>
+    <CardCollapse title={title ?? ""}>
       <InlineStack align="space-between">
-        <Text as={"h3"} fontWeight="bold">
-          Discount volume condition
-        </Text>
+        <Box></Box>
         <Button onClick={onAddStep}>Add step</Button>
       </InlineStack>
-      <Box minHeight="16px"></Box>
-      <Layout.Section>
-        <InlineGrid columns={["oneHalf", "twoThirds"]}>
-          <Text as="p">Require volume </Text>
-          <Text as="p">Discount value</Text>
-        </InlineGrid>
-        <InlineGrid>
-          {steps &&
-            steps.value.map((v, idx) => (
-              <Box key={idx} padding={"100"}>
-                <Removeable index={idx} onRemove={onRemove}>
-                  <StepComponent
-                    key={idx}
-                    require={v.require}
-                    type={v.type}
-                    value={v.value}
-                    onChange={(v) => {
-                      var newArr = [...steps.value];
-                      newArr[idx] = v;
-                      steps.onChange(newArr);
-                    }}
-                  />
-                </Removeable>
-              </Box>
-            ))}
-        </InlineGrid>
-      </Layout.Section>
-    </Card>
+
+      <Box minHeight="0.5rem"></Box>
+      <InlineGrid columns={["oneHalf", "twoThirds"]}>
+        <Text as="p">Require volume </Text>
+        <Text as="p">Discount value</Text>
+      </InlineGrid>
+
+      <InlineGrid>
+        {steps &&
+          steps.value.map((v, idx) => (
+            <Box key={idx}>
+              {/* <Removeable index={idx} onRemove={onRemove}>
+       
+              </Removeable> */}
+
+              <StepComponent
+                key={idx}
+                require={v.require}
+                type={v.type}
+                value={v.value}
+                onChange={(v) => {
+                  var newArr = [...steps.value];
+                  newArr[idx] = v;
+                  steps.onChange(newArr);
+                }}
+              />
+            </Box>
+          ))}
+      </InlineGrid>
+    </CardCollapse>
   );
 }

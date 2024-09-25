@@ -108,9 +108,9 @@ export default function VolDiscountCreate() {
       config: {
         label: useField(""),
         steps: useField<Array<StepData>>([
-          { type: "percent", value: "5", require: "2" },
-          { type: "percent", value: "15", require: "3" },
-          { type: "percent", value: "15", require: "4" },
+          { type: "percent", value: 5, require: 2 },
+          { type: "percent", value: 10, require: 3 },
+          { type: "percent", value: 15, require: 4 },
         ]),
         applyType: useField<VDApplyType>("collection"),
         colls: useField<Array<CollectionInfo>>([]),
@@ -128,10 +128,10 @@ export default function VolDiscountCreate() {
       var fcg: VDConfig = {
         label: form.config.label,
         steps: form.config.steps.map((v) => ({
-          require: Number.parseInt(v.require),
+          require: v.require,
           value: {
             type: v.type,
-            value: Number.parseInt(v.value),
+            value: v.value,
           },
         })),
         applyType: form.config.applyType,

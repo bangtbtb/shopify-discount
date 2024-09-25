@@ -2,14 +2,14 @@ import { AdminOperations } from "@shopify/admin-api-client";
 import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients/types";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
 import { SDConfig } from "~/defs";
-import { ProductInfo } from "~/components/SelectProduct";
 import { getSimleProductInfo, getSimpleCollection } from "./gql_resource";
-import { CollectionInfo } from "~/components/SelectCollection";
 import {
   gqlCreateDiscount,
   gqlGetDiscount,
   gqlUpdateDiscount,
 } from "./gql_discount";
+import { ProductInfo } from "~/components/Shopify/SelectProduct";
+import { CollectionInfo } from "~/components/Shopify/SelectCollection";
 
 export type SDConfigExt = SDConfig & {
   id: string;

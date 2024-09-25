@@ -31,7 +31,7 @@ export function CreateDiscountCard(props: CreateDiscountCardProps) {
 
   return (
     <Card>
-      <BlockStack>
+      <BlockStack gap={"300"}>
         <Text as="h2" variant="headingMd">
           {props.title}
         </Text>
@@ -41,7 +41,7 @@ export function CreateDiscountCard(props: CreateDiscountCardProps) {
         <Box paddingBlockEnd={"400"} />
 
         <InlineGrid columns={2}>
-          <Box>
+          <Box maxWidth="15rem">
             {typeof props.illustration === "string" ? (
               <img className="fit_img" src={props.illustration} />
             ) : (
@@ -131,7 +131,7 @@ export function BundleValueIllustratrion() {
 
 export function VolumeBreakIllustratrion() {
   return (
-    <InlineStack>
+    <InlineStack aria-colcount={2}>
       <BoxBorderBound
         header={
           <span>

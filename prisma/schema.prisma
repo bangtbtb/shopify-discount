@@ -52,6 +52,7 @@ model Discount {
   type          ADT
   subType       String    @default("")
   createdAt     DateTime? @default(now())
+  theme         String
   productIds    String[]
   collectionIds String[]
 
@@ -75,7 +76,7 @@ model Orders {
   id            String            @id
   shop          String
   wasApplied    Boolean
-  subTotalPrice Decimal
+  subTotalPrice Decimal           @db.Decimal(30, 4)
   products      String[]          @default([])
   createdAt     DateTime          @default(now())
   applied       DiscountApplied[]

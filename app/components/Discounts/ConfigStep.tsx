@@ -1,11 +1,12 @@
 import { DVT } from "~/defs";
-import { InlineGrid, TextField } from "@shopify/polaris";
+import { Box, InlineGrid, TextField } from "@shopify/polaris";
 import TextFieldSelect from "~/components/Shopify/TextFieldSelect";
+import { DiscountTypeSelect } from "./DiscountCommon";
 
 export type StepData = {
   type: DVT;
-  value: string;
-  require: string;
+  value: number;
+  require: number;
   label?: string;
 };
 
@@ -15,28 +16,30 @@ interface StepComponentProps extends StepData {
 
 export function StepComponent(props: StepComponentProps) {
   return (
-    <InlineGrid columns={["oneHalf", "twoThirds"]}>
-      <TextField
-        // label="Require volume"
-        label=""
-        autoComplete="off"
-        value={props.require}
-        onChange={(v) => props.onChange({ ...props, require: v })}
-        type="number"
-        placeholder="Require"
-      />
+    <InlineGrid columns={3} gap={"200"}>
+      <Box width="3rem">
+        <TextField
+          // label="Require volume"
+          label=""
+          // type="number"
+          autoComplete="off"
+          value={props.require.toString()}
+          onChange={(v) =>
+            props.onChange({ ...props, require: Number.parseInt(v) ?? 0 })
+          }
+          placeholder="Require"
+        />
+      </Box>
 
-      <TextFieldSelect
-        label=""
-        type={props.type}
-        value={props.value}
-        options={[
-          { label: "Percent", value: "percent" },
-          { label: "Fix Amount", value: "fix" },
-        ]}
-        onChangeType={(v) => props.onChange({ ...props, type: v as DVT })}
-        onChangeValue={(v) => props.onChange({ ...props, value: v })}
-      />
+      <Box width="6rem">
+        <DiscountTypeSelect
+          // label="Discount value"
+          dv={props.value}
+          dvt={props.type}
+          onChangeType={(v) => props.onChange({ ...props, type: v })}
+          onChangeValue={(v) => props.onChange({ ...props, value: v })}
+        />
+      </Box>
     </InlineGrid>
   );
 }

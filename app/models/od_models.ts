@@ -2,13 +2,13 @@ import { AdminOperations } from "@shopify/admin-api-client";
 import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients/types";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
 import { ODConfig } from "~/defs";
-import { ProductInfo } from "~/components/SelectProduct";
 import { getSimleProductInfo } from "./gql_resource";
 import {
   gqlCreateDiscount,
   gqlGetDiscount,
   gqlUpdateDiscount,
 } from "./gql_discount";
+import { ProductInfo } from "~/components/Shopify/SelectProduct";
 
 export type ODConfigExt = ODConfig & {
   id: string;

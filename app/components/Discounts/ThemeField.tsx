@@ -1,4 +1,3 @@
-import { useField, Field } from "@shopify/react-form";
 import { FontConfig, FontWeight, FrameConfig } from "~/defs/theme";
 import { ColorPickerField } from "../Common/ColorPickerField";
 import {
@@ -8,64 +7,18 @@ import {
   Box,
   BlockStack,
   InlineGrid,
+  SelectOption,
 } from "@shopify/polaris";
 import { useEffect, useState } from "react";
 import CSS from "csstype";
-import { NumberField } from "../Shopify/NumberField";
-
-// export type FontConfigField = {
-//   size: Field<string>;
-//   color: Field<string>;
-//   weight: Field<FontWeight>;
-// };
-
-// export type FrameConfigField = {
-//   bgColor: Field<string>;
-//   borderColor: Field<string>;
-// };
-
-// export type GUIButtonConfigField = {
-//   frame: FrameConfigField;
-//   fontConfig: FontConfigField;
-// };
-
-// export type GUIBundleTotalConfigField = {
-//   frame: FrameConfigField;
-//   label: FontConfigField;
-//   price: FontConfigField;
-//   comparePrice: FontConfigField;
-// };
-
-// export function createFontConfigField(dFont: FontConfig): FontConfigField {
-//   return {
-//     size: useField<string>(dFont.size.toString()),
-//     color: useField<string>(dFont.color),
-//     weight: useField<FontWeight>(dFont.weight),
-//   };
-// }
-
-// export function createFrameConfigField(dFrame: FrameConfig): FrameConfigField {
-//   return {
-//     bgColor: useField<string>(dFrame.bgColor),
-//     borderColor: useField<string>(dFrame.borderColor),
-//   };
-// }
-
-// export function createButtonConfigField(
-//   dFont: FontConfig,
-//   dFrame: FrameConfig,
-// ): GUIButtonConfigField {
-//   return {
-//     fontConfig: createFontConfigField(dFont),
-//     frame: createFrameConfigField(dFrame),
-//   };
-// }
-
-// export function createBundleFootTot(params: type) {}
+import { ProductVariant } from "../Shopify/SelectProduct";
+import { Product } from "~/types/admin.types";
 
 type FontThemeProps = FontConfig & {
   onChange: (newConfig: FontConfig) => void;
 };
+
+// ---------------------------- Theme Editor ----------------------------
 
 export function FontTheme({ size, color, weight, onChange }: FontThemeProps) {
   return (
@@ -77,16 +30,19 @@ export function FontTheme({ size, color, weight, onChange }: FontThemeProps) {
           onChange={(newHex) => onChange({ size, color: newHex, weight })}
         />
       </Box>
+
       <Box maxWidth="70px">
-        <NumberField
-          label="Size"
+        <TextField
+          label="Size (px)"
           autoComplete="off"
           type="number"
-          // suffix={"px"}
-          max={64}
-          min={8}
-          num={size}
-          onChangeNum={(v) => onChange({ size: v, color, weight })}
+          max={99}
+          min={0}
+          value={size.toString()}
+          onChange={(v) => {
+            console.log("Before Change size: ", { size, color, weight });
+            onChange({ size: Number.parseInt(v) || 0, color, weight });
+          }}
         />
       </Box>
 
@@ -133,12 +89,35 @@ type ButtonThemeProps = {
   onChangeFrame: (newConfig: FrameConfig) => void;
 };
 
-export function ButtonTheme(props: ButtonThemeProps) {
+export function ButtonThemeEditor(props: ButtonThemeProps) {
   return (
     <BlockStack>
       <FontTheme {...props.font} onChange={props.onChangeFont} />
       <FrameTheme {...props.frame} onChange={props.onChangeFrame} />
     </BlockStack>
+  );
+}
+
+type SelectFontWeight = {
+  label?: string;
+  value: FontWeight;
+  onChange: (v: FontWeight) => void;
+};
+
+export function SelectFontWeight({ label, value, onChange }: SelectFontWeight) {
+  return (
+    <Select
+      label={label}
+      value={value}
+      options={[
+        { label: "Light", value: "300" },
+        { label: "Normal", value: "400" },
+        { label: "Medium", value: "500" },
+        { label: "SemiBold", value: "600" },
+        { label: "Bold", value: "700" },
+      ]}
+      onChange={(v) => onChange(v as FontWeight)}
+    />
   );
 }
 
@@ -148,51 +127,72 @@ type RenderTextTheme = FontConfig & {
   as: "span" | "p" | "h3";
   content: string | number;
   align?: CSS.Property.TextAlign;
+  className?: string;
   // Property.TextAlign;
+  style?: React.CSSProperties;
 };
 
 export function RenderTextTheme({
   as,
+  className,
   color,
   content,
   size,
   weight,
   align,
+  style,
 }: RenderTextTheme) {
-  const [style, setStyle] = useState<React.CSSProperties>({
+  const [stateStyle, setStateStyle] = useState<React.CSSProperties>({
     fontSize: size + "px",
     color: color,
     fontWeight: weight,
     textAlign: align,
+    ...style,
   });
 
   useEffect(() => {
-    setStyle({
+    setStateStyle({
       fontSize: `${size}px`,
       color: color,
       fontWeight: weight,
       textAlign: align,
+      ...style,
     });
   }, [size, color, weight]);
 
   if (as === "h3") {
-    return <h3 style={style}>{content}</h3>;
+    return (
+      <h3 className={className} style={stateStyle}>
+        {content}
+      </h3>
+    );
   }
   return as == "p" ? (
-    <p style={style}>{content}</p>
+    <p className={className} style={stateStyle}>
+      {content}
+    </p>
   ) : (
-    <span style={style}>{content}</span>
+    <span className={className} style={stateStyle}>
+      {content}
+    </span>
   );
 }
 
-type RenderFrameProps = FrameConfig & {
-  children?: React.ReactElement;
-};
+type RenderFrameProps = Partial<FrameConfig> &
+  React.CSSProperties & {
+    className?: string;
+    children?: React.ReactNode;
+    onClick?: React.MouseEventHandler<HTMLDivElement>;
+  };
 
 export function RenderFrame({
+  className,
   bgColor,
   borderColor,
   children,
+  onClick,
+
+  ...rest
 }: RenderFrameProps) {
   const [style, setStyle] = useState<React.CSSProperties>({
     backgroundColor: bgColor,
@@ -207,7 +207,11 @@ export function RenderFrame({
   }, [bgColor, borderColor]);
 
   return (
-    <div className="frame" style={style}>
+    <div
+      className={`frame ${className || ""}`}
+      style={{ ...style, ...rest }}
+      onClick={onClick}
+    >
       {children}
     </div>
   );
@@ -247,25 +251,35 @@ export function RenderBundleButton({
   );
 }
 
-type SelectFontWeight = {
-  label?: string;
-  value: FontWeight;
-  onChange: (v: FontWeight) => void;
+// https://www.w3schools.com/howto/tryit.asp?filename=tryhow_custom_select
+export type SelectVariantProps = {
+  value: Partial<ProductVariant>;
+  options: Partial<ProductVariant>[];
+  onChange: (variant: Partial<ProductVariant>) => void;
 };
 
-export function SelectFontWeight({ label, value, onChange }: SelectFontWeight) {
+export function SelectVariant({
+  value,
+  options,
+  onChange,
+}: SelectVariantProps) {
   return (
-    <Select
-      label={label}
-      value={value}
-      options={[
-        { label: "Light", value: "300" },
-        { label: "Normal", value: "400" },
-        { label: "Medium", value: "500" },
-        { label: "SemiBold", value: "600" },
-        { label: "Bold", value: "700" },
-      ]}
-      onChange={(v) => onChange(v as FontWeight)}
-    />
+    <div className="custom-select">
+      <select
+        value={value.id}
+        onChange={(ev: React.ChangeEvent<HTMLSelectElement>) => {
+          var target = options.find((v) => v.id === ev.currentTarget.value);
+          if (target) {
+            onChange(target);
+          }
+        }}
+      >
+        {options.map((v, idx) => (
+          <option key={idx} value={v.id}>
+            {v.title}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
