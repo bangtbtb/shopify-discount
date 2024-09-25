@@ -1,16 +1,7 @@
 import { Discount } from "@prisma/client";
 import { SerializeFrom } from "@remix-run/node";
 import { useNavigate } from "@remix-run/react";
-import {
-  Box,
-  Button,
-  Card,
-  EmptyState,
-  IndexTable,
-  InlineGrid,
-  InlineStack,
-  Text,
-} from "@shopify/polaris";
+import { Card, EmptyState, IndexTable } from "@shopify/polaris";
 import { useEffect, useState } from "react";
 
 type DiscountTableProps = {

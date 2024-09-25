@@ -1,25 +1,9 @@
 import { Field, useField } from "@shopify/react-form";
 
-import {
-  ProductInfo,
-  ProductVariant,
-  SelectedProduct,
-  SelectMultipleProducts,
-} from "../Shopify/SelectProduct";
-import {
-  BlockStack,
-  Box,
-  Card,
-  Grid,
-  InlineGrid,
-  Select,
-  SelectOption,
-  Text,
-  TextField,
-} from "@shopify/polaris";
-import TextFieldSelect from "~/components/Shopify/TextFieldSelect";
-import { useEffect, useRef, useState } from "react";
-import { DVT, VDApplyType } from "~/defs";
+import { ProductInfo, ProductVariant } from "../Shopify/SelectProduct";
+import { BlockStack, Select, SelectOption, Text } from "@shopify/polaris";
+import { useEffect, useState } from "react";
+import { VDApplyType } from "~/defs";
 import {
   CombinableDiscountTypes,
   DateTime,
@@ -36,7 +20,7 @@ import {
   FrameConfig,
   VolumeDiscountTheme,
 } from "~/defs/theme";
-import { CardCollapse, Midline } from "../Common";
+import { CardCollapse, Midline } from "~/components/Common/Index";
 import {
   ButtonThemeEditor,
   FontTheme,

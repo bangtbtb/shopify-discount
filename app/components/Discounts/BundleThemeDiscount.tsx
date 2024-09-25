@@ -21,8 +21,8 @@ import { DiscountValue, DVT } from "~/defs";
 import { useEffect, useState } from "react";
 import { PlusIcon } from "@shopify/polaris-icons";
 import { BundleProductConfig, BundleThemeConfig } from "~/defs/theme";
-import { BoxBorderBound, CardCollapse } from "../Common";
 import { initArray } from "~/models/utils";
+import { BoxBorderBound, CardCollapse } from "~/components/Common/Index";
 
 export type ProductInfoBundle = ProductInfo & { requireVol: number };
 

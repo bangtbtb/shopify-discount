@@ -29,7 +29,7 @@ import {
   DateTime,
 } from "@shopify/discount-app-components";
 import { Field, useField } from "@shopify/react-form";
-import { CardCollapse } from "../Common";
+import { CardCollapse } from "../Common/Index";
 
 export type BundleComponentErrors = {};
 

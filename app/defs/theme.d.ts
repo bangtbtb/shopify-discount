@@ -41,6 +41,10 @@ export interface BundleThemeConfig {
   button: ButtonConfig;
 }
 
+export interface BundleTotalTheme {
+  title: FontConfig;
+}
+
 export interface VolumeDiscountTheme {
   title: FontConfig;
   offerTitle: FontConfig;

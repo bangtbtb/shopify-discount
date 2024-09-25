@@ -29,8 +29,6 @@ import { getOrdersReport } from "~/models/db_applied";
 import { dayDuration } from "~/models/utils";
 import { format as dateFormat } from "date-fns";
 import { dbGetShopDiscountView } from "~/models/db_dc_view";
-import { Midline } from "~/components/Common";
-import { useField } from "@shopify/react-form";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -103,12 +101,6 @@ export default function Index() {
 
   return (
     <Page title="Home">
-      <Midline content={"ddd"} borderWidth={"3px"}></Midline>
-
-      <div className="vd_title">
-        <h3>dfdf</h3>
-      </div>
-
       {/* Overview discount status was applied */}
       <Layout.Section>
         <Text as="h2"> Overview</Text>

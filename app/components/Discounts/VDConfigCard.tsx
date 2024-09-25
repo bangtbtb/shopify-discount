@@ -13,7 +13,7 @@ import { CollectionInfo, SelectCollections } from "../Shopify/SelectCollection";
 import { ProductInfo, SelectMultipleProducts } from "../Shopify/SelectProduct";
 import { VDApplyType } from "~/defs";
 import { StepComponent, StepData } from "./ConfigStep";
-import { CardCollapse, Removeable } from "~/components/Common";
+import { CardCollapse } from "~/components/Common/Index";
 
 interface VBConfigCardProps {
   applyType: Field<VDApplyType>;

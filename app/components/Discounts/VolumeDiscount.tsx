@@ -30,7 +30,7 @@ import {
 } from "@shopify/discount-app-components";
 import { DiscountAutomaticApp } from "~/types/admin.types";
 import { Field, useField } from "@shopify/react-form";
-import { CardCollapse } from "../Common";
+import { CardCollapse } from "../Common/Index";
 import {
   TabProps,
   TabsState,

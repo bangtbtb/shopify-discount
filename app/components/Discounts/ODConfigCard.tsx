@@ -13,7 +13,7 @@ import { Field } from "@shopify/react-form";
 import { ODApplyType } from "~/defs";
 import { ProductInfo, SelectMultipleProducts } from "../Shopify/SelectProduct";
 import { StepComponent, StepData } from "./ConfigStep";
-import { Removeable } from "~/components/Common";
+import { Removeable } from "~/components/Common/Index";
 
 type ODConfigCardProps = {
   odType: Field<ODApplyType>;
@@ -30,9 +30,9 @@ export default function ODConfigCard({
     var newArr = [...steps.value];
 
     newArr.push({
-      require: "0",
+      require: 0,
       type: "percent",
-      value: "",
+      value: 1,
     });
 
     steps.onChange(newArr);
