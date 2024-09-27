@@ -9,7 +9,7 @@ import {
 import { DiscountValue, ODConfig, SDConfig, VDConfig } from "~/defs";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
 import {
-  BundleTheme,
+  BundleThemeEditor,
   BundleThemePreview,
   defaultBundleTheme,
   ProductInfoBundle,
@@ -29,7 +29,7 @@ import {
   DateTime,
 } from "@shopify/discount-app-components";
 import { Field, useField } from "@shopify/react-form";
-import { CardCollapse } from "../Common/Index";
+import { CardCollapse } from "~/components/Common";
 
 export type BundleComponentErrors = {};
 
@@ -67,46 +67,6 @@ export function BundleDetail(props: BundleComponentProps) {
     });
   };
 
-  //   return (
-  //     <Grid>
-  //       <Grid.Cell columnSpan={{ sm: 6, md: 3, lg: 6 }}>
-  //         <BundleSettingCard
-  //           title={title}
-  //           buttonContent={buttonContent}
-  //           totalContent={totalContent}
-  //           discount={dVal}
-  //           products={products}
-  //         />
-
-  //         <Box minHeight="1rem" />
-
-  //         <DiscountCommonEditor
-  //           combines={combines}
-  //           discountClass={DiscountClass.Order}
-  //           startDate={startDate}
-  //           endDate={endDate}
-  //         />
-  //         <Box minHeight="1rem" />
-
-  //         <BundleTheme onChangeTheme={onChangeTheme} {...theme} />
-  //       </Grid.Cell>
-
-  //       <Grid.Cell columnSpan={{ sm: 6, md: 3, lg: 6 }}>
-  //         <div className="preview_ctn">
-  //           <BundleThemePreview
-  //             content={{
-  //               title: title.value,
-  //               button: buttonContent.value,
-  //               total: totalContent.value,
-  //             }}
-  //             discount={dVal.value}
-  //             theme={theme}
-  //             products={products.value}
-  //           />
-  //         </div>
-  //       </Grid.Cell>
-  //     </Grid>
-  //   );
   return (
     <DiscountEditorPreviewLayout
       preview={
@@ -139,7 +99,7 @@ export function BundleDetail(props: BundleComponentProps) {
       />
       <Box minHeight="1rem" />
 
-      <BundleTheme onChangeTheme={onChangeTheme} {...theme} />
+      <BundleThemeEditor onChangeTheme={onChangeTheme} {...theme} />
     </DiscountEditorPreviewLayout>
   );
 }
@@ -170,7 +130,6 @@ function BundleSettingCard({
             autoComplete="off"
             {...buttonContent}
           />
-
           <TextField label="Total text" autoComplete="off" {...totalContent} />
         </InlineGrid>
 

@@ -7,13 +7,10 @@ import {
   Tabs,
   TextField,
 } from "@shopify/polaris";
-import TextFieldSelect from "~/components/Shopify/TextFieldSelect";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { DVT } from "~/defs";
 import {
-  createVolumeDiscountContent,
   defaultVolumeDiscountTheme,
-  VolumeDiscountContentField,
   VolumeDiscountPreview,
   VolumeDiscountThemeEditor,
 } from "./VolumeThemeDiscount";
@@ -26,15 +23,11 @@ import { SerializeFrom } from "@remix-run/node";
 import {
   CombinableDiscountTypes,
   DateTime,
-  DiscountClass,
 } from "@shopify/discount-app-components";
 import { DiscountAutomaticApp } from "~/types/admin.types";
 import { Field, useField } from "@shopify/react-form";
-import { CardCollapse } from "../Common/Index";
-import {
-  TabProps,
-  TabsState,
-} from "@shopify/polaris/build/ts/src/components/Tabs";
+import { CardCollapse } from "~/components/Common/index";
+import { TabProps } from "@shopify/polaris/build/ts/src/components/Tabs";
 import { BsTrash } from "react-icons/bs";
 
 type VolumeDiscountComponentProps = {
@@ -46,7 +39,7 @@ type VolumeDiscountComponentProps = {
 export function VolumeDiscountComponent(props: VolumeDiscountComponentProps) {
   const title = useField<string>("Volume Discount Offer");
   const buttonContent = useField<string>("Add To Cart");
-  const totalContent = useField<string>("Total");
+  // const totalContent = useField<string>("Total");
   const startDate = useField<DateTime>(new Date().toString());
   const endDate = useField<DateTime | null>(null);
   const combines = useField<CombinableDiscountTypes>({
@@ -74,7 +67,7 @@ export function VolumeDiscountComponent(props: VolumeDiscountComponentProps) {
       preview={
         <VolumeDiscountPreview
           titleContent={title.value}
-          totalContent={totalContent.value}
+          buttonContent={buttonContent.value}
           popularIndex={0}
           products={products.value}
           steps={steps.value}
@@ -82,7 +75,12 @@ export function VolumeDiscountComponent(props: VolumeDiscountComponentProps) {
         />
       }
     >
-      <VolumeDiscountSetting title={title} products={products} steps={steps} />
+      <VolumeDiscountSetting
+        title={title}
+        button={buttonContent}
+        products={products}
+        steps={steps}
+      />
 
       <VolumeStepConfigCard title="Quantity breaks" steps={steps} />
 
@@ -100,12 +98,14 @@ export function VolumeDiscountComponent(props: VolumeDiscountComponentProps) {
 
 type VolumeDiscountSettingProps = {
   title: Field<string>;
+  button: Field<string>;
   products: Field<ProductInfo[]>;
   steps: Field<StepData[]>;
 };
 
 function VolumeDiscountSetting({
   title,
+  button,
   products,
 }: VolumeDiscountSettingProps) {
   return (
@@ -119,6 +119,10 @@ function VolumeDiscountSetting({
           onChange={products.onChange}
           showDefault={true}
         />
+
+        <InlineGrid columns={2} gap={"200"}>
+          <TextField label="Button Text" autoComplete="off" {...button} />
+        </InlineGrid>
       </BlockStack>
     </CardCollapse>
   );
@@ -184,7 +188,7 @@ function VolumeStepConfigCard({ title, steps }: VDStepConfigComponentProps) {
   );
 
   return (
-    <CardCollapse title={title ?? ""}>
+    <CardCollapse title={title ?? ""} collapse>
       <Tabs
         fitted
         tabs={offerTabs}

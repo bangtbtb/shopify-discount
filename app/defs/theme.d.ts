@@ -45,6 +45,11 @@ export interface BundleTotalTheme {
   title: FontConfig;
 }
 
+export interface PriceTotal {
+  price: number;
+  priceDiscount: number;
+}
+
 export interface VolumeDiscountTheme {
   title: FontConfig;
   offerTitle: FontConfig;

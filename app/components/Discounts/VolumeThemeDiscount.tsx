@@ -1,7 +1,14 @@
 import { Field, useField } from "@shopify/react-form";
 
 import { ProductInfo, ProductVariant } from "../Shopify/SelectProduct";
-import { BlockStack, Select, SelectOption, Text } from "@shopify/polaris";
+import {
+  BlockStack,
+  Box,
+  InlineGrid,
+  Select,
+  SelectOption,
+  Text,
+} from "@shopify/polaris";
 import { useEffect, useState } from "react";
 import { VDApplyType } from "~/defs";
 import {
@@ -18,13 +25,15 @@ import {
   ButtonConfig,
   FontConfig,
   FrameConfig,
+  PriceTotal,
   VolumeDiscountTheme,
 } from "~/defs/theme";
-import { CardCollapse, Midline } from "~/components/Common/Index";
+import { CardCollapse, Midline } from "~/components/Common";
 import {
   ButtonThemeEditor,
   FontTheme,
   FrameTheme,
+  RenderBundleButton,
   RenderFrame,
   RenderTextTheme,
 } from "./ThemeField";
@@ -170,7 +179,7 @@ export const defaultVolumeDiscountTheme: VolumeDiscountTheme = {
       size: 18,
       weight: "700",
     },
-    frame: { bgColor: "#008060", borderColor: "#008060" },
+    frame: { bgColor: "#4289ff", borderColor: "#008060" },
   },
 };
 
@@ -181,7 +190,6 @@ type VolumeDiscountThemeEditorProps = VolumeDiscountTheme & {
 export function VolumeDiscountThemeEditor({
   title,
   offerTitle,
-  discountLabel,
   price,
   comparePrice,
   tagPopular,
@@ -207,13 +215,6 @@ export function VolumeDiscountThemeEditor({
           onChange={(v) => onChangeTheme("offerTitle", v)}
         />
       </CardCollapse>
-
-      {/* <CardCollapse title="Discount label" collapse={true}>
-        <FontTheme
-          {...discountLabel}
-          onChange={(v) => onChangeTheme("discountLabel", v)}
-        />
-      </CardCollapse> */}
 
       <CardCollapse title="Price" collapse={true}>
         <FontTheme {...price} onChange={(v) => onChangeTheme("price", v)} />
@@ -283,7 +284,7 @@ type VolumeDiscountPreviewProps = {
   steps: StepData[];
   theme: VolumeDiscountTheme;
   titleContent: string;
-  totalContent: string;
+  buttonContent: string;
 };
 
 export function VolumeDiscountPreview({
@@ -292,9 +293,10 @@ export function VolumeDiscountPreview({
   theme,
   popularIndex,
   titleContent,
-  totalContent,
+  buttonContent,
 }: VolumeDiscountPreviewProps) {
   const [activedIdx, setActivedIdx] = useState(0);
+  const { title } = theme;
 
   return (
     <div
@@ -306,26 +308,60 @@ export function VolumeDiscountPreview({
         backgroundColor: "#fff",
       }}
     >
-      <Midline color="green" content={titleContent} />
+      <Midline
+        color={theme.title.color}
+        fontSize={theme.title.size}
+        fontWeight={theme.title.weight}
+        content={titleContent}
+      />
 
-      {steps.map((s, idx) => (
-        <VolumeBreakOffer
-          active={activedIdx == idx}
-          key={idx}
-          popular={popularIndex === idx}
-          step={s}
-          theme={theme}
-          product={products[0] || null}
-          onSelect={() => {
-            console.log("Select: ", idx);
-            setActivedIdx(idx);
-          }}
-        />
-      ))}
+      {/* Volume break (Step) */}
+      {products.length ? (
+        steps.map((s, idx) => (
+          <VolumeBreakOffer
+            active={activedIdx == idx}
+            key={idx}
+            popular={popularIndex === idx}
+            step={s}
+            theme={theme}
+            product={products[0] || null}
+            onSelect={() => {
+              console.log("Select: ", idx);
+              setActivedIdx(idx);
+            }}
+          />
+        ))
+      ) : (
+        <Box padding={"2000"}>
+          <InlineGrid>
+            <Text as="p" variant="headingMd">
+              Select product to see preview
+            </Text>
+          </InlineGrid>
+        </Box>
+      )}
 
-      <RenderFrame>
-        <RenderTextTheme as="p" {...theme.total} content={totalContent} />
-      </RenderFrame>
+      {/* Total */}
+      {/* <RenderFrame {...theme.total}>
+        <div className="flex_row" style={{ alignContent: "space-between" }}>
+          <RenderTextTheme as="p" {...theme.total} content={totalContent} />
+          <div>
+            <span className="old_price"> {total.price}</span>
+            <RenderTextTheme
+              as="p"
+              {...theme.total}
+              content={total.priceDiscount}
+            />
+          </div>
+        </div>
+      </RenderFrame> */}
+
+      {/* Add to cart button */}
+      <RenderBundleButton
+        content={buttonContent}
+        font={theme.button.font}
+        frame={theme.button.frame}
+      />
     </div>
   );
 }
@@ -397,7 +433,7 @@ function VolumeBreakOffer({
     setVariants(newVariants);
     setTotalPrice(newTotal);
     setTotalDiscount(newDiscount);
-  }, [product]);
+  }, [product, step, active]);
 
   const onChangeVariant = (variantId: string, index: number) => {
     var target = product?.variants.find((v) => v.id === variantId);
@@ -446,8 +482,10 @@ function VolumeBreakOffer({
       <div
         className="remain flex_row"
         style={{
+          backgroundColor: "#f4fbf9",
           flexWrap: "nowrap",
-          // border: "1px solid green"
+          border: `1px solid ${active ? selected.frame.borderColor : "#f4fbf9"}`,
+          borderRadius: "6px",
         }}
       >
         <RenderFrame
@@ -460,8 +498,12 @@ function VolumeBreakOffer({
           padding="0.25rem 0.5rem"
           width={"100%"}
           borderWidth={"1px"}
-          borderTopLeftRadius={0}
-          borderBottomLeftRadius={0}
+          {...(!active
+            ? {
+                borderTopLeftRadius: 0,
+                borderBottomLeftRadius: 0,
+              }
+            : {})}
         >
           <div
             className="flex_row"
@@ -469,24 +511,50 @@ function VolumeBreakOffer({
               justifyContent: "start",
             }}
           >
-            <RenderTextTheme
-              as="p"
-              content={`${totalDiscount} / ${step.require} pieces`}
-              {...theme.price}
+            <p
               style={{
-                flexBasis: "fit-content",
+                fontSize: theme.price.size + "px",
+                color: theme.price.color,
+                fontWeight: theme.price.weight,
               }}
-            />
-            <RenderFrame {...unselected.frame} padding={"0.1rem 0.25rem"}>
-              <RenderTextTheme
-                as="p"
-                content={`${step.value} ${step.type == "fix" ? "" : "%"}`}
+            >
+              {totalDiscount}{" "}
+              <span
                 style={{
-                  flexBasis: "fit-content",
+                  fontSize: "10px",
+                  fontWeight: "400",
                 }}
-                {...theme.unselected.label}
-              />
-            </RenderFrame>
+              >{`/ ${step.require} pieces`}</span>
+            </p>
+
+            <div style={{ display: active ? "block" : "none" }}>
+              <RenderFrame {...unselected.frame} padding={"0.1rem 0.25rem"}>
+                <RenderTextTheme
+                  as="p"
+                  content={`${step.value} ${step.type == "fix" ? "" : "%"}`}
+                  style={{
+                    flexBasis: "fit-content",
+                  }}
+                  {...theme.unselected.label}
+                />
+              </RenderFrame>
+            </div>
+
+            {popular && (
+              <div
+                className="remain"
+                style={{
+                  opacity: "0.6",
+                  textAlign: "right",
+                }}
+              >
+                <RenderTextTheme
+                  as="p"
+                  content={"Most popular"}
+                  {...theme.tagPopular}
+                />
+              </div>
+            )}
           </div>
           <RenderTextTheme
             as="p"
@@ -514,28 +582,22 @@ function VolumeBreakOffer({
             </div>
           </div>
         </RenderFrame>
-
-        {popular && (
-          <div
-            style={{
-              // position: "absolute",
-              opacity: "0.6",
-              textAlign: "right",
-              right: "5%",
-              top: "5%",
-              // left: "80%",
-              // transform: "rotate(30deg)",
-              // maxHeight: "40%",
-            }}
-          >
-            <RenderTextTheme
-              as="p"
-              content={"Most popular"}
-              {...theme.tagPopular}
-            />
-          </div>
-        )}
       </div>
     </div>
   );
+}
+
+function calcDiscount(priceStr?: string, curStep?: StepData): PriceTotal {
+  if (!curStep) {
+    return { price: 0, priceDiscount: 0 };
+  }
+
+  var price = curStep.require * (Number.parseFloat(priceStr || "0") || 0);
+  return {
+    price,
+    priceDiscount:
+      curStep.type === "fix"
+        ? price - curStep.value
+        : price - (price * curStep.value) / 100,
+  };
 }

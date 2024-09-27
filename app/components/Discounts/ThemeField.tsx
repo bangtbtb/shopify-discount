@@ -125,7 +125,7 @@ export function SelectFontWeight({ label, value, onChange }: SelectFontWeight) {
 
 type RenderTextTheme = FontConfig & {
   as: "span" | "p" | "h3";
-  content: string | number;
+  content: string | number | any;
   align?: CSS.Property.TextAlign;
   className?: string;
   // Property.TextAlign;

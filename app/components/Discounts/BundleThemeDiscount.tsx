@@ -22,7 +22,7 @@ import { useEffect, useState } from "react";
 import { PlusIcon } from "@shopify/polaris-icons";
 import { BundleProductConfig, BundleThemeConfig } from "~/defs/theme";
 import { initArray } from "~/models/utils";
-import { BoxBorderBound, CardCollapse } from "~/components/Common/Index";
+import { BoxBorderBound, CardCollapse } from "~/components/Common";
 
 export type ProductInfoBundle = ProductInfo & { requireVol: number };
 
@@ -89,7 +89,7 @@ export type BundleThemeProps = BundleThemeConfig & {
   onChangeTheme: (k: string, v: any) => void;
 };
 
-export function BundleTheme({
+export function BundleThemeEditor({
   title,
   product,
   total,

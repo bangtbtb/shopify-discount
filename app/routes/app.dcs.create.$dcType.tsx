@@ -6,8 +6,9 @@ import {
   useSubmit,
 } from "@remix-run/react";
 import { Page } from "@shopify/polaris";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BundleDetail } from "~/components/Discounts/BundleDiscount";
+import { SDVolumeDetail } from "~/components/Discounts/SDVolume";
 import { VolumeDiscountComponent } from "~/components/Discounts/VolumeDiscount";
 import { ActionType, ODConfig, SDConfig, VDConfig } from "~/defs";
 import { DiscountTypeGUI } from "~/defs/discount";
@@ -35,6 +36,7 @@ export default function DiscountsCreate(props: any) {
 
   const { dcType } = useLoaderData<typeof loader>();
   const actData = useActionData<ActionType>();
+  const [discountName] = useState(dcType.toUpperCase().replaceAll("_", " "));
 
   const todaysDate = useMemo(() => new Date().toString(), []);
   const isLoading = navigation.state == "submitting";
@@ -58,6 +60,7 @@ export default function DiscountsCreate(props: any) {
   const onSubmit = (
     discount: DiscountAutomaticAppInput,
     config: ODConfig | SDConfig | VDConfig,
+    theme: string,
   ) => {
     submitForm(
       {
@@ -70,9 +73,12 @@ export default function DiscountsCreate(props: any) {
   };
 
   return (
-    <Page title="Select Discount unknown">
+    <Page title={`Select Discount ${discountName}`}>
       {dcType === "bundle" && <BundleDetail />}
+      {dcType === "total_order" && <VolumeDiscountComponent />}
       {dcType === "volume" && <VolumeDiscountComponent />}
+      {dcType === "shipping_volume" && <SDVolumeDetail />}
+      {dcType === "shipping_total" && <VolumeDiscountComponent />}
     </Page>
   );
 }

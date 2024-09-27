@@ -26,18 +26,84 @@
   height: 100%;
 }
 
+// ------------------------------------- Custom tab -------------------------------------------
+
+.tabbed {
+}
+
+.tab-head {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+}
+
+.tabnavs {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  flex-grow: 1;
+}
+
+.tab_actions {
+  min-width: fit-content;
+}
+
+.tab-nav > input {
+  display: none;
+}
+
+.tab-nav > label {
+  display: block;
+  float: left;
+  padding: 0.5rem 0.5rem;
+  margin-right: 5px;
+  cursor: pointer;
+  transition: background-color 0.4s;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.tab-nav > input + label {
+  border: 1px solid #b5b4b4;
+  border-radius: 6px;
+}
+
+.tab-nav > label:hover,
+.tab-nav > input:checked + label {
+  background: #4ec6de;
+}
+
+.tabs {
+  border-radius: 6px;
+  padding: 1rem 0;
+  opacity: 1;
+  transform: rotateX(-20deg);
+  transform-origin: top center;
+  transition:
+    opacity 0.3s,
+    transform 1s;
+  z-index: 0;
+}
+
+.tabs > div {
+}
+
+// ------------------------------------- Step -------------------------------------------
+
 /* https://codepen.io/51fe/pen/JLGamL */
 .steps {
-  position: relative;
+  // width: 100%;
+  display: flex;
+  flex-direction: row;
   margin: 0 0 2rem 0;
   padding: 0;
   counter-reset: step;
-  width: 100%;
 }
 
 /*Step Description*/
 .steps li {
-  display: block;
+  // display: block;
   list-style-type: none;
   font-size: 12px;
   text-align: left;
@@ -323,7 +389,7 @@
 }
 
 .vd_label_ctn.active {
-  min-width: 0;
+  display: none;
   transition: ease-in-out;
 }
 
@@ -437,6 +503,111 @@
 .same-as-selected {
   background-color: rgba(0, 0, 0, 0.1);
 }
+
+// ------------- Step 2 direction
+
+.flex_cc {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* https://codepen.io/sean-mooney/pen/Jjdqevm */
+.step2_ctn {
+  display: flex;
+  align-items: center;
+  counter-reset: step;
+}
+
+.step2 {
+  display: flex;
+  flex-grow: 2;
+  align-items: center;
+  justify-content: center;
+}
+
+.chain {
+  display: block;
+  flex-grow: 1;
+  border-left: 2px solid gray;
+}
+
+.s2content {
+  display: block;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem;
+  border: 2px solid gray;
+  border-radius: 4px;
+}
+
+/*Step Cirlcle counter*/
+.step_cc {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 2rem;
+  font-size: 1rem;
+  border: 1px solid grey;
+  background-color: grey;
+  color: #fff;
+  text-align: center;
+  font-weight: 700;
+}
+
+.step2.active .s2content {
+  border: 2px solid #019875;
+  border-radius: 4px;
+}
+
+.step2.active .step_cc {
+  border: 1px solid #019875;
+}
+
+.step2 .step_cc.selected {
+  border: 1px solid #019875;
+}
+
+.chain.active {
+  border-color: #019875;
+}
+
+.step2_ctn.column {
+  flex-direction: column;
+}
+
+.step2_ctn.column .step2 {
+  flex-direction: column;
+}
+
+.step2_ctn.column .chain {
+  left: 50%;
+  /* height: 80px; */
+  min-height: 80px;
+}
+
+.step2_ctn.row {
+  flex-direction: row;
+}
+
+.step2_ctn.row .step2 {
+  flex-direction: row;
+}
+
+.step2_ctn.row .chain {
+  top: 50%;
+  border-top: 3px solid gray;
+}
+
+.step2_ctn.row .chain.active {
+  top: 50%;
+  border-top: 3px solid #019875;
+}
+
+.step2:last-child {
+  flex-grow: 1;
+  display: block;
+}
+
 // ----------- animation -------------------------
 
 .ani {

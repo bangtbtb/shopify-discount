@@ -22,3 +22,11 @@ export function StepList(props: StepListProps) {
     </ul>
   );
 }
+
+type StepElememtProps = {
+  activeIndex?: number;
+  activeColor?: string;
+  children: React.ReactElement[] | string[];
+};
+
+export function StepElement(props: StepElememtProps) {}

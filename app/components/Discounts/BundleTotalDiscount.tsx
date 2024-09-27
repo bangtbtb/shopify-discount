@@ -1,15 +1,18 @@
-import { Box } from "@shopify/polaris";
-import { CardCollapse } from "../Common/Index";
+import { BlockStack, Box, TextField } from "@shopify/polaris";
 import {
   BundleTotalThemeEditor,
   BundleTotalThemePreview,
 } from "./BundleTotalTheme";
 import { DiscountEditorPreviewLayout } from "./DiscountCommon";
+import { CardCollapse } from "../Common";
+import { Field, useField } from "@shopify/react-form";
 
 export function BundleTotalDetail() {
+  const title = useField<string>("Bund Total Offer");
+
   return (
     <DiscountEditorPreviewLayout preview={<BundleTotalThemePreview />}>
-      <BundleTotalSetting />
+      <BundleTotalSetting title={title} />
 
       <Box minHeight="1rem" />
 
@@ -18,10 +21,16 @@ export function BundleTotalDetail() {
   );
 }
 
-type BundleTotalSettingProps = {};
+type BundleTotalSettingProps = {
+  title: Field<string>;
+};
 
-function BundleTotalSetting(props: BundleTotalSettingProps) {
+function BundleTotalSetting({ title }: BundleTotalSettingProps) {
   return (
-    <CardCollapse title="Bundle Total Information" collapse></CardCollapse>
+    <CardCollapse title="Bundle Total Information" collapse>
+      <BlockStack>
+        <TextField label="Title" autoComplete="off" {...title} />
+      </BlockStack>
+    </CardCollapse>
   );
 }

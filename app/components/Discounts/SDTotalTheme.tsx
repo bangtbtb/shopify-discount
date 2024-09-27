@@ -1,19 +1,7 @@
-import { BlockStack, Text } from "@shopify/polaris";
+type SDTotalThemePreviewProps = {};
 
-type BundleTotalThemeEditorProps = {};
-
-export function BundleTotalThemeEditor(props: BundleTotalThemeEditorProps) {
+export function SDTotalThemePreview({}: SDTotalThemePreviewProps) {
   return (
-    <BlockStack gap={"400"}>
-      <Text as="h2" variant="headingLg">
-        Typography & Colour
-      </Text>
-    </BlockStack>
+    <div className="flex_row" style={{ padding: "0.75rem", gap: "1rem" }}></div>
   );
-}
-
-type BundleTotalThemePreviewProps = {};
-
-export function BundleTotalThemePreview(props: BundleTotalThemePreviewProps) {
-  return <div></div>;
 }

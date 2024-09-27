@@ -6,14 +6,7 @@ import type {
 } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
-import {
-  Page,
-  Layout,
-  Text,
-  Card,
-  InlineGrid,
-  TextField,
-} from "@shopify/polaris";
+import { Page, Layout, Text, Card, InlineGrid } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { dbGetDiscounts } from "~/models/db_discount";
 import { DiscountTable } from "~/components/Discounts/DiscountTable";
