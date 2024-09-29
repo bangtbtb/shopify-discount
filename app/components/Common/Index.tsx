@@ -85,14 +85,14 @@ export function CardCollapse(props: CardCollapseProps) {
         )}
 
         {!isTitleString && title}
-        <InlineStack>
+        <InlineStack gap={"100"}>
+          {actions}
           {props.collapse &&
             (openContent ? (
               <BsChevronUp size={20} onClick={() => setOpenContent(false)} />
             ) : (
               <BsChevronDown size={20} onClick={() => setOpenContent(true)} />
             ))}
-          {actions}
         </InlineStack>
       </InlineStack>
       <Collapsible id={collapseId} open={openContent}>

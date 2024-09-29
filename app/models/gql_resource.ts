@@ -56,6 +56,7 @@ export async function getSimleProductInfo(
       priceRangeV2: respJson.data?.product?.priceRangeV2,
       minPrice: respJson.data?.product?.priceRangeV2.minVariantPrice,
       maxPrice: respJson.data?.product?.priceRangeV2.maxVariantPrice,
+      variants: respJson.data.product.variants.edges.map((v) => v.node),
     };
   }
   return null;

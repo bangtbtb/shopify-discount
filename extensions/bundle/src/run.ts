@@ -2,7 +2,6 @@ import {
   type RunInput,
   type FunctionRunResult,
   type ProductVariant,
-  type Discount,
   type Target,
   type ProductVariantTarget,
   DiscountApplicationStrategy,
@@ -15,7 +14,7 @@ const EMPTY_DISCOUNT: FunctionRunResult = {
 
 type DVT = "percent" | "fix";
 
-type ODApplyType = "total" | "contain";
+type ODApplyType = "total" | "bundle";
 
 type DiscountValue = {
   value: number;
@@ -27,21 +26,27 @@ export type RewardStep = {
   value: DiscountValue; // Reward
 };
 
+export type ProductCondition = {
+  id: string; // Product id
+  quantity: number; // Atleast 1
+};
+
 type ODTotalConfig = {
   steps: RewardStep[];
 };
 
-type ODContainConfig = {
+type ODBundleConfig = {
   value: DiscountValue;
   allOrder: boolean | undefined;
   productIds: string[];
+  numRequires: number[];
 };
 
 type ODConfig = {
   label: string;
   applyType: ODApplyType;
-  total?: ODTotalConfig | undefined;
-  contain?: ODContainConfig | undefined;
+  total?: ODTotalConfig;
+  bundle?: ODBundleConfig;
 };
 
 interface ProductSum {
@@ -57,8 +62,8 @@ export function run(input: RunInput): FunctionRunResult {
   );
   // console.log("Config: ", JSON.stringify(config));
 
-  if (config.applyType === "contain") {
-    return onContain(input, config);
+  if (config.applyType === "bundle") {
+    return onBundle(input, config);
   }
 
   if (config.applyType === "total") {
@@ -114,13 +119,13 @@ function onTotal(input: RunInput, config: ODConfig): FunctionRunResult {
   return EMPTY_DISCOUNT;
 }
 
-function onContain(input: RunInput, config: ODConfig): FunctionRunResult {
+function onBundle(input: RunInput, config: ODConfig): FunctionRunResult {
   var existed = new Map<string, number>();
-  if (!config.contain) {
+  if (!config.bundle) {
     return EMPTY_DISCOUNT;
   }
 
-  config.contain.productIds.forEach((v) => {
+  config.bundle.productIds.forEach((v) => {
     existed.set(v, 0);
   });
 
@@ -180,7 +185,7 @@ function onContain(input: RunInput, config: ODConfig): FunctionRunResult {
     return EMPTY_DISCOUNT;
   }
 
-  if (config.contain.allOrder) {
+  if (config.bundle.allOrder) {
     targets = input.cart.lines.map((line) => ({
       productVariant: {
         id: (line.merchandise as ProductVariant).id,
@@ -195,15 +200,15 @@ function onContain(input: RunInput, config: ODConfig): FunctionRunResult {
       {
         targets: targets,
         value:
-          config.contain.value.type === "percent"
+          config.bundle.value.type === "percent"
             ? {
                 percentage: {
-                  value: config.contain.value.value,
+                  value: config.bundle.value.value,
                 },
               }
             : {
                 fixedAmount: {
-                  amount: config.contain.value.value,
+                  amount: config.bundle.value.value,
                 },
               },
         message: config.label,

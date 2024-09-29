@@ -52,14 +52,24 @@ model Discount {
   type          ADT
   subType       String    @default("")
   createdAt     DateTime? @default(now())
-  theme         String
   productIds    String[]
   collectionIds String[]
 
   DiscountApplied DiscountApplied[]
+  Theme           DiscountTheme?
 
   @@index([shop, createdAt])
   @@index([label])
+}
+
+model DiscountTheme {
+  id         String   @id @default(uuid())
+  shop       String
+  theme      String
+  content    String
+  setting    String
+  discountId String   @unique
+  discount   Discount @relation(fields: [discountId], references: [id])
 }
 
 model DiscountViews {
@@ -73,13 +83,14 @@ model DiscountViews {
 }
 
 model Orders {
-  id            String            @id
-  shop          String
-  wasApplied    Boolean
-  subTotalPrice Decimal           @db.Decimal(30, 4)
-  products      String[]          @default([])
-  createdAt     DateTime          @default(now())
-  applied       DiscountApplied[]
+  id          String            @id
+  shop        String
+  wasApplied  Boolean
+  subTotal    Decimal           @db.Decimal(30, 4)
+  subTotalUsd Decimal           @db.Decimal(30, 4)
+  products    String[]          @default([])
+  createdAt   DateTime          @default(now())
+  applied     DiscountApplied[]
 
   @@index([shop, createdAt])
 }
@@ -96,4 +107,30 @@ model DiscountApplied {
   Discount       Discount? @relation(fields: [discountId], references: [id])
 
   @@index([shop, createdAt, discountId])
+}
+
+model BillCheckpoint {
+  id        String   @id @default(uuid())
+  shop      String   @unique
+  plan      String
+  totalUsd  Decimal  @db.Decimal(30, 4) // Total order value (USD)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  @@index([updatedAt])
+}
+
+model SubscriptionBill {
+  id        String   @id @default(uuid())
+  shop      String
+  money     BigInt
+  createdAt DateTime @default(now())
+}
+
+model CurrencyRate {
+  id        String   @id
+  base      String
+  target    String
+  rate      Float
+  updatedAt DateTime @default(now())
 }

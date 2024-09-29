@@ -5,6 +5,7 @@ export type DiscountValue = {
   value: number;
   type: DVT;
 };
+
 // ----------------------- Basic discount config ---------------------
 
 export type RewardStep = {
@@ -15,22 +16,23 @@ export type RewardStep = {
 
 export type ProductCondition = {
   id: string; // Product id
-  quantity?: number; // Atleast 1
+  quantity: number; // Atleast 1
   // variants?: string[]; // Undefine <=> all
 };
 
 // ----------------------------- Order discount (bundle) --------------
 
-export type ODApplyType = "total" | "contain";
+export type ODApplyType = "total" | "bundle";
 
 export type ODTotalConfig = {
   steps: RewardStep[];
 };
 
-export type ODContainConfig = {
+export type ODBundleConfig = {
   value: DiscountValue;
   allOrder?: boolean;
-  productIds: ProductCondition[];
+  productIds: string[];
+  numRequires: number[];
 };
 
 // export type ODBXGY = {
@@ -43,7 +45,7 @@ export type ODConfig = {
   label: string;
   applyType: ODApplyType;
   total?: ODTotalConfig;
-  contain?: ODContainConfig;
+  bundle?: ODBundleConfig;
   // bxgy?: ODBXGY;
 };
 

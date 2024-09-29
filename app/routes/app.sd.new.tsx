@@ -23,7 +23,8 @@ import { SDConfigCard } from "~/components/Discounts/SDConfigCard";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
 import { CollectionInfo } from "~/components/Shopify/SelectCollection";
 import { ProductInfo } from "~/components/Shopify/SelectProduct";
-import { ActionStatus, ActionType, SDApplyType, SDConfig } from "~/defs";
+import { SDApplyType, SDConfig } from "~/defs/discount";
+import { ActionStatus, ActionType } from "~/defs";
 import { createShippingDiscount } from "~/models/sd_models";
 import { randomDigit } from "~/models/utils";
 import { authenticate } from "~/shopify.server";
@@ -90,9 +91,9 @@ export default function NewSDPage() {
         label: useField(""),
         applyType: useField<SDApplyType>("total"),
         steps: useField<Array<StepData>>([
-          { type: "percent", value: "5", require: "2" },
-          { type: "percent", value: "15", require: "3" },
-          { type: "percent", value: "15", require: "4" },
+          { type: "percent", value: 5, require: 2 },
+          { type: "percent", value: 10, require: 3 },
+          { type: "percent", value: 15, require: 4 },
         ]),
         products: useField<Array<ProductInfo>>([]),
         colls: useField<Array<CollectionInfo>>([]),
@@ -110,10 +111,10 @@ export default function NewSDPage() {
         label: form.config.label,
         applyType: form.config.applyType,
         steps: form.config.steps.map((v) => ({
-          require: Number.parseFloat(v.require),
+          require: v.require,
           value: {
             type: v.type,
-            value: Number.parseFloat(v.value),
+            value: v.value,
           },
         })),
         collIds: form.config.colls.map((v) => v.id),

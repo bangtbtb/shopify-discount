@@ -10,21 +10,45 @@ export async function createOrders(
   data: Prisma.OrdersUncheckedCreateInput,
   dApplieds?: Prisma.DiscountAppliedCreateInput[] | undefined,
 ) {
-  return db.orders.create({
-    data: {
-      ...data,
-      applied: dApplieds
-        ? {
-            create: dApplieds,
-          }
-        : undefined,
-    },
-  });
+  var nVal = Number.parseFloat(data.subTotalUsd.toString());
+  var resp = await db.$transaction([
+    db.orders.create({
+      data: {
+        ...data,
+        applied: dApplieds
+          ? {
+              create: dApplieds,
+            }
+          : undefined,
+      },
+    }),
+
+    db.billCheckpoint.upsert({
+      update: {
+        shop: data.shop,
+        totalUsd: {
+          increment: nVal,
+        },
+        updatedAt: new Date(),
+      },
+      create: {
+        shop: data.shop,
+        totalUsd: nVal,
+        plan: "Free",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      where: {
+        shop: data.shop,
+      },
+    }),
+  ]);
+  return { order: resp[0], billCheckpoint: resp[1] };
 }
 
 type RawOrdersReport = {
   orderCount: number;
-  subTotalPrice: bigint;
+  subTotal: bigint;
   wasApplied: boolean;
   createdAt: Date;
 };
@@ -39,7 +63,7 @@ type OrdersReportRequest = {
 export async function getOrdersReport(req: OrdersReportRequest) {
   var resp: RawOrdersReport[] = await db.$queryRaw`
   WITH tbl AS (
-        SELECT "subTotalPrice", "wasApplied",
+        SELECT "subTotal", "wasApplied",
               DATE_TRUNC(${req.groupInterval}, "createdAt") as "createdAt"
         FROM "Orders"
         WHERE "shop" = ${req.shop} AND
@@ -48,7 +72,7 @@ export async function getOrdersReport(req: OrdersReportRequest) {
   )
 
   SELECT COUNT(DISTINCT("createdAt", "wasApplied") ) as "orderCount", 
-  		SUM("subTotalPrice")::numeric(24) as "subTotalPrice", 
+  		SUM("subTotal")::numeric(24) as "subTotal", 
 		 "wasApplied",
 		 "createdAt" 
   FROM tbl
@@ -157,14 +181,14 @@ function convertOrderReport(data: RawOrdersReport[], interval: DateGroup) {
   if (interval === "annual") {
     rs = data.map((v) => ({
       orderCount: BigInt(v.orderCount),
-      subTotalPrice: BigInt(v.subTotalPrice),
+      subTotal: BigInt(v.subTotal),
       wasApplied: v.wasApplied,
       date: format(v.createdAt, "yyyy"),
     }));
   } else if (interval === "month") {
     rs = data.map((v) => ({
       orderCount: BigInt(v.orderCount),
-      subTotalPrice: BigInt(v.subTotalPrice),
+      subTotal: BigInt(v.subTotal),
       wasApplied: v.wasApplied,
       date: format(v.createdAt, "yyyy-MM"),
     }));
@@ -173,14 +197,14 @@ function convertOrderReport(data: RawOrdersReport[], interval: DateGroup) {
 
     rs = data.map((v) => ({
       orderCount: BigInt(v.orderCount),
-      subTotalPrice: BigInt(v.subTotalPrice),
+      subTotal: BigInt(v.subTotal),
       wasApplied: v.wasApplied,
       date: format(v.createdAt, "yyyy-MM-dd"),
     }));
   } else {
     rs = data.map((v) => ({
       orderCount: BigInt(v.orderCount),
-      subTotalPrice: BigInt(v.subTotalPrice),
+      subTotal: BigInt(v.subTotal),
       wasApplied: v.wasApplied,
       date: format(v.createdAt, "yyyy-MM-dd"),
     }));

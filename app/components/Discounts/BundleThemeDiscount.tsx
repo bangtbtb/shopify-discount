@@ -17,20 +17,18 @@ import {
   RenderTextTheme,
 } from "./ThemeField";
 import { ProductInfo, ProductVariant } from "../Shopify/SelectProduct";
-import { DiscountValue, DVT } from "~/defs";
+import { DiscountValue } from "~/defs/discount";
 import { useEffect, useState } from "react";
 import { PlusIcon } from "@shopify/polaris-icons";
-import { BundleProductConfig, BundleThemeConfig } from "~/defs/theme";
+import {
+  BundleContent,
+  BundleProductConfig,
+  BundleThemeConfig,
+} from "~/defs/theme";
 import { initArray } from "~/models/utils";
 import { BoxBorderBound, CardCollapse } from "~/components/Common";
 
 export type ProductInfoBundle = ProductInfo & { requireVol: number };
-
-export type BundleContent = {
-  title: string;
-  total: string;
-  button: string;
-};
 
 export const defaultBundleTheme: BundleThemeConfig = {
   title: {
@@ -294,7 +292,7 @@ export function BundleThemePreview({
       <RenderTextTheme
         as="h3"
         align="center"
-        content={content.title}
+        children={content.title}
         {...title}
       />
 
@@ -339,14 +337,14 @@ export function BundleThemePreview({
       <RenderFrame {...total.frame}>
         <div className="flex_row" style={{ margin: "1rem" }}>
           <div>
-            <RenderTextTheme as="p" content={content.total} {...total.label} />
+            <RenderTextTheme as="p" children={content.total} {...total.label} />
           </div>
 
           <div className="flex_row" style={{ textAlign: "right" }}>
             <span className="old_price">{totalValue}</span>
             <RenderTextTheme
               as="span"
-              content={discountTotalValue}
+              children={discountTotalValue}
               {...total.price}
             />
           </div>
@@ -417,7 +415,7 @@ export function BundleProductPreview({
           {/* Title */}
           <RenderTextTheme
             as="p"
-            content={product.title}
+            children={product.title}
             {...productTheme.name}
           />
 
@@ -465,7 +463,7 @@ export function BundleProductPreview({
         >
           <RenderTextTheme
             as="p"
-            content={priceDiscount}
+            children={priceDiscount}
             {...productTheme.price}
           />
           <span className="old_price">{price}</span>

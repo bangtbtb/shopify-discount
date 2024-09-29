@@ -29,7 +29,9 @@ import { StepData } from "~/components/Discounts/ConfigStep";
 import { SDConfigCard } from "~/components/Discounts/SDConfigCard";
 import { CollectionInfo } from "~/components/Shopify/SelectCollection";
 import { ProductInfo } from "~/components/Shopify/SelectProduct";
-import { ActionStatus, SDApplyType, SDConfig } from "~/defs";
+import { SDApplyType, SDConfig } from "~/defs/discount";
+import { ActionStatus } from "~/defs";
+
 import {
   getShippingDiscount,
   SDConfigExt,
@@ -117,9 +119,9 @@ export default function ShippingDetailPage() {
         label: useField(""),
         applyType: useField<SDApplyType>("total"),
         steps: useField<Array<StepData>>([
-          { type: "percent", value: "5", require: "2" },
-          { type: "percent", value: "15", require: "3" },
-          { type: "percent", value: "15", require: "4" },
+          { type: "percent", value: 5, require: 2 },
+          { type: "percent", value: 10, require: 3 },
+          { type: "percent", value: 15, require: 4 },
         ]),
         products: useField<Array<ProductInfo>>([]),
         colls: useField<Array<CollectionInfo>>([]),
@@ -137,10 +139,10 @@ export default function ShippingDetailPage() {
         label: form.config.label,
         applyType: form.config.applyType,
         steps: form.config.steps.map((v) => ({
-          require: Number.parseFloat(v.require),
+          require: v.require,
           value: {
             type: v.type,
-            value: Number.parseFloat(v.value),
+            value: v.value,
           },
         })),
         collIds: form.config.colls.map((v) => v.id),
@@ -180,9 +182,9 @@ export default function ShippingDetailPage() {
     srcConfig.steps &&
       config.steps.onChange(
         srcConfig.steps.map((v) => ({
-          require: v.require.toString(),
+          require: v.require,
           type: v.value.type,
-          value: v.value.value.toString(),
+          value: v.value.value,
         })),
       );
     config.products.onChange(srcConfig.products || []);

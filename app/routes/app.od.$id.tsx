@@ -27,7 +27,7 @@ import { DiscountProvider } from "~/components/providers/DiscountProvider";
 import ODConfigCard from "~/components/Discounts/ODConfigCard";
 import { StepData } from "~/components/Discounts/ConfigStep";
 import { ProductInfo } from "~/components/Shopify/SelectProduct";
-import { ActionStatus, DVT, ODApplyType, ODConfig } from "~/defs";
+import { DVT, ODApplyType, ODConfig } from "~/defs/discount";
 import {
   getBundleDiscount,
   ODConfigExt,
@@ -38,6 +38,7 @@ import {
   DiscountAutomaticAppInput,
   DiscountUserError,
 } from "~/types/admin.types";
+import { ActionStatus } from "~/defs";
 
 type ActionType = {
   status: string;
@@ -118,7 +119,7 @@ export default function BundleDetailPage() {
       endDate: useField<DateTime | null>(null),
       config: {
         label: useField(""),
-        applyType: useField<ODApplyType>("contain"),
+        applyType: useField<ODApplyType>("bundle"),
         totalSteps: useField<Array<StepData>>([
           { type: "percent", value: 5, require: 2 },
           { type: "percent", value: 10, require: 3 },
@@ -144,8 +145,8 @@ export default function BundleDetailPage() {
       var formConfig: ODConfig = {
         label: form.config.label,
         applyType: form.config.applyType,
-        contain:
-          form.config.applyType === "contain"
+        bundle:
+          form.config.applyType === "bundle"
             ? {
                 productIds: form.config.containProduct.map((v) => v.id),
                 value: {
@@ -153,6 +154,7 @@ export default function BundleDetailPage() {
                   value: Number.parseFloat(form.config.containValue.value),
                 },
                 allOrder: form.config.allOrder,
+                numRequires: form.config.containProduct.map((_) => 1),
               }
             : undefined,
         total:

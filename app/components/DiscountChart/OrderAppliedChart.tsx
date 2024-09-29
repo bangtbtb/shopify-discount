@@ -40,10 +40,10 @@ export function parseOrderReports(reports: OrdersReport[]) {
       }
       if (elm.wasApplied) {
         app += Number(elm.orderCount);
-        appVal += Number(elm.subTotalPrice);
+        appVal += Number(elm.subTotal);
       } else {
         unapp += Number(elm.orderCount);
-        unappVal += Number(elm.subTotalPrice);
+        unappVal += Number(elm.subTotal);
       }
       if (i === reports.length - 1) {
         done = true;

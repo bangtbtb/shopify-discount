@@ -5,14 +5,15 @@ import {
   InlineGrid,
   InlineStack,
   Tabs,
+  Text,
   TextField,
 } from "@shopify/polaris";
 import { useCallback, useState } from "react";
-import { DVT } from "~/defs";
+import { DVT } from "~/defs/discount";
 import {
-  defaultVolumeDiscountTheme,
+  defaultVolumeTheme,
   VolumeDiscountPreview,
-  VolumeDiscountThemeEditor,
+  VolumeThemeEditor,
 } from "./VolumeThemeDiscount";
 import {
   DiscountCommonEditor,
@@ -27,8 +28,8 @@ import {
 import { DiscountAutomaticApp } from "~/types/admin.types";
 import { Field, useField } from "@shopify/react-form";
 import { CardCollapse } from "~/components/Common/index";
-import { TabProps } from "@shopify/polaris/build/ts/src/components/Tabs";
-import { BsTrash } from "react-icons/bs";
+import { BsPlus, BsTrash } from "react-icons/bs";
+import { EasyTab } from "../Common/Tab";
 
 type VolumeDiscountComponentProps = {
   discount?: SerializeFrom<DiscountAutomaticApp>;
@@ -39,7 +40,6 @@ type VolumeDiscountComponentProps = {
 export function VolumeDiscountComponent(props: VolumeDiscountComponentProps) {
   const title = useField<string>("Volume Discount Offer");
   const buttonContent = useField<string>("Add To Cart");
-  // const totalContent = useField<string>("Total");
   const startDate = useField<DateTime>(new Date().toString());
   const endDate = useField<DateTime | null>(null);
   const combines = useField<CombinableDiscountTypes>({
@@ -55,7 +55,7 @@ export function VolumeDiscountComponent(props: VolumeDiscountComponentProps) {
     { label: "OFF 20%", type: "percent", value: 20, require: 4 },
   ]);
 
-  const [theme, setTheme] = useState(defaultVolumeDiscountTheme);
+  const [theme, setTheme] = useState(defaultVolumeTheme);
   const onChangeTheme = (k: string, v: any) => {
     setTheme({
       ...theme,
@@ -90,7 +90,7 @@ export function VolumeDiscountComponent(props: VolumeDiscountComponentProps) {
         endDate={endDate}
       />
 
-      <VolumeDiscountThemeEditor onChangeTheme={onChangeTheme} {...theme} />
+      <VolumeThemeEditor onChangeTheme={onChangeTheme} {...theme} />
       <Box minHeight="2rem" />
     </DiscountEditorPreviewLayout>
   );
@@ -135,14 +135,20 @@ type VDStepConfigComponentProps = {
 
 function VolumeStepConfigCard({ title, steps }: VDStepConfigComponentProps) {
   const [tabSelected, setTabSelected] = useState(0);
-  const [offerTabs, setOfferTabs] = useState<TabProps[]>(
-    steps.value.map((v, idx) => ({
-      id: `offer_${idx}`,
-      content: `Offer ${idx}`,
-    })),
+
+  const [offerTabs, setOfferTabs] = useState<string[]>(
+    steps.value.map((v, idx) => `Offer ${idx}`),
   );
 
   const onAddStep = () => {
+    if (steps.value.length >= 5) {
+      shopify.toast.show("You should create 5 offer is max", {
+        duration: 5000,
+        isError: true,
+      });
+      return;
+    }
+
     var newArr = [...steps.value];
     if (steps.value.length) {
       const latest = steps.value[steps.value.length - 1];
@@ -150,30 +156,41 @@ function VolumeStepConfigCard({ title, steps }: VDStepConfigComponentProps) {
         require: latest.require + 1,
         type: latest.type,
         value: latest.type == "percent" ? latest.value + 5 : latest.value,
-        label: "Offer " + newArr.length + 1,
+        label: `Offer ${newArr.length + 1}`,
       });
     } else {
       newArr.push({
         require: 1,
         type: "percent",
         value: 5,
-        label: "Offer " + newArr.length + 1,
+        label: `Offer ${newArr.length + 1}`,
       });
     }
-    var newOfferTab = newArr.map((v, idx) => ({
-      id: `offer_${idx}`,
-      content: `Offer ${idx}`,
-    }));
+    var newOfferTab = newArr.map((v, idx) => `Offer ${idx}`);
 
     steps.onChange(newArr);
     setOfferTabs(newOfferTab);
   };
 
   const onRemove = (idx: number) => {
+    if (steps.value.length == 2) {
+      shopify.toast.show("You should create 5 offer is min", {
+        duration: 5000,
+        isError: true,
+      });
+      return;
+    }
+
     var newArr = [...steps.value];
     newArr.splice(idx, 1);
 
+    var newOfferTab = newArr.map((v, idx) => `Offer ${idx}`);
+
     steps.onChange(newArr);
+    if (tabSelected) {
+      setTabSelected(tabSelected - 1);
+    }
+    setOfferTabs(newOfferTab);
   };
 
   const onStepChange = (newStep: StepData, idx: number) => {
@@ -188,25 +205,36 @@ function VolumeStepConfigCard({ title, steps }: VDStepConfigComponentProps) {
   );
 
   return (
-    <CardCollapse title={title ?? ""} collapse>
-      <Tabs
-        fitted
+    <CardCollapse
+      collapse
+      title={
+        <BlockStack>
+          <Text as="h3" variant="headingMd">
+            Card
+          </Text>
+        </BlockStack>
+      }
+      actions={[
+        //
+        <BsPlus
+          key={`action-1`}
+          size={20}
+          onClick={onAddStep}
+          aria-label="Add offer"
+        />,
+      ]}
+    >
+      <EasyTab
+        id="offer-volume"
+        active={tabSelected}
+        onActive={setTabSelected}
         tabs={offerTabs}
-        selected={tabSelected}
-        onSelect={handleTabChange}
-        canCreateNewView
-        onCreateNewView={async () => {
-          onAddStep();
-          return true;
-        }}
       >
         <VDStep
           {...steps.value[tabSelected]}
           onChange={(v) => onStepChange(v, tabSelected)}
         />
-      </Tabs>
-
-      <Box minHeight="1.5rem"></Box>
+      </EasyTab>
 
       <InlineStack align="end">
         <BsTrash size={20} onClick={() => onRemove(tabSelected)}></BsTrash>
@@ -229,7 +257,13 @@ interface VDStepProps extends StepData {
 function VDStep(props: VDStepProps) {
   return (
     <BlockStack gap={"200"}>
-      <InlineGrid columns={2} gap={"200"}>
+      <InlineGrid columns={1} gap={"200"}>
+        <TextField
+          label={"Offer label"}
+          autoComplete="off"
+          value={props.label ?? ""}
+          onChange={(v) => props.onChange({ ...props, label: v })}
+        />
         <TextField
           label="Quantity"
           // type="number"
@@ -249,15 +283,6 @@ function VDStep(props: VDStepProps) {
           onChangeValue={(v) => props.onChange({ ...props, value: v })}
         />
       </InlineGrid>
-
-      <InlineStack aria-colcount={2}>
-        <TextField
-          label={"Offer label"}
-          autoComplete="off"
-          value={props.label ?? ""}
-          onChange={(v) => props.onChange({ ...props, label: v })}
-        />
-      </InlineStack>
     </BlockStack>
   );
 }

@@ -9,7 +9,7 @@ import {
   Text,
 } from "@shopify/polaris";
 import { Field } from "@shopify/react-form";
-import { SDApplyType } from "~/defs";
+import { SDApplyType } from "~/defs/discount";
 import { StepComponent, StepData } from "./ConfigStep";
 import { ProductInfo, SelectMultipleProducts } from "../Shopify/SelectProduct";
 import { CollectionInfo, SelectCollections } from "../Shopify/SelectCollection";
@@ -32,9 +32,9 @@ export function SDConfigCard({
     var newArr = [...steps.value];
 
     newArr.push({
-      require: "0",
+      require: 0,
       type: "percent",
-      value: "",
+      value: 0,
     });
 
     steps.onChange(newArr);

@@ -55,6 +55,8 @@ export type GqlCreateDiscountRequest = {
   productIds: string[];
   collIds: string[];
   shop: string;
+  theme: string;
+  content: string;
 };
 
 export async function gqlCreateDiscount(

@@ -1,4 +1,4 @@
-import { DVT } from "~/defs";
+import { DVT } from "~/defs/discount";
 import { Box, InlineGrid, TextField } from "@shopify/polaris";
 import TextFieldSelect from "~/components/Shopify/TextFieldSelect";
 import { DiscountTypeSelect } from "./DiscountCommon";

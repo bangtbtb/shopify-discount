@@ -1,19 +1,51 @@
-import { Field } from "@shopify/discount-app-components";
+import {
+  CombinableDiscountTypes,
+  DateTime,
+  Field,
+} from "@shopify/discount-app-components";
 import { CardCollapse } from "../Common";
 import { DiscountEditorPreviewLayout } from "./DiscountCommon";
 import { useField } from "@shopify/react-form";
 import { BlockStack, Text, TextField } from "@shopify/polaris";
-import { SDTotalThemePreview } from "./SDTotalTheme";
+import {
+  defaultSDTotalTheme,
+  SDTotalThemeEditor,
+  SDTotalThemePreview,
+} from "./SDTotalTheme";
+import { StepData } from "./ConfigStep";
+import { useState } from "react";
+import { SDTotalTheme } from "~/defs/theme";
 
 type SDTotalDetailProps = {};
 
 export function SDTotalDetail(props: SDTotalDetailProps) {
   const title = useField<string>("Shipping Volume Offer");
+  const startDate = useField<DateTime>(new Date().toString());
+  const endDate = useField<DateTime | null>(null);
+  const combines = useField<CombinableDiscountTypes>({
+    orderDiscounts: false,
+    productDiscounts: false,
+    shippingDiscounts: true,
+  });
+
+  const steps = useField<Array<StepData>>([
+    { label: "OFF 5%", type: "percent", value: 20, require: 100 },
+    { label: "OFF 10%", type: "percent", value: 50, require: 300 },
+    { label: "OFF 20%", type: "percent", value: 100, require: 400 },
+  ]);
+
+  const [theme, setTheme] = useState<SDTotalTheme>(defaultSDTotalTheme);
+  const onChangeTheme = (k: string, v: any) => {
+    setTheme({
+      ...theme,
+      [k]: v,
+    });
+  };
 
   return (
     <DiscountEditorPreviewLayout preview={<SDTotalThemePreview />}>
       <SDTotalSetting title={title} />
-      <SDTotalThemeEditor />
+      <SDTotalThemeEditor {...theme} onChangeTheme={onChangeTheme} />
     </DiscountEditorPreviewLayout>
   );
 }
@@ -29,17 +61,5 @@ function SDTotalSetting({ title }: VolumeDiscountSettingProps) {
         <TextField label="Title" autoComplete="off" {...title} />
       </BlockStack>
     </CardCollapse>
-  );
-}
-
-type SDTotalThemeEditorProps = {};
-
-function SDTotalThemeEditor(props: SDTotalThemeEditorProps) {
-  return (
-    <BlockStack gap={"400"}>
-      <Text as="h2" variant="headingLg">
-        Typography & Colour
-      </Text>
-    </BlockStack>
   );
 }

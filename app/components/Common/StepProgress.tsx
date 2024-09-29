@@ -44,6 +44,7 @@ export function StepProgress({
 type StepCounterProps = {
   direction?: "row" | "column"; // Default is row
   active: number;
+  size?: number;
   selected?: number;
   highlightColor?: string;
   children?: React.ReactNode; // For auto increament:    ["", "", ""]
@@ -54,8 +55,8 @@ export function StepCounter({
   direction,
   active,
   selected,
+  size,
   highlightColor,
-  // children,
   children,
   onSelect,
 }: StepCounterProps) {
@@ -68,8 +69,15 @@ export function StepCounter({
                 className="flex_cc step_cc"
                 style={{
                   // color: active ? highlightColor || "#fff" : "#000",
-                  backgroundColor: active >= idx ? highlightColor : "gray",
-                  border: selected == idx ? "3px solid green" : "",
+                  gap: "8px",
+                  width: size ?? "32px",
+                  height: size ?? "32px",
+                  border:
+                    selected == idx
+                      ? `3px solid ${highlightColor || "#019875"}`
+                      : "",
+                  backgroundColor:
+                    active >= idx ? highlightColor || "#019875" : "grey",
                 }}
                 onClick={() => onSelect && onSelect(idx)}
               >

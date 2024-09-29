@@ -3,7 +3,7 @@
 client_id = "59c7dbfbeefd1f11ba1aa85228d3700a"
 name = "Simple Discount"
 handle = "sd-xxyy"
-application_url = "https://manufacture-arrivals-cam-bluetooth.trycloudflare.com"
+application_url = "https://doing-agree-approve-pit.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_orders,read_products,unauthenticated_read_checkouts,unauthenticat
 
 [auth]
 redirect_urls = [
-  "https://manufacture-arrivals-cam-bluetooth.trycloudflare.com/auth/callback",
-  "https://manufacture-arrivals-cam-bluetooth.trycloudflare.com/auth/shopify/callback",
-  "https://manufacture-arrivals-cam-bluetooth.trycloudflare.com/api/auth/callback"
+  "https://doing-agree-approve-pit.trycloudflare.com/auth/callback",
+  "https://doing-agree-approve-pit.trycloudflare.com/auth/shopify/callback",
+  "https://doing-agree-approve-pit.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

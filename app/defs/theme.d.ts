@@ -17,18 +17,24 @@ export type ButtonConfig = {
   font: FontConfig;
 };
 
-export type GUIBundleTotalConfig = {
-  frame: FrameConfig;
-  label: FontConfig;
-  price: FontConfig;
-  comparePrice: FontConfig;
-};
+export interface PriceTotal {
+  price: number;
+  priceDiscount: number;
+}
+
+//  ------------------------------ Bundle ----------------------------------
 
 export interface BundleProductConfig {
   frame: FrameConfig;
   name: FontConfig;
   price: FontConfig;
 }
+
+export type BundleContent = {
+  title: string;
+  total: string;
+  button: string;
+};
 
 export interface BundleThemeConfig {
   title: FontConfig;
@@ -37,20 +43,44 @@ export interface BundleThemeConfig {
     name: FontConfig;
     price: FontConfig;
   };
-  total: GUIBundleTotalConfig;
+  total: BundleTotalConfig;
   button: ButtonConfig;
 }
 
 export interface BundleTotalTheme {
   title: FontConfig;
+  step: {
+    size: number;
+    highlight: string;
+    spent: FontConfig;
+    discount: FontConfig;
+  };
 }
 
-export interface PriceTotal {
-  price: number;
-  priceDiscount: number;
+export type BundleTotalConfig = {
+  frame: FrameConfig;
+  label: FontConfig;
+  price: FontConfig;
+  comparePrice: FontConfig;
+};
+
+// --------------------------------- Volume theme -----------------------------
+
+export interface GUIVolume {
+  id?: string;
+  theme?: VolumeTheme;
+  content?: VolumeThemeContent;
 }
 
-export interface VolumeDiscountTheme {
+export interface VolumeThemeContent {
+  button: string;
+}
+
+// export interface VolumeThemeSetting {
+//   button: string;
+// }
+
+export interface VolumeTheme {
   title: FontConfig;
   offerTitle: FontConfig;
   discountLabel: FontConfig;
@@ -66,7 +96,36 @@ export interface VolumeDiscountTheme {
     label: FontConfig;
     frame: FrameConfig;
   };
-  // unselectedBar: string;
-  // unselectedBg: string;
+  button: ButtonConfig;
+}
+
+// --------------------------------- Shipping theme -----------------------------
+
+export interface SDTotalTheme {
+  title: FontConfig;
+  step: {
+    size: number;
+    highlight: string;
+    spent: FontConfig;
+    discount: FontConfig;
+  };
+}
+
+export interface SDVolumeTheme {
+  title: FontConfig;
+  offerTitle: FontConfig;
+  discountLabel: FontConfig;
+  price: FontConfig;
+  comparePrice: FontConfig;
+  tagPopular: FontConfig;
+  total: FontConfig;
+  selected: {
+    label: FontConfig;
+    frame: FrameConfig;
+  };
+  unselected: {
+    label: FontConfig;
+    frame: FrameConfig;
+  };
   button: ButtonConfig;
 }

@@ -8,9 +8,12 @@ import {
 import { Page } from "@shopify/polaris";
 import { useEffect, useMemo, useState } from "react";
 import { BundleDetail } from "~/components/Discounts/BundleDiscount";
+import { BundleTotalDetail } from "~/components/Discounts/BundleTotalDiscount";
 import { SDVolumeDetail } from "~/components/Discounts/SDVolume";
 import { VolumeDiscountComponent } from "~/components/Discounts/VolumeDiscount";
-import { ActionType, ODConfig, SDConfig, VDConfig } from "~/defs";
+import { ActionType } from "~/defs";
+import { ODConfig, SDConfig, VDConfig } from "~/defs/discount";
+
 import { DiscountTypeGUI } from "~/defs/discount";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
 
@@ -73,9 +76,9 @@ export default function DiscountsCreate(props: any) {
   };
 
   return (
-    <Page title={`Select Discount ${discountName}`}>
+    <Page title={`Create Discount ${discountName}`}>
       {dcType === "bundle" && <BundleDetail />}
-      {dcType === "total_order" && <VolumeDiscountComponent />}
+      {dcType === "total_order" && <BundleTotalDetail />}
       {dcType === "volume" && <VolumeDiscountComponent />}
       {dcType === "shipping_volume" && <SDVolumeDetail />}
       {dcType === "shipping_total" && <VolumeDiscountComponent />}

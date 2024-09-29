@@ -1,7 +1,7 @@
 import { AdminOperations } from "@shopify/admin-api-client";
 import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients/types";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
-import { SDConfig } from "~/defs";
+import { SDConfig } from "~/defs/discount";
 import { getSimleProductInfo, getSimpleCollection } from "./gql_resource";
 import {
   gqlCreateDiscount,

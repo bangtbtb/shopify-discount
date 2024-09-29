@@ -1,7 +1,7 @@
 import { AdminOperations } from "@shopify/admin-api-client";
 import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients/types";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
-import { ODConfig } from "~/defs";
+import { ODConfig } from "~/defs/discount";
 import { getSimleProductInfo } from "./gql_resource";
 import {
   gqlCreateDiscount,
@@ -9,10 +9,11 @@ import {
   gqlUpdateDiscount,
 } from "./gql_discount";
 import { ProductInfo } from "~/components/Shopify/SelectProduct";
+import { ProductInfoBundle } from "~/components/Discounts/BundleThemeDiscount";
 
 export type ODConfigExt = ODConfig & {
   id: string;
-  products: Array<ProductInfo>;
+  products: Array<ProductInfoBundle>;
 };
 
 export type CreateODRequest = {
@@ -47,8 +48,8 @@ export async function createBundleDiscount(
     label: req.config.label,
     subType: req.config.applyType,
     shop: req.shop,
-    productIds: req.config.contain?.productIds
-      ? req.config.contain?.productIds
+    productIds: req.config.bundle?.productIds
+      ? req.config.bundle?.productIds
       : [],
     collIds: [],
   });
@@ -65,8 +66,8 @@ export async function updateBundleDiscount(
     config: req.config,
     label: req.config.label,
     subType: req.config.applyType,
-    productIds: req.config.contain?.productIds
-      ? req.config.contain?.productIds
+    productIds: req.config.bundle?.productIds
+      ? req.config.bundle?.productIds
       : [],
     collIds: [],
   });
@@ -87,10 +88,14 @@ export async function getBundleDiscount(
     ...JSON.parse(metafield?.value ?? "{}"),
   };
 
-  if (config.contain?.productIds.length) {
-    for (let i = 0; i < config.contain.productIds.length; i++) {
-      var p = await getSimleProductInfo(graphql, config.contain.productIds[i]);
-      p && config.products.push(p);
+  if (config.bundle?.productIds.length) {
+    for (let i = 0; i < config.bundle.productIds.length; i++) {
+      var p = await getSimleProductInfo(graphql, config.bundle.productIds[i]);
+      p &&
+        config.products.push({
+          ...p,
+          requireVol: config.bundle.numRequires[i],
+        });
     }
   }
 

@@ -22,7 +22,7 @@ import ODConfigCard from "~/components/Discounts/ODConfigCard";
 import { StepData } from "~/components/Discounts/ConfigStep";
 import { ProductInfo } from "~/components/Shopify/SelectProduct";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
-import { ActionStatus, DVT, ODApplyType, ODConfig } from "~/defs";
+import { DVT, ODApplyType, ODConfig } from "~/defs/discount";
 import { createBundleDiscount } from "~/models/od_models";
 import { randomDigit } from "~/models/utils";
 import { authenticate } from "~/shopify.server";
@@ -30,6 +30,7 @@ import {
   DiscountAutomaticAppInput,
   DiscountUserError,
 } from "~/types/admin.types";
+import { ActionStatus } from "~/defs";
 
 type ActionType = {
   status: ActionStatus;
@@ -108,7 +109,7 @@ export default function NewODPage() {
       endDate: useField<DateTime | null>(null),
       config: {
         label: useField(""),
-        type: useField<ODApplyType>("contain"),
+        type: useField<ODApplyType>("bundle"),
         totalSteps: useField<Array<StepData>>([
           { type: "percent", value: 5, require: 2 },
           { type: "percent", value: 10, require: 3 },
@@ -133,8 +134,8 @@ export default function NewODPage() {
       var formConfig: ODConfig = {
         label: form.config.label,
         applyType: form.config.type,
-        contain:
-          form.config.type === "contain"
+        bundle:
+          form.config.type === "bundle"
             ? {
                 productIds: form.config.containProduct.map((v) => v.id),
                 value: {
@@ -142,6 +143,7 @@ export default function NewODPage() {
                   value: Number.parseFloat(form.config.containValue.value),
                 },
                 allOrder: form.config.allOrder,
+                numRequires: form.config.containProduct.map((v) => 1),
               }
             : undefined,
         total:

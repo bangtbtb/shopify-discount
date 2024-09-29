@@ -1,10 +1,9 @@
 import { AdminOperations } from "@shopify/admin-api-client";
 import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients/types";
 import { DiscountAutomaticAppInput, Metafield } from "~/types/admin.types";
-import { DiscountStatus } from "@shopify/discount-app-components";
-import { VDConfig } from "~/defs";
-import { ProductInfo } from "~/components/SelectProduct";
-import { CollectionInfo } from "~/components/SelectCollection";
+import { VDConfig } from "~/defs/discount";
+import { ProductInfo } from "~/components/Shopify/SelectProduct";
+import { CollectionInfo } from "~/components/Shopify/SelectCollection";
 import {
   gqlCreateDiscount,
   gqlGetDiscount,
@@ -18,12 +17,15 @@ export type VDConfigExt = VDConfig & {
   id: string;
   products: Array<ProductInfo>;
   colls: Array<CollectionInfo>;
+  theme?: string; // json string
 };
 
 export type CreateVDRequest = {
   discount: DiscountAutomaticAppInput;
   config: VDConfig;
   shop: string;
+  theme: string;
+  themeContent: string;
 };
 
 export type UpdateVDRequest = {
@@ -61,6 +63,8 @@ export async function createVolumeDiscount(
     subType: req.config.applyType,
     productIds: req.config.productIds ? req.config.productIds : [],
     collIds: req.config.collIds ? req.config.collIds : [],
+    theme: req.theme,
+    content: req.themeContent,
   });
   return resp;
 }

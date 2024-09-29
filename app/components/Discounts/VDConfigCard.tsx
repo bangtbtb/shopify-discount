@@ -11,7 +11,7 @@ import {
 import { Field } from "@shopify/react-form";
 import { CollectionInfo, SelectCollections } from "../Shopify/SelectCollection";
 import { ProductInfo, SelectMultipleProducts } from "../Shopify/SelectProduct";
-import { VDApplyType } from "~/defs";
+import { VDApplyType } from "~/defs/discount";
 import { StepComponent, StepData } from "./ConfigStep";
 import { CardCollapse } from "~/components/Common";
 

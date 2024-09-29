@@ -23,7 +23,7 @@ type FontThemeProps = FontConfig & {
 export function FontTheme({ size, color, weight, onChange }: FontThemeProps) {
   return (
     <InlineStack aria-colcount={3} gap={"100"} align="space-between">
-      <Box width="160px">
+      <Box width="150px">
         <ColorPickerField
           label="Color"
           hexColor={color}
@@ -31,7 +31,7 @@ export function FontTheme({ size, color, weight, onChange }: FontThemeProps) {
         />
       </Box>
 
-      <Box maxWidth="70px">
+      <Box maxWidth="75px">
         <TextField
           label="Size (px)"
           autoComplete="off"
@@ -46,7 +46,7 @@ export function FontTheme({ size, color, weight, onChange }: FontThemeProps) {
         />
       </Box>
 
-      <Box minWidth="70px">
+      <Box minWidth="80px">
         <SelectFontWeight
           label="Weight"
           value={weight}
@@ -98,13 +98,17 @@ export function ButtonThemeEditor(props: ButtonThemeProps) {
   );
 }
 
-type SelectFontWeight = {
+type SelectFontWeightProps = {
   label?: string;
   value: FontWeight;
   onChange: (v: FontWeight) => void;
 };
 
-export function SelectFontWeight({ label, value, onChange }: SelectFontWeight) {
+export function SelectFontWeight({
+  label,
+  value,
+  onChange,
+}: SelectFontWeightProps) {
   return (
     <Select
       label={label}
@@ -121,26 +125,52 @@ export function SelectFontWeight({ label, value, onChange }: SelectFontWeight) {
   );
 }
 
+export type FlexDirection = "row" | "column";
+
+type SelectDirectionProps = {
+  label?: string;
+  value: FlexDirection;
+  onChange: (v: FlexDirection) => void;
+};
+
+export function SelectFlexDirection({
+  label,
+  value,
+  onChange,
+}: SelectDirectionProps) {
+  return (
+    <Select
+      label={label}
+      value={value}
+      options={[
+        { label: "Row", value: "row" },
+        { label: "Column", value: "column" },
+      ]}
+      onChange={(v) => onChange(v as FlexDirection)}
+    />
+  );
+}
+
 // ------------------------- Preview -------------------------
 
 type RenderTextTheme = FontConfig & {
   as: "span" | "p" | "h3";
-  content: string | number | any;
   align?: CSS.Property.TextAlign;
   className?: string;
   // Property.TextAlign;
   style?: React.CSSProperties;
+  children: string | number | any;
 };
 
 export function RenderTextTheme({
   as,
   className,
   color,
-  content,
   size,
   weight,
   align,
   style,
+  children,
 }: RenderTextTheme) {
   const [stateStyle, setStateStyle] = useState<React.CSSProperties>({
     fontSize: size + "px",
@@ -163,17 +193,17 @@ export function RenderTextTheme({
   if (as === "h3") {
     return (
       <h3 className={className} style={stateStyle}>
-        {content}
+        {children}
       </h3>
     );
   }
   return as == "p" ? (
     <p className={className} style={stateStyle}>
-      {content}
+      {children}
     </p>
   ) : (
     <span className={className} style={stateStyle}>
-      {content}
+      {children}
     </span>
   );
 }

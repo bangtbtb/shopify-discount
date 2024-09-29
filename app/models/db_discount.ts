@@ -1,8 +1,10 @@
-import { Discount, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import db from "../db.server";
 
 export async function dbCreateDiscount(discount: Prisma.DiscountCreateInput) {
-  return db.discount.create({ data: discount });
+  return db.discount.create({
+    data: discount,
+  });
 }
 
 export async function dbUpdateDiscount(
@@ -15,9 +17,27 @@ export async function dbUpdateDiscount(
   });
 }
 
+export async function dbUpdateThemeDiscount(
+  id: string,
+  shop: string,
+  req: Prisma.DiscountThemeUpdateInput,
+) {
+  if (!id && !shop) {
+    throw new Error("UpdateTheme: Missing id or shop");
+  }
+  return db.discountTheme.update({
+    where: {
+      id: id,
+      shop: shop,
+    },
+    data: req,
+  });
+}
+
 type RGetDiscountByLabel = {
   shop: string;
   label: string;
+  wTheme?: boolean;
 };
 
 export async function dbGetDiscountByLabel(req: RGetDiscountByLabel) {
@@ -26,6 +46,9 @@ export async function dbGetDiscountByLabel(req: RGetDiscountByLabel) {
       shop: req.shop,
       label: req.label,
       status: "ACTIVED",
+    },
+    include: {
+      Theme: req.wTheme,
     },
   });
 }

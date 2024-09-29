@@ -12,7 +12,7 @@ export type SeriesDateDP = {
 
 export type OrdersReport = {
   orderCount: bigint;
-  subTotalPrice: bigint;
+  subTotal: bigint;
   wasApplied: boolean;
   date: string;
 };

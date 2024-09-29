@@ -10,7 +10,7 @@ import {
   TextField,
 } from "@shopify/polaris";
 import { Field } from "@shopify/react-form";
-import { ODApplyType } from "~/defs";
+import { ODApplyType } from "~/defs/discount";
 import { ProductInfo, SelectMultipleProducts } from "../Shopify/SelectProduct";
 import { StepComponent, StepData } from "./ConfigStep";
 import { Removeable } from "~/components/Common";
@@ -74,7 +74,7 @@ export default function ODConfigCard({
       <Box minHeight="32px"></Box>
 
       <InlineStack>
-        {odType.value === "contain" ? (
+        {odType.value === "bundle" ? (
           <SelectMultipleProducts
             label="Select target product"
             products={products.value}

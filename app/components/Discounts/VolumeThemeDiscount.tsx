@@ -10,24 +10,8 @@ import {
   Text,
 } from "@shopify/polaris";
 import { useEffect, useState } from "react";
-import { VDApplyType } from "~/defs";
-import {
-  CombinableDiscountTypes,
-  DateTime,
-} from "@shopify/discount-app-components";
 import { StepData } from "./ConfigStep";
-import { CollectionInfo } from "../Shopify/SelectCollection";
-import { DiscountAutomaticApp } from "~/types/admin.types";
-import { SerializeFrom } from "@remix-run/node";
-import { VDConfigExt } from "~/models/vd_model";
 import { initArray } from "~/models/utils";
-import {
-  ButtonConfig,
-  FontConfig,
-  FrameConfig,
-  PriceTotal,
-  VolumeDiscountTheme,
-} from "~/defs/theme";
 import { CardCollapse, Midline } from "~/components/Common";
 import {
   ButtonThemeEditor,
@@ -37,85 +21,9 @@ import {
   RenderFrame,
   RenderTextTheme,
 } from "./ThemeField";
+import { VolumeTheme } from "~/defs/theme";
 
-export type VolumeDiscountContentField = {
-  title: Field<string>;
-  startDate: Field<DateTime>;
-  endDate: Field<DateTime | null>;
-  combines: Field<CombinableDiscountTypes>;
-  applyType: Field<VDApplyType>;
-  steps: Field<Array<StepData>>;
-  products: Field<ProductInfo[]>;
-  colls: Field<Array<CollectionInfo>>;
-};
-
-export type VolumeDiscountThemeField = {
-  title: Field<FontConfig>;
-  offerTitle: Field<FontConfig>;
-  discountLabel: Field<FontConfig>;
-  price: Field<FontConfig>;
-  comparePrice: Field<FontConfig>;
-  tagMostPopular: Field<FontConfig>;
-  total: Field<FontConfig>;
-  selected: Field<FrameConfig>;
-  button: Field<ButtonConfig>;
-  unselectedBar: Field<string>;
-  unselectedBg: Field<string>;
-};
-
-export function createVolumeDiscountContent(
-  discount?: SerializeFrom<DiscountAutomaticApp>,
-  config?: SerializeFrom<VDConfigExt>,
-): VolumeDiscountContentField {
-  var now = new Date();
-
-  var data = discount
-    ? {
-        title: useField(discount.title),
-        startDate: useField(discount.startsAt || now.toString()),
-        endDate: useField(discount.endsAt),
-        combines: useField<CombinableDiscountTypes>({
-          ...discount.combinesWith,
-        }),
-        applyType: useField<VDApplyType>(config?.applyType ?? "products"),
-        steps: useField<Array<StepData>>(
-          config?.steps
-            ? config?.steps.map((v) => ({
-                require: v.require,
-                type: v.value.type,
-                value: v.value.value,
-              }))
-            : [
-                { type: "percent", value: 5, require: 2 },
-                { type: "percent", value: 10, require: 3 },
-                { type: "percent", value: 20, require: 4 },
-              ],
-        ),
-        products: useField(config?.products ?? []),
-        colls: useField(config?.colls ?? []),
-      }
-    : {
-        title: useField("Volume Discount "),
-        startDate: useField<Date>(new Date()),
-        endDate: useField(null),
-        combines: useField<CombinableDiscountTypes>({
-          orderDiscounts: false,
-          productDiscounts: false,
-          shippingDiscounts: true,
-        }),
-        applyType: useField<VDApplyType>("products"),
-        steps: useField<Array<StepData>>([
-          { type: "percent", value: 5, require: 2 },
-          { type: "percent", value: 10, require: 3 },
-          { type: "percent", value: 20, require: 4 },
-        ]),
-        products: useField([]),
-        colls: useField([]),
-      };
-  return data;
-}
-
-export const defaultVolumeDiscountTheme: VolumeDiscountTheme = {
+export const defaultVolumeTheme: VolumeTheme = {
   title: {
     color: "#4289FF",
     size: 21,
@@ -183,11 +91,11 @@ export const defaultVolumeDiscountTheme: VolumeDiscountTheme = {
   },
 };
 
-type VolumeDiscountThemeEditorProps = VolumeDiscountTheme & {
+type VolumeThemeEditorProps = VolumeTheme & {
   onChangeTheme: (k: string, v: any) => void;
 };
 
-export function VolumeDiscountThemeEditor({
+export function VolumeThemeEditor({
   title,
   offerTitle,
   price,
@@ -198,7 +106,7 @@ export function VolumeDiscountThemeEditor({
   button,
   unselected,
   onChangeTheme,
-}: VolumeDiscountThemeEditorProps) {
+}: VolumeThemeEditorProps) {
   return (
     <BlockStack gap={"400"}>
       <Text as="h2" variant="headingLg">
@@ -282,7 +190,7 @@ type VolumeDiscountPreviewProps = {
   popularIndex: number;
   products: ProductInfo[];
   steps: StepData[];
-  theme: VolumeDiscountTheme;
+  theme: VolumeTheme;
   titleContent: string;
   buttonContent: string;
 };
@@ -370,7 +278,7 @@ type VolumeBreakOfferProps = {
   active: boolean;
   popular: boolean;
   step: StepData;
-  theme: VolumeDiscountTheme;
+  theme: VolumeTheme;
   product?: ProductInfo;
   onSelect?: () => void;
 };
@@ -473,7 +381,7 @@ function VolumeBreakOffer({
       >
         <RenderTextTheme
           as="p"
-          content={step.label ?? ""}
+          children={step.label ?? ""}
           {...(active ? theme.selected.label : theme.unselected.label)}
         />
       </RenderFrame>
@@ -531,7 +439,7 @@ function VolumeBreakOffer({
               <RenderFrame {...unselected.frame} padding={"0.1rem 0.25rem"}>
                 <RenderTextTheme
                   as="p"
-                  content={`${step.value} ${step.type == "fix" ? "" : "%"}`}
+                  children={`${step.value} ${step.type == "fix" ? "" : "%"}`}
                   style={{
                     flexBasis: "fit-content",
                   }}
@@ -550,7 +458,7 @@ function VolumeBreakOffer({
               >
                 <RenderTextTheme
                   as="p"
-                  content={"Most popular"}
+                  children={"Most popular"}
                   {...theme.tagPopular}
                 />
               </div>
@@ -559,7 +467,7 @@ function VolumeBreakOffer({
           <RenderTextTheme
             as="p"
             className="old_price"
-            content={`${totalPrice}`}
+            children={`${totalPrice}`}
             {...theme.comparePrice}
           />
 
@@ -587,17 +495,93 @@ function VolumeBreakOffer({
   );
 }
 
-function calcDiscount(priceStr?: string, curStep?: StepData): PriceTotal {
-  if (!curStep) {
-    return { price: 0, priceDiscount: 0 };
-  }
+// function calcDiscount(priceStr?: string, curStep?: StepData): PriceTotal {
+//   if (!curStep) {
+//     return { price: 0, priceDiscount: 0 };
+//   }
+//   var price = curStep.require * (Number.parseFloat(priceStr || "0") || 0);
+//   return {
+//     price,
+//     priceDiscount:
+//       curStep.type === "fix"
+//         ? price - curStep.value
+//         : price - (price * curStep.value) / 100,
+//   };
+// }
 
-  var price = curStep.require * (Number.parseFloat(priceStr || "0") || 0);
-  return {
-    price,
-    priceDiscount:
-      curStep.type === "fix"
-        ? price - curStep.value
-        : price - (price * curStep.value) / 100,
-  };
-}
+// export type VolumeDiscountContentField = {
+//   title: Field<string>;
+//   startDate: Field<DateTime>;
+//   endDate: Field<DateTime | null>;
+//   combines: Field<CombinableDiscountTypes>;
+//   applyType: Field<VDApplyType>;
+//   steps: Field<Array<StepData>>;
+//   products: Field<ProductInfo[]>;
+//   colls: Field<Array<CollectionInfo>>;
+// };
+
+// export type VolumeThemeField = {
+//   title: Field<FontConfig>;
+//   offerTitle: Field<FontConfig>;
+//   discountLabel: Field<FontConfig>;
+//   price: Field<FontConfig>;
+//   comparePrice: Field<FontConfig>;
+//   tagMostPopular: Field<FontConfig>;
+//   total: Field<FontConfig>;
+//   selected: Field<FrameConfig>;
+//   button: Field<ButtonConfig>;
+//   unselectedBar: Field<string>;
+//   unselectedBg: Field<string>;
+// };
+
+// export function createVolumeDiscountContent(
+//   discount?: SerializeFrom<DiscountAutomaticApp>,
+//   config?: SerializeFrom<VDConfigExt>,
+// ): VolumeDiscountContentField {
+//   var now = new Date();
+
+//   var data = discount
+//     ? {
+//         title: useField(discount.title),
+//         startDate: useField(discount.startsAt || now.toString()),
+//         endDate: useField(discount.endsAt),
+//         combines: useField<CombinableDiscountTypes>({
+//           ...discount.combinesWith,
+//         }),
+//         applyType: useField<VDApplyType>(config?.applyType ?? "products"),
+//         steps: useField<Array<StepData>>(
+//           config?.steps
+//             ? config?.steps.map((v) => ({
+//                 require: v.require,
+//                 type: v.value.type,
+//                 value: v.value.value,
+//               }))
+//             : [
+//                 { type: "percent", value: 5, require: 2 },
+//                 { type: "percent", value: 10, require: 3 },
+//                 { type: "percent", value: 20, require: 4 },
+//               ],
+//         ),
+//         products: useField(config?.products ?? []),
+//         colls: useField(config?.colls ?? []),
+//       }
+//     : {
+//         title: useField("Volume Discount "),
+//         startDate: useField<Date>(new Date()),
+//         endDate: useField(null),
+//         combines: useField<CombinableDiscountTypes>({
+//           orderDiscounts: false,
+//           productDiscounts: false,
+//           shippingDiscounts: true,
+//         }),
+//         applyType: useField<VDApplyType>("products"),
+//         steps: useField<Array<StepData>>([
+//           { type: "percent", value: 5, require: 2 },
+//           { type: "percent", value: 10, require: 3 },
+//           { type: "percent", value: 20, require: 4 },
+//         ]),
+//         products: useField([]),
+//         colls: useField([]),
+//       };
+//   return data;
+// }

@@ -6,7 +6,7 @@ import {
   Tooltip,
   InlineGrid,
 } from "@shopify/polaris";
-import { DiscountValue, ODConfig, SDConfig, VDConfig } from "~/defs";
+import { DiscountValue, ODConfig, SDConfig, VDConfig } from "~/defs/discount";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
 import {
   BundleThemeEditor,
@@ -30,10 +30,14 @@ import {
 } from "@shopify/discount-app-components";
 import { Field, useField } from "@shopify/react-form";
 import { CardCollapse } from "~/components/Common";
+import { VDConfigExt } from "~/models/vd_model";
+import { SerializeFrom } from "@remix-run/node";
 
 export type BundleComponentErrors = {};
 
 type BundleComponentProps = {
+  discount?: SerializeFrom<DiscountAutomaticAppInput>;
+  config?: SerializeFrom<VDConfigExt>;
   errors?: BundleComponentErrors;
   onSubmit?: (
     discount: DiscountAutomaticAppInput,
@@ -41,8 +45,13 @@ type BundleComponentProps = {
   ) => void;
 };
 
-export function BundleDetail(props: BundleComponentProps) {
-  const title = useField<string>("Bund product offer");
+export function BundleDetail({
+  discount,
+  config,
+  errors,
+  onSubmit,
+}: BundleComponentProps) {
+  const title = useField<string>(discount?.title || "Bund product offer");
   const buttonContent = useField<string>("Add To Cart");
   const totalContent = useField<string>("Total");
   const startDate = useField<DateTime>(new Date().toString());

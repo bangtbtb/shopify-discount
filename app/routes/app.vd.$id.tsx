@@ -41,8 +41,9 @@ import {
   updateVolumeDiscount,
   VDConfigExt,
 } from "~/models/vd_model";
-import { ActionStatus, VDApplyType, VDConfig } from "~/defs";
+import { VDApplyType, VDConfig } from "~/defs/discount";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
+import { ActionStatus } from "~/defs";
 
 interface AciontDataResponse {
   id: string;

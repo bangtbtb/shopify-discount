@@ -27,7 +27,7 @@ import { useField, useForm } from "@shopify/react-form";
 import { useEffect, useMemo } from "react";
 import { authenticate } from "~/shopify.server";
 import { createVolumeDiscount } from "~/models/vd_model";
-import { ActionStatus, VDApplyType, VDConfig } from "~/defs";
+import { VDApplyType, VDConfig } from "~/defs/discount";
 import { CollectionInfo } from "~/components/Shopify/SelectCollection";
 import { ProductInfo } from "~/components/Shopify/SelectProduct";
 import VDConfigCard, {
@@ -36,6 +36,7 @@ import VDConfigCard, {
 import { StepData } from "~/components/Discounts/ConfigStep";
 import { randomDigit } from "~/models/utils";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
+import { ActionStatus } from "~/defs";
 
 interface ActionData {
   status: ActionStatus;
