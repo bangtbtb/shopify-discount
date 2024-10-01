@@ -5,6 +5,7 @@ import type {
   CollectionMembership,
   ProductVariant,
   Merchandise,
+  Value,
 } from "../generated/api";
 
 const EMPTY_DISCOUNT: FunctionRunResult = {
@@ -92,18 +93,7 @@ function onTotal(input: RunInput, config: SDConfig): FunctionRunResult {
           {
             targets: targets,
             message: config.label || "SHIPPING_DISCOUNT",
-            value:
-              s.value.type === "percent"
-                ? {
-                    percentage: {
-                      value: s.value.value,
-                    },
-                  }
-                : {
-                    fixedAmount: {
-                      amount: s.value.value,
-                    },
-                  },
+            value: calcValue(s.value),
           },
         ],
       };
@@ -162,10 +152,7 @@ function onVolume(input: RunInput, config: SDConfig): FunctionRunResult {
               deliveryGroup: { id: v.id },
             })),
             message: config.label || "SHIPPING_DISCOUNT",
-            value:
-              step.value.type === "percent"
-                ? { percentage: { value: step.value.value } }
-                : { fixedAmount: { amount: step.value.value } },
+            value: calcValue(step.value),
           },
         ],
       };
@@ -196,4 +183,18 @@ function countProduct(input: RunInput) {
     sum.variants.push(variant);
   });
   return pCounter;
+}
+
+function calcValue(dt: DiscountValue): Value {
+  return dt.type === "percent"
+    ? {
+        percentage: {
+          value: dt.value,
+        },
+      }
+    : {
+        fixedAmount: {
+          amount: dt.value,
+        },
+      };
 }

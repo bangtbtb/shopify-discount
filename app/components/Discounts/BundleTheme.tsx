@@ -202,6 +202,7 @@ export function BundleThemeEditor({
 }
 
 type BundleThemePreviewProps = {
+  titleContent: string;
   theme: BundleThemeConfig;
   content: BundleContent;
   products?: ProductInfoBundle[];
@@ -209,6 +210,7 @@ type BundleThemePreviewProps = {
 };
 
 export function BundleThemePreview({
+  titleContent,
   theme,
   content,
   products,
@@ -292,7 +294,7 @@ export function BundleThemePreview({
       <RenderTextTheme
         as="h3"
         align="center"
-        children={content.title}
+        children={titleContent}
         {...title}
       />
 

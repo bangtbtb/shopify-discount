@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { SeriesDP } from "~/defs/gui";
 import { BarChart, LineChart } from "~/components/Common/Chart";
 
-type ViewCounterChartProps = {
+type OrderValueChartProps = {
   title?: string;
   data: SeriesDP[];
 };
 
-const ViewCounterChart = ({ title, data }: ViewCounterChartProps) => {
+const OrderValueChart = ({ title, data }: OrderValueChartProps) => {
   const [labels, setLabels] = useState(data.map((v) => v.date));
   const [dArr, setDArr] = useState(data.map((v) => v.data));
 
@@ -79,4 +79,4 @@ const ViewCounterChart = ({ title, data }: ViewCounterChartProps) => {
   );
 };
 
-export default ViewCounterChart;
+export default OrderValueChart;

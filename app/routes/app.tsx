@@ -15,10 +15,10 @@ import { authenticate } from "../shopify.server";
 import { BillingCheckResponseObject } from "@shopify/shopify-api";
 import { useEffect, useState } from "react";
 import { AppContextType } from "~/defs/fe";
-// import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
+import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
 import beepifyCss from "~/styles/beepify.scss?url";
-import polarisStyles from "~/styles/polaris.css?url";
+// import polarisStyles from "~/styles/polaris.css?url";
 
 export const links = () => [
   { rel: "stylesheet", href: polarisStyles },
@@ -54,7 +54,7 @@ export default function App() {
   const [bill, setBill] = useState<BillingCheckResponseObject | null>(null);
 
   useEffect(() => {
-    console.log(`Path: ${loc.pathname} App subscription: `, billStatus);
+    // console.log(`Path: ${loc.pathname} App subscription: `, billStatus);
     if (billStatus) {
       setBill(billStatus);
     }
@@ -68,7 +68,7 @@ export default function App() {
   }, [billStatus]);
 
   useEffect(() => {
-    console.log("Loc change to: ", loc.pathname);
+    // console.log("Loc change to: ", loc.pathname);
     if (
       bill &&
       !bill?.appSubscriptions.length &&

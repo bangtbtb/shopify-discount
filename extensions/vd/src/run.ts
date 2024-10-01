@@ -4,6 +4,7 @@ import type {
   ProductVariant,
   Target,
   Discount,
+  Value,
 } from "../generated/api";
 import { DiscountApplicationStrategy } from "../generated/api";
 
@@ -11,8 +12,6 @@ const EMPTY_DISCOUNT: FunctionRunResult = {
   discountApplicationStrategy: DiscountApplicationStrategy.First,
   discounts: [],
 };
-
-type VDApplyType = "collection" | "products";
 
 type DVT = "percent" | "fix";
 
@@ -26,13 +25,33 @@ type RewardStep = {
   value: DiscountValue; // Reward
 };
 
-type VDConfig = {
-  label: string;
+export type PDApplyType = "collection" | "products"; // | "attach";
+// export type VDApplyType = "volume" | "attached"; // | "attach";
+
+export type AttachedProduct = {
+  product: string;
+  value: DiscountValue;
+};
+
+export type AttachedConfig = {
+  productTarget: string;
+  attachedProduct: AttachedProduct[];
+};
+
+export type VolumeConfig = {
   steps: RewardStep[];
-  applyType: VDApplyType;
-  colId: string | undefined;
-  collIds: string[] | undefined;
-  productIds?: Array<string> | undefined;
+  collIds?: string[];
+  productIds?: string[];
+};
+
+export type PDConfig = {
+  label: string;
+  applyType: PDApplyType;
+  steps: RewardStep[];
+  collIds?: string[];
+  productIds?: string[];
+  // volume?: VolumeConfig;
+  // attached?: AttachedConfig;
 };
 
 interface ProductSum {
@@ -43,7 +62,7 @@ interface ProductSum {
 }
 
 export function run(input: RunInput): FunctionRunResult {
-  const config: VDConfig = JSON.parse(
+  const config: PDConfig = JSON.parse(
     input?.discountNode.metafield?.value ?? "{}",
   );
   // console.log(`Config: `, JSON.stringify(config));
@@ -51,6 +70,12 @@ export function run(input: RunInput): FunctionRunResult {
   if (!config.steps || !config.steps.length) {
     return EMPTY_DISCOUNT;
   }
+
+  // if (config.applyType === "bundle_attach") {
+  //   return config.attach
+  //     ? onAttachedBundle(input, config.label, config.attach)
+  //     : EMPTY_DISCOUNT;
+  // }
 
   // Count product
   var pCounter = new Map<string, ProductSum>();
@@ -99,21 +124,10 @@ export function run(input: RunInput): FunctionRunResult {
       return;
     }
 
-    var isPercent = step.value.type === "percent";
     var discount: Discount = {
       targets: pSum.variants.map((v) => ({ ...v })),
       message: config.label || `VOLUME_DISCOUNT`,
-      value: isPercent
-        ? {
-            percentage: {
-              value: step.value.value,
-            },
-          }
-        : {
-            fixedAmount: {
-              amount: step.value.value,
-            },
-          },
+      value: calcValue(step.value),
     };
     discounts.push(discount);
   });
@@ -131,4 +145,37 @@ function findStep(steps: RewardStep[], p: ProductSum) {
     }
   }
   return null;
+}
+
+// function onAttachedBundle(
+//   input: RunInput,
+//   label: string,
+//   config: ODAttachedBundle,
+// ): FunctionRunResult {
+//   if (label) {
+//     return {
+//       discountApplicationStrategy: DiscountApplicationStrategy.First,
+//       discounts: [
+//         {
+//           targets: [],
+//           value: calcValue({ type: "fix", value: 1 }),
+//         },
+//       ],
+//     };
+//   }
+//   return EMPTY_DISCOUNT;
+// }
+
+function calcValue(dt: DiscountValue): Value {
+  return dt.type === "percent"
+    ? {
+        percentage: {
+          value: dt.value,
+        },
+      }
+    : {
+        fixedAmount: {
+          amount: dt.value,
+        },
+      };
 }

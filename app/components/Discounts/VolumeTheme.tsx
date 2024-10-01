@@ -536,7 +536,7 @@ function VolumeBreakOffer({
 
 // export function createVolumeDiscountContent(
 //   discount?: SerializeFrom<DiscountAutomaticApp>,
-//   config?: SerializeFrom<VDConfigExt>,
+//   config?: SerializeFrom<PDConfigExt>,
 // ): VolumeDiscountContentField {
 //   var now = new Date();
 

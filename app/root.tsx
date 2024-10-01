@@ -32,7 +32,7 @@ export default function App() {
         }),
       );
       setBridge(curBridge);
-      console.log("Reload bridge", curBridge);
+      // console.log("Reload bridge", curBridge);
     }
   }, [bridge]);
 

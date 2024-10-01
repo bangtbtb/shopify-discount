@@ -18,32 +18,18 @@ import {
   Button,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
-import { dbGetDiscounts } from "~/models/db_discount";
-import { DiscountTable } from "~/components/Discounts/DiscountTable";
-import { Discount } from "@prisma/client";
-import ViewCounterChart from "~/components/DiscountChart/ViewCounterChart";
-import {
-  OrderAppliedCounterChart,
-  OrderAppliedValueChart,
-  OrderReportParsed,
-  parseOrderReports,
-} from "~/components/DiscountChart/OrderAppliedChart";
-import { getOrdersReport } from "~/models/db_applied";
-import { dayDuration } from "~/models/utils";
-import { format as dateFormat } from "date-fns";
-import { dbGetShopDiscountView } from "~/models/db_dc_view";
+
 import { EasyTab } from "~/components/Common/Tab";
 import { StepCounter, StepProgress } from "~/components/Common/StepProgress";
+import { OverlayImage } from "~/components/Common/OverlayImage";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
-    await authenticate.public.appProxy(request);
+    await authenticate.admin(request);
     console.log("Call loader");
-
     return json({ abc: "def" });
   } catch (error) {
     console.log("Error: ", error);
-
     return json({ abc: "" });
   }
 };
@@ -100,6 +86,21 @@ export default function ABCIndex() {
         <div>tab 12</div>
         <div>tab 13</div>
       </StepProgress> */}
+
+      <OverlayImage
+        size={40}
+        srcs={[
+          {
+            src: "https://cdn.shopify.com/s/files/1/0619/9325/4985/files/S913f93dfdecd45ab932762aaff2c5ce5m_200x200.webp",
+          },
+          {
+            src: "https://cdn.shopify.com/s/files/1/0619/9325/4985/files/S913f93dfdecd45ab932762aaff2c5ce5m_200x200.webp",
+          },
+          {
+            src: "https://cdn.shopify.com/s/files/1/0619/9325/4985/files/S913f93dfdecd45ab932762aaff2c5ce5m_200x200.webp",
+          },
+        ]}
+      ></OverlayImage>
 
       <StepCounter
         direction="row"

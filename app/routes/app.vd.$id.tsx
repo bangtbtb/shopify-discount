@@ -30,25 +30,26 @@ import {
   DateTime,
   DiscountClass,
 } from "@shopify/discount-app-components";
-import VDConfigCard, {
-  VDStepConfigComponent,
-} from "~/components/Discounts/VDConfigCard";
+import {
+  PDConfigCard,
+  PDStepConfigComponent,
+} from "~/components/Discounts/PDConfigCard";
 import { StepData } from "~/components/Discounts/ConfigStep";
 import { CollectionInfo } from "~/components/Shopify/SelectCollection";
 import { ProductInfo } from "~/components/Shopify/SelectProduct";
 import {
   getVolumeDiscount,
   updateVolumeDiscount,
-  VDConfigExt,
+  PDConfigExt,
 } from "~/models/vd_model";
-import { VDApplyType, VDConfig } from "~/defs/discount";
+import { PDApplyType, PDConfig } from "~/defs/discount";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
 import { ActionStatus } from "~/defs";
 
 interface AciontDataResponse {
   id: string;
   discount: DiscountAutomaticApp;
-  config: VDConfigExt;
+  config: PDConfigExt;
   errors: [UserError];
   status: ActionStatus;
 }
@@ -78,7 +79,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     formData.get("discount")?.toString() || "{}",
   );
 
-  const config: VDConfigExt = JSON.parse(
+  const config: PDConfigExt = JSON.parse(
     formData.get("config")?.toString() ?? "{}",
   );
 
@@ -88,7 +89,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     discountId: id ?? "",
     discount: discount,
     configId: config?.id,
-    config: config as VDConfig,
+    config: config as PDConfig,
   });
 
   var status: ActionStatus = "success";
@@ -128,7 +129,7 @@ export default function VolumeDiscountDetailPage() {
       config: {
         label: useField(""),
         steps: useField<Array<StepData>>([]),
-        applyType: useField<VDApplyType>("collection"),
+        applyType: useField<PDApplyType>("collection"),
         colls: useField<Array<CollectionInfo>>([]),
         products: useField<Array<ProductInfo>>([]),
       },
@@ -141,7 +142,7 @@ export default function VolumeDiscountDetailPage() {
         endsAt: form.endDate,
       };
 
-      var fcg: VDConfig = {
+      var fcg: PDConfig = {
         label: form.config.label,
         steps: form.config.steps.map((v) => ({
           require: v.require,
@@ -253,8 +254,8 @@ export default function VolumeDiscountDetailPage() {
                 />
               </Card>
 
-              <VDStepConfigComponent steps={config.steps} />
-              <VDConfigCard
+              <PDStepConfigComponent steps={config.steps} />
+              <PDConfigCard
                 applyType={config.applyType}
                 colls={config.colls}
                 products={config.products}

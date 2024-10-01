@@ -70,12 +70,14 @@ model DiscountTheme {
   setting    String
   discountId String   @unique
   discount   Discount @relation(fields: [discountId], references: [id])
+  updatedAt  DateTime @default(now())
 }
 
-model DiscountViews {
+model DiscountAnalytics {
   id         String   @id @default(uuid()) // Discount id 
   shop       String
   views      BigInt
+  addCart    BigInt
   discountId String
   createdAt  DateTime @default(now())
 

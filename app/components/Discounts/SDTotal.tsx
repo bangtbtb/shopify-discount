@@ -15,8 +15,20 @@ import {
 import { StepData } from "./ConfigStep";
 import { useState } from "react";
 import { SDTotalTheme } from "~/defs/theme";
+import { SerializeFrom } from "@remix-run/node";
+import { DiscountAutomaticAppInput } from "~/types/admin.types";
 
-type SDTotalDetailProps = {};
+type SDTotalDetailProps = {
+  isCreate?: boolean;
+  disableSetting?: boolean;
+  discount?: SerializeFrom<DiscountAutomaticAppInput>;
+  onSubmit?: (
+    discount: DiscountAutomaticAppInput,
+    config: any,
+    theme: string,
+    themeContent: string,
+  ) => void;
+};
 
 export function SDTotalDetail(props: SDTotalDetailProps) {
   const title = useField<string>("Shipping Volume Offer");

@@ -3,8 +3,20 @@ import { CardCollapse } from "../Common";
 import { DiscountEditorPreviewLayout } from "./DiscountCommon";
 import { useField } from "@shopify/react-form";
 import { BlockStack, Text, TextField } from "@shopify/polaris";
+import { SerializeFrom } from "@remix-run/node";
+import { DiscountAutomaticAppInput } from "~/types/admin.types";
 
-type SDVolumeDetailProps = {};
+type SDVolumeDetailProps = {
+  isCreate?: boolean;
+  disableSetting?: boolean;
+  discount?: SerializeFrom<DiscountAutomaticAppInput>;
+  onSubmit?: (
+    discount: DiscountAutomaticAppInput,
+    config: any,
+    theme: string,
+    themeContent: string,
+  ) => void;
+};
 
 export function SDVolumeDetail(props: SDVolumeDetailProps) {
   const title = useField<string>("Shipping Volume Offer");

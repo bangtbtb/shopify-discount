@@ -11,17 +11,17 @@ import {
 import { Field } from "@shopify/react-form";
 import { CollectionInfo, SelectCollections } from "../Shopify/SelectCollection";
 import { ProductInfo, SelectMultipleProducts } from "../Shopify/SelectProduct";
-import { VDApplyType } from "~/defs/discount";
+import { PDApplyType } from "~/defs/discount";
 import { StepComponent, StepData } from "./ConfigStep";
 import { CardCollapse } from "~/components/Common";
 
 interface VBConfigCardProps {
-  applyType: Field<VDApplyType>;
+  applyType: Field<PDApplyType>;
   colls: Field<Array<CollectionInfo>>;
   products: Field<Array<ProductInfo>>;
 }
 
-export default function VDConfigCard({
+export function PDConfigCard({
   applyType,
   colls,
   products,
@@ -41,7 +41,7 @@ export default function VDConfigCard({
               { label: "Products", value: "products" },
               { label: "Collections", value: "collection" },
             ]}
-            onChange={(v) => applyType.onChange(v as VDApplyType)}
+            onChange={(v) => applyType.onChange(v as PDApplyType)}
           />
           <Box minWidth="16px" />
 
@@ -64,15 +64,15 @@ export default function VDConfigCard({
   );
 }
 
-type VDStepConfigComponentProps = {
+type PDStepConfigComponentProps = {
   title?: string;
   steps: Field<Array<StepData>>;
 };
 
-export function VDStepConfigComponent({
+export function PDStepConfigComponent({
   title,
   steps,
-}: VDStepConfigComponentProps) {
+}: PDStepConfigComponentProps) {
   const onAddStep = () => {
     var newArr = [...steps.value];
     if (steps.value.length) {

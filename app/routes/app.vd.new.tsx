@@ -27,16 +27,18 @@ import { useField, useForm } from "@shopify/react-form";
 import { useEffect, useMemo } from "react";
 import { authenticate } from "~/shopify.server";
 import { createVolumeDiscount } from "~/models/vd_model";
-import { VDApplyType, VDConfig } from "~/defs/discount";
+import { PDApplyType, PDConfig } from "~/defs/discount";
 import { CollectionInfo } from "~/components/Shopify/SelectCollection";
 import { ProductInfo } from "~/components/Shopify/SelectProduct";
-import VDConfigCard, {
-  VDStepConfigComponent,
-} from "~/components/Discounts/VDConfigCard";
+import {
+  PDConfigCard,
+  PDStepConfigComponent,
+} from "~/components/Discounts/PDConfigCard";
 import { StepData } from "~/components/Discounts/ConfigStep";
 import { randomDigit } from "~/models/utils";
 import { DiscountProvider } from "~/components/providers/DiscountProvider";
 import { ActionStatus } from "~/defs";
+import { defaultVolumeTheme } from "~/components/Discounts/VolumeTheme";
 
 interface ActionData {
   status: ActionStatus;
@@ -51,7 +53,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     formData.get("discount")?.toString() || "{}",
   );
 
-  const config: VDConfig = {
+  const config: PDConfig = {
     ...JSON.parse(formData.get("config")?.toString() || "{}"),
     label: `VOLUME_${randomDigit()}`,
   };
@@ -60,6 +62,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     discount: discount,
     config: config,
     shop: session.shop,
+    content: "",
+    theme: JSON.stringify(defaultVolumeTheme),
+    setting: "",
   });
 
   var status: ActionStatus = resp?.userErrors?.length ? "failed" : "success";
@@ -113,7 +118,7 @@ export default function VolDiscountCreate() {
           { type: "percent", value: 10, require: 3 },
           { type: "percent", value: 15, require: 4 },
         ]),
-        applyType: useField<VDApplyType>("collection"),
+        applyType: useField<PDApplyType>("collection"),
         colls: useField<Array<CollectionInfo>>([]),
         products: useField<Array<ProductInfo>>([]),
       },
@@ -126,7 +131,7 @@ export default function VolDiscountCreate() {
         endsAt: form.endDate,
       };
 
-      var fcg: VDConfig = {
+      var fcg: PDConfig = {
         label: form.config.label,
         steps: form.config.steps.map((v) => ({
           require: v.require,
@@ -199,9 +204,9 @@ export default function VolDiscountCreate() {
                   {...config.label}
                 /> */}
               </Card>
-              <VDStepConfigComponent steps={config.steps} />
+              <PDStepConfigComponent steps={config.steps} />
 
-              <VDConfigCard
+              <PDConfigCard
                 applyType={config.applyType}
                 colls={config.colls}
                 products={config.products}

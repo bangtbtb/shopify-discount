@@ -14,7 +14,7 @@ import {
   defaultVolumeTheme,
   VolumeDiscountPreview,
   VolumeThemeEditor,
-} from "./VolumeThemeDiscount";
+} from "./VolumeTheme";
 import {
   DiscountCommonEditor,
   DiscountEditorPreviewLayout,
@@ -25,16 +25,26 @@ import {
   CombinableDiscountTypes,
   DateTime,
 } from "@shopify/discount-app-components";
-import { DiscountAutomaticApp } from "~/types/admin.types";
+import {
+  DiscountAutomaticApp,
+  DiscountAutomaticAppInput,
+} from "~/types/admin.types";
 import { Field, useField } from "@shopify/react-form";
 import { CardCollapse } from "~/components/Common/index";
 import { BsPlus, BsTrash } from "react-icons/bs";
 import { EasyTab } from "../Common/Tab";
 
 type VolumeDiscountComponentProps = {
-  discount?: SerializeFrom<DiscountAutomaticApp>;
+  isCreate?: boolean;
+  disableSetting?: boolean;
+  discount?: SerializeFrom<DiscountAutomaticAppInput>;
   rawConfig?: string;
-  onSubmit?: () => void;
+  onSubmit?: (
+    discount: DiscountAutomaticAppInput,
+    config: any,
+    theme: string,
+    themeContent: string,
+  ) => void;
 };
 
 export function VolumeDiscountComponent(props: VolumeDiscountComponentProps) {

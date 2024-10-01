@@ -64,15 +64,36 @@ export type SDConfig = {
 
 // ------------------------------ Volume discount -----------------
 
-export type VDApplyType = "collection" | "products";
+export type PDApplyType = "collection" | "products"; // | "attach";
+// export type VDApplyType = "volume" | "attached"; // | "attach";
 
-export type VDConfig = {
-  label: string;
-  applyType: VDApplyType;
+export type AttachedProduct = {
+  product: string;
+  value: DiscountValue;
+};
+
+export type AttachedConfig = {
+  productTarget: string;
+  attachedProduct: AttachedProduct[];
+};
+
+export type VolumeConfig = {
   steps: RewardStep[];
   collIds?: string[];
   productIds?: string[];
 };
+
+export type PDConfig = {
+  label: string;
+  applyType: PDApplyType;
+  steps: RewardStep[];
+  collIds?: string[];
+  productIds?: string[];
+  // volume?: VolumeConfig;
+  // attached?: AttachedConfig;
+};
+
+// -----------------------------------------------------
 
 export interface DiscountApplication {
   target_type: "line_item" | "shipping_line";
@@ -119,6 +140,7 @@ export interface LineItem {
 // --------------------- DIscount GUI ---------------------
 
 type DiscountTypeGUI =
+  | "attached"
   | "bundle"
   | "total_order"
   | "volume"

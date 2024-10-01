@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { OrdersReport } from "~/defs/gui";
 import {
   BarChart,
   clearBarOption,
@@ -8,6 +7,7 @@ import {
 } from "~/components/Common/Chart";
 import { InlineGrid, Select, Text } from "@shopify/polaris";
 import { ChartType } from "chart.js";
+import { OrdersReport } from "~/models/db_applied";
 
 export type OrderReportParsed = ReturnType<typeof parseOrderReports>;
 
@@ -20,9 +20,19 @@ export function parseOrderReports(reports: OrdersReport[]) {
   var unappliedCount: number[] = [];
   var unappliedValue: number[] = [];
 
+  console.log("Report length: ", reports.length);
+  if (!reports.length) {
+    return {
+      labels,
+      appliedCount,
+      appliedValue,
+      unappliedCount,
+      unappliedValue,
+    };
+  }
+
   var idx = 0;
   var done = false;
-  console.log("Report length: ", reports.length);
 
   while (!done) {
     var label = reports[idx].date;

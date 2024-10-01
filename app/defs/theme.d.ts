@@ -31,7 +31,6 @@ export interface BundleProductConfig {
 }
 
 export type BundleContent = {
-  title: string;
   total: string;
   button: string;
 };
@@ -46,6 +45,13 @@ export interface BundleThemeConfig {
   total: BundleTotalConfig;
   button: ButtonConfig;
 }
+
+export interface GUIBundle {
+  theme: BundleThemeConfig;
+  content: BundleContent;
+}
+
+//  ------------------------------ Bundle total----------------------------------
 
 export interface BundleTotalTheme {
   title: FontConfig;

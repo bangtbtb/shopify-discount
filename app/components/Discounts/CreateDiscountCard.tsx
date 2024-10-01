@@ -131,7 +131,7 @@ export function BundleValueIllustratrion() {
 
 export function VolumeBreakIllustratrion() {
   return (
-    <InlineStack aria-colcount={2}>
+    <InlineGrid columns={2} gap={"200"}>
       <BoxBorderBound
         header={
           <span>
@@ -163,7 +163,7 @@ export function VolumeBreakIllustratrion() {
           </Text>
         </InlineGrid>
       </BoxBorderBound>
-    </InlineStack>
+    </InlineGrid>
   );
 }
 

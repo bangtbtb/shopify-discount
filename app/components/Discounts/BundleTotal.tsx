@@ -1,4 +1,4 @@
-import { BlockStack, Box, TextField } from "@shopify/polaris";
+import { BlockStack, Box, Text, TextField } from "@shopify/polaris";
 import {
   BundleTotalThemeEditor,
   BundleTotalThemePreview,
@@ -14,10 +14,32 @@ import {
 import { StepData } from "./ConfigStep";
 import { useState } from "react";
 import { BundleTotalTheme } from "~/defs/theme";
+import {
+  ProductInfo,
+  SelectMultipleProducts,
+  SelectProduct,
+} from "../Shopify/SelectProduct";
+import { DiscountAutomaticAppInput } from "~/types/admin.types";
+import { SerializeFrom } from "@remix-run/node";
 
-type BundleTotalDetailProps = {};
+type BundleTotalDetailProps = {
+  isCreate?: boolean;
+  disableSetting?: boolean;
+  discount?: SerializeFrom<DiscountAutomaticAppInput>;
+  onSubmit?: (
+    discount: DiscountAutomaticAppInput,
+    config: any,
+    theme: string,
+    themeContent: string,
+  ) => void;
+};
 
-export function BundleTotalDetail(props: BundleTotalDetailProps) {
+export function BundleTotalDetail({
+  isCreate,
+  disableSetting,
+  discount,
+  onSubmit,
+}: BundleTotalDetailProps) {
   const title = useField<string>("Volume Discount Offer");
   // const totalContent = useField<string>("Total");
   const startDate = useField<DateTime>(new Date().toString());
@@ -27,6 +49,7 @@ export function BundleTotalDetail(props: BundleTotalDetailProps) {
     productDiscounts: false,
     shippingDiscounts: true,
   });
+  const products = useField<ProductInfo[]>([]);
 
   const steps = useField<Array<StepData>>([
     { label: "OFF 5%", type: "percent", value: 5, require: 100 },
@@ -48,10 +71,19 @@ export function BundleTotalDetail(props: BundleTotalDetailProps) {
     >
       <BlockStack gap={"400"}>
         <BundleTotalSetting title={title} />
-        <CardCollapse collapse title="Target product"></CardCollapse>
+        <CardCollapse collapse title="Target product">
+          <BlockStack gap={"300"}>
+            <SelectMultipleProducts
+              label="Target product to show this offer"
+              products={products.value}
+              onChange={products.onChange}
+              showDefault
+            />
+          </BlockStack>
+        </CardCollapse>
       </BlockStack>
 
-      <Box minHeight="1rem" />
+      {/* <Box minHeight="1rem" /> */}
 
       <BundleTotalThemeEditor {...theme} onChangeTheme={onChangeTheme} />
     </DiscountEditorPreviewLayout>

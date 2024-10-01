@@ -6,12 +6,21 @@ import type {
 } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
-import { Page, Layout, Text, Card, InlineGrid } from "@shopify/polaris";
+import {
+  Page,
+  Layout,
+  Text,
+  Card,
+  InlineGrid,
+  Box,
+  InlineStack,
+  Button,
+} from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { dbGetDiscounts } from "~/models/db_discount";
 import { DiscountTable } from "~/components/Discounts/DiscountTable";
 import { Discount } from "@prisma/client";
-import ViewCounterChart from "~/components/DiscountChart/ViewCounterChart";
+import LineDataPointChart from "~/components/DiscountChart/LineDataPointChart";
 import {
   OrderAppliedCounterChart,
   OrderAppliedValueChart,
@@ -24,7 +33,7 @@ import { format as dateFormat } from "date-fns";
 import { dbGetShopDiscountView } from "~/models/db_dc_view";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
 
   // const { searchParams } = new URL(request.url);
   // const page = Number.parseInt(searchParams.get("page") || "") || 1;
@@ -79,9 +88,7 @@ export default function Index() {
     useState<OrderReportParsed | null>(null);
 
   const onClickDiscount = (d: SerializeFrom<Discount>) => {
-    var dt = d.type === "Bundle" ? "od" : d.type === "Volume" ? "vd" : "sd";
-    var idxSplash = d.id.lastIndexOf("/");
-    nav(`/app/${dt}/${d.id.slice(idxSplash + 1)}`);
+    nav(`/app/dcs/${d.id}`);
   };
 
   useEffect(() => {
@@ -95,12 +102,19 @@ export default function Index() {
   return (
     <Page title="Home">
       {/* Overview discount status was applied */}
-      <Layout.Section>
-        <Text as="h2"> Overview</Text>
+      <Layout.Section variant="fullWidth">
+        <Box paddingBlockEnd={"400"}>
+          <Text as="h2" variant="headingLg">
+            Overview
+          </Text>
+        </Box>
 
         <InlineGrid gap={"400"} columns={{ xs: 1, sm: 1, md: 3, lg: 3, xl: 3 }}>
           <Card>
-            <ViewCounterChart data={discountView} title="Total Discount View" />
+            <LineDataPointChart
+              data={discountView}
+              title="Total Discount View"
+            />
             {/* <Text as="p">dfdf</Text> */}
           </Card>
           <Card>
@@ -131,7 +145,20 @@ export default function Index() {
       </Layout.Section>
 
       <Layout.Section>
-        <Text as="h2">Recent discount</Text>
+        <Box paddingBlockEnd={"400"}>
+          <InlineStack align="space-between">
+            <Text as="h2" variant="headingLg">
+              Recent discount
+            </Text>
+
+            <Button
+              variant="primary"
+              onClick={() => nav("/app/dcs/create_select")}
+            >
+              Create new
+            </Button>
+          </InlineStack>
+        </Box>
         <DiscountTable discounts={discounts ?? []} onClick={onClickDiscount} />
       </Layout.Section>
     </Page>

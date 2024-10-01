@@ -54,6 +54,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     discount,
     config,
     shop: session.shop,
+    content: "",
+    setting: "",
+    theme: "",
   });
 
   var errors = resp?.userErrors;

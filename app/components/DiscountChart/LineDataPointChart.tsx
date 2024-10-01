@@ -6,13 +6,15 @@ import {
   LineChart,
 } from "~/components/Common/Chart";
 import { InlineGrid, Text } from "@shopify/polaris";
+import { ChartOptions } from "chart.js";
 
-type ViewCounterChartProps = {
+type LineDataPointChartProps = {
   title?: string;
   data: SeriesDP[];
+  options?: ChartOptions<"line">;
 };
 
-const ViewCounterChart = ({ title, data }: ViewCounterChartProps) => {
+const LineDataPointChart = ({ title, data }: LineDataPointChartProps) => {
   const [labels, setLabels] = useState(data.map((v) => v.date));
   const [dArr, setDArr] = useState(data.map((v) => v.data));
 
@@ -23,7 +25,9 @@ const ViewCounterChart = ({ title, data }: ViewCounterChartProps) => {
 
   return (
     <InlineGrid>
-      <Text as="legend">{title}</Text>
+      <Text as="p" variant="bodyLg">
+        {title}
+      </Text>
       <LineChart
         data={{
           labels: labels,
@@ -44,4 +48,4 @@ const ViewCounterChart = ({ title, data }: ViewCounterChartProps) => {
   );
 };
 
-export default ViewCounterChart;
+export default LineDataPointChart;

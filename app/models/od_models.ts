@@ -8,8 +8,7 @@ import {
   gqlGetDiscount,
   gqlUpdateDiscount,
 } from "./gql_discount";
-import { ProductInfo } from "~/components/Shopify/SelectProduct";
-import { ProductInfoBundle } from "~/components/Discounts/BundleThemeDiscount";
+import { ProductInfoBundle } from "~/components/Discounts/BundleTheme";
 
 export type ODConfigExt = ODConfig & {
   id: string;
@@ -20,12 +19,9 @@ export type CreateODRequest = {
   discount: DiscountAutomaticAppInput;
   config: ODConfig;
   shop: string;
-};
-
-export type UpdateODRequest = {
-  discountId: string;
-  discount: DiscountAutomaticAppInput;
-  config: ODConfigExt;
+  theme: string; // Theme gui
+  content: string; // Theme content
+  setting: string; // Theme setting
 };
 
 export type GetODRequest = {
@@ -52,9 +48,18 @@ export async function createBundleDiscount(
       ? req.config.bundle?.productIds
       : [],
     collIds: [],
+    theme: req.theme,
+    content: req.content,
+    setting: req.setting,
   });
   return resp;
 }
+
+export type UpdateODRequest = {
+  discountId: string;
+  discount: DiscountAutomaticAppInput;
+  config: ODConfigExt;
+};
 
 export async function updateBundleDiscount(
   graphql: GraphQLClient<AdminOperations>,

@@ -4,19 +4,12 @@ import type {
   LoaderFunctionArgs,
 } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import {
-  useActionData,
-  useLoaderData,
-  useNavigate,
-  useRouteError,
-  useSubmit,
-} from "@remix-run/react";
+import { useLoaderData, useRouteError, useSubmit } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
 import { authenticate } from "../shopify.server";
 import { InlineGrid, Page, Text } from "@shopify/polaris";
-import { PricingPlanName } from "~/models/gql_billing";
 
 import {
   CurrentPlanCard,
@@ -24,7 +17,7 @@ import {
   PlanStack,
 } from "~/components/Shopify/Billing";
 import { useEffect, useState } from "react";
-import { getShopName } from "~/models/utils";
+import { getShopName } from "~/models/utils_id";
 
 type PlanName = "Freemium" | "Basic" | "Advanced" | "Enterprise";
 const planTitles = ["Freemium", "Basic", "Advanced", "Enterprise"];

@@ -1,19 +1,19 @@
 import {
   Box,
-  Grid,
   BlockStack,
   TextField,
   Tooltip,
   InlineGrid,
+  Button,
 } from "@shopify/polaris";
-import { DiscountValue, ODConfig, SDConfig, VDConfig } from "~/defs/discount";
+import { DiscountValue, ODConfig } from "~/defs/discount";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
 import {
   BundleThemeEditor,
   BundleThemePreview,
   defaultBundleTheme,
   ProductInfoBundle,
-} from "./BundleThemeDiscount";
+} from "./BundleTheme";
 import { useState } from "react";
 import {
   SelectedProduct,
@@ -29,40 +29,56 @@ import {
   DateTime,
 } from "@shopify/discount-app-components";
 import { Field, useField } from "@shopify/react-form";
-import { CardCollapse } from "~/components/Common";
-import { VDConfigExt } from "~/models/vd_model";
+import {
+  CardCollapse,
+  checkFormArray,
+  checkFormNumber,
+  checkFormString,
+} from "~/components/Common";
 import { SerializeFrom } from "@remix-run/node";
+import { BundleContent, GUIBundle } from "~/defs/theme";
+import { ODConfigExt } from "~/models/od_models";
 
-export type BundleComponentErrors = {};
+// export type BundleComponentErrors = {};
 
-type BundleComponentProps = {
+type BundleDetailProps = {
+  isCreate?: boolean;
+  disableSetting?: boolean;
   discount?: SerializeFrom<DiscountAutomaticAppInput>;
-  config?: SerializeFrom<VDConfigExt>;
-  errors?: BundleComponentErrors;
+  config?: SerializeFrom<ODConfigExt>;
+  gui?: GUIBundle;
   onSubmit?: (
     discount: DiscountAutomaticAppInput,
-    config: ODConfig | SDConfig | VDConfig,
+    config: any,
+    theme: string,
+    themeContent: string,
   ) => void;
+
+  // errors?: BundleComponentErrors;
 };
 
 export function BundleDetail({
+  isCreate,
+  disableSetting,
   discount,
+  gui,
   config,
-  errors,
   onSubmit,
-}: BundleComponentProps) {
+}: BundleDetailProps) {
   const title = useField<string>(discount?.title || "Bund product offer");
-  const buttonContent = useField<string>("Add To Cart");
-  const totalContent = useField<string>("Total");
-  const startDate = useField<DateTime>(new Date().toString());
-  const endDate = useField<DateTime | null>(null);
+  const buttonContent = useField<string>(gui?.content.button || "Add To Cart");
+  const totalContent = useField<string>(gui?.content.total || "Total");
+  const startDate = useField<DateTime>(
+    discount?.startsAt || new Date().toString(),
+  );
+  const endDate = useField<DateTime | null>(discount?.endsAt || null);
   const combines = useField<CombinableDiscountTypes>({
-    orderDiscounts: false,
-    productDiscounts: false,
-    shippingDiscounts: true,
+    orderDiscounts: discount?.combinesWith?.orderDiscounts || false,
+    productDiscounts: discount?.combinesWith?.productDiscounts || false,
+    shippingDiscounts: discount?.combinesWith?.shippingDiscounts || true,
   });
 
-  const products = useField<ProductInfoBundle[]>([]);
+  const products = useField<ProductInfoBundle[]>(config?.products || []);
   const dVal = useField<DiscountValue>({
     type: "percent",
     value: 10,
@@ -76,12 +92,86 @@ export function BundleDetail({
     });
   };
 
+  const onClickPrimary = () => {
+    var discount: DiscountAutomaticAppInput = {
+      title: title.value,
+      combinesWith: combines.value,
+      startsAt: startDate.value,
+      endsAt: endDate.value,
+    };
+
+    if (!checkFormString("Title is required", discount.title)) {
+      return;
+    }
+
+    var formConfig: ODConfig = {
+      label: "",
+      applyType: "bundle",
+      bundle: {
+        productIds: products.value.map((v) => v.id),
+        value: {
+          type: dVal.value.type,
+          value: dVal.value.value,
+        },
+        numRequires: products.value.map((v) => v.requireVol),
+        allOrder: false,
+      },
+    };
+
+    if (dVal.value.type === "fix") {
+      if (!checkFormNumber("Discount value is required", dVal.value.value)) {
+        return;
+      }
+    } else {
+      if (
+        !checkFormNumber(
+          "Discount value should be is range [1-100]",
+          dVal.value.value,
+          1,
+          100,
+        )
+      ) {
+        return;
+      }
+    }
+
+    if (
+      !checkFormArray(
+        "Please select product list",
+        formConfig.bundle?.productIds,
+      )
+    ) {
+      console.log("Check product failed");
+      return;
+    }
+
+    var themeConfig = JSON.stringify(theme);
+    var themeContent: BundleContent = {
+      button: buttonContent.value,
+      total: totalContent.value,
+    };
+
+    if (!checkFormString("Button Text is required", themeContent.button)) {
+      return;
+    }
+
+    if (!checkFormString("Total text is required", themeContent.total)) {
+      return;
+    }
+
+    console.log("Check pass all");
+
+    if (onSubmit) {
+      onSubmit(discount, formConfig, themeConfig, JSON.stringify(themeContent));
+    }
+  };
+
   return (
     <DiscountEditorPreviewLayout
       preview={
         <BundleThemePreview
+          titleContent={title.value}
           content={{
-            title: title.value,
             button: buttonContent.value,
             total: totalContent.value,
           }}
@@ -90,23 +180,33 @@ export function BundleDetail({
           products={products.value}
         />
       }
+      actions={[
+        <Button key={"btn-cancel"} onClick={() => {}}>
+          Cancel
+        </Button>,
+        <Button key={"btn-primary"} variant="primary" onClick={onClickPrimary}>
+          {isCreate ? "Create" : "Update"}
+        </Button>,
+      ]}
     >
-      <BundleSettingCard
-        title={title}
-        buttonContent={buttonContent}
-        totalContent={totalContent}
-        discount={dVal}
-        products={products}
-      />
+      {!disableSetting && (
+        <BundleSettingCard
+          title={title}
+          buttonContent={buttonContent}
+          totalContent={totalContent}
+          discount={dVal}
+          products={products}
+        />
+      )}
 
-      <Box minHeight="1rem" />
-
-      <DiscountCommonEditor
-        combines={combines}
-        startDate={startDate}
-        endDate={endDate}
-      />
-      <Box minHeight="1rem" />
+      {!disableSetting && (
+        <DiscountCommonEditor
+          combines={combines}
+          startDate={startDate}
+          endDate={endDate}
+          disableShipping
+        />
+      )}
 
       <BundleThemeEditor onChangeTheme={onChangeTheme} {...theme} />
     </DiscountEditorPreviewLayout>

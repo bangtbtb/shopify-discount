@@ -112,7 +112,7 @@ export function BundleTotalThemePreview({
       <BoxBorderBound
         header={
           <RenderTextTheme as="h3" {...theme.title}>
-            "Spent more, discount more"
+            Spent more, discount more
           </RenderTextTheme>
         }
         headerAlign="center"

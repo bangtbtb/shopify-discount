@@ -21,6 +21,9 @@ export type CreateSDRequest = {
   discount: DiscountAutomaticAppInput;
   config: SDConfig;
   shop: string;
+  theme: string; // Theme gui
+  content: string; // Theme content
+  setting: string; // Theme setting
 };
 
 export type UpdateSDRequest = {
@@ -51,6 +54,9 @@ export async function createShippingDiscount(
     subType: req.config.applyType,
     productIds: req.config.productIds ? req.config.productIds : [],
     collIds: req.config.collIds ? req.config.collIds : [],
+    theme: req.theme,
+    content: req.content,
+    setting: req.setting,
   });
   return resp;
 }

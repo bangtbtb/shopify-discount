@@ -193,3 +193,45 @@ export async function dbGetDiscounts(req: RGetDiscounts) {
   ]);
   return { total: data[0], discounts: data[1] };
 }
+
+type RGetDiscount = {
+  shop: string;
+  id: string;
+  wTheme?: boolean;
+  wApplied?: boolean;
+  takeApplied?: number;
+};
+
+export async function dbGetDiscount(req: RGetDiscount) {
+  var data = await db.discount.findFirst({
+    where: { shop: req.shop, id: req.id },
+    include: {
+      Theme: req.wTheme,
+      DiscountApplied: req.wApplied
+        ? {
+            take: req.takeApplied ?? 10,
+            orderBy: {
+              createdAt: "desc",
+            },
+          }
+        : false,
+    },
+  });
+  return data;
+}
+
+type RUpdateTheme = {
+  shop: string;
+  id: string;
+  theme: Prisma.DiscountThemeUpdateInput;
+};
+
+export async function dbUpdateTheme(req: RUpdateTheme) {
+  return db.discountTheme.update({
+    where: {
+      id: req.id,
+      shop: req.shop,
+    },
+    data: { ...req.theme, updatedAt: new Date() },
+  });
+}

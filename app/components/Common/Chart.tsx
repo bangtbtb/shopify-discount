@@ -1,4 +1,4 @@
-import { Line, Bar } from "react-chartjs-2";
+import { Line, Bar, Chart } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -14,8 +14,6 @@ import {
 } from "chart.js/auto";
 import { ClientOnly } from "remix-utils/client-only";
 import type { ChartProps } from "node_modules/react-chartjs-2/dist/types";
-import { useState } from "react";
-import { InlineGrid, Select, Text } from "@shopify/polaris";
 
 ChartJS.register(
   CategoryScale,

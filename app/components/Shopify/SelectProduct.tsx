@@ -132,7 +132,7 @@ export function SelectMultipleProducts({
       id: v.id,
     }));
 
-    const selecteds = await window.shopify.resourcePicker({
+    const selecteds = await shopify.resourcePicker({
       type: "product",
       action: "select",
       multiple: true,
@@ -141,11 +141,12 @@ export function SelectMultipleProducts({
         variants: false,
       },
       // selectionIds: products,
+      query: ``,
     });
     if (!selecteds) {
       return;
     }
-    // console.log("Products Selected: ", selecteds);
+    console.log("Products Selected: ", selecteds);
 
     var pforms: Array<ProductInfo> =
       selecteds?.map((product) => ({

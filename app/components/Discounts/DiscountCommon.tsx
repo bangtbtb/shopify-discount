@@ -126,18 +126,26 @@ export function DiscountEditorPreviewLayout(
 ) {
   return (
     <BlockStack gap={"400"}>
-      <InlineStack gap={"100"}>{props.actions}</InlineStack>
+      <InlineStack gap={"100"} align="end">
+        {props.actions}
+      </InlineStack>
+
       <Grid>
         <Grid.Cell columnSpan={{ sm: 6, md: 3, lg: 6 }}>
-          <BlockStack gap={"400"}>{props.children}</BlockStack>
-          <Box paddingBlockStart={"1000"} background="avatar-bg-fill"></Box>
+          <BlockStack gap={"800"}>{props.children}</BlockStack>
+          <Box
+            paddingBlockStart={{
+              sm: "400",
+              md: "2000",
+            }}
+          />
         </Grid.Cell>
         <Grid.Cell columnSpan={{ sm: 6, md: 3, lg: 6 }}>
-          <Box paddingInlineEnd={"500"} paddingBlockEnd={"1000"}>
+          {/* <Box paddingInlineEnd={"500"} paddingBlockEnd={"1000"}>
             <Text as="h2" variant="headingMd">
               Preview
             </Text>
-          </Box>
+          </Box> */}
           <div className="preview_ctn">{props.preview}</div>
         </Grid.Cell>
       </Grid>

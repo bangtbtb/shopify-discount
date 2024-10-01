@@ -2,6 +2,7 @@ import db from "../db.server";
 import shajs from "sha.js";
 import { SeriesDateDP, SeriesDP } from "../defs/gui";
 import { format } from "date-fns";
+import { convertDate } from "./utils";
 
 type DateGroup = "day" | "week" | "month" | "annual";
 
@@ -17,7 +18,7 @@ export async function dbIncreaseView(req: RDbIncreaseView) {
     .update(`${req.discountId}-${format(ca, "yyyy-MM-dd")}`)
     .digest("base64");
 
-  var resp = await db.discountViews.upsert({
+  var resp = await db.discountAnalytics.upsert({
     update: {
       id: id,
       discountId: req.discountId,
@@ -30,6 +31,7 @@ export async function dbIncreaseView(req: RDbIncreaseView) {
       shop: req.shop,
       discountId: req.discountId,
       views: 1,
+      addCart: 0,
       createdAt: ca,
     },
 
@@ -54,20 +56,23 @@ export async function dbGetDiscountView(req: RDbGetDiscountView) {
     WITH tbl AS (
           SELECT "views",
                 DATE_TRUNC(${req.groupInterval}, "createdAt") as "createdAt"
-          FROM "DiscountViews"
+          FROM "DiscountAnalytics"
           WHERE "shop" = ${req.shop} AND
                 "createdAt" >=  ${req.from} AND
                 "createdAt" < ${req.to} AND 
                 "discountId" = ${req.discountId}
     )
 
-    SELECT  SUM("views") as "totalView", 
-           "createdAt" 
+    SELECT  SUM("views") as "data", 
+           "createdAt" as "date"
     FROM tbl
     GROUP BY "createdAt"
     ORDER BY "createdAt"`;
 
-  return convertDateSeries(data, req.groupInterval);
+  return data.map((v) => ({
+    ...v,
+    date: convertDate(v.date, req.groupInterval),
+  }));
 }
 
 type RDbGetShopDiscountView = {
@@ -82,7 +87,7 @@ export async function dbGetShopDiscountView(req: RDbGetShopDiscountView) {
     WITH tbl AS (
           SELECT "views",
                 DATE_TRUNC(${req.groupInterval}, "createdAt") as "createdAt"
-          FROM "DiscountViews"
+          FROM "DiscountAnalytics"
           WHERE "shop" = ${req.shop} AND
                 "createdAt" >=  ${req.from} AND
                 "createdAt" < ${req.to}
@@ -94,31 +99,8 @@ export async function dbGetShopDiscountView(req: RDbGetShopDiscountView) {
     GROUP BY "createdAt"
     ORDER BY "createdAt"`;
 
-  return convertDateSeries(data, req.groupInterval);
-}
-
-export function convertDateSeries(data: SeriesDateDP[], interval: DateGroup) {
-  var rs: SeriesDP[] = [];
-  if (interval === "annual") {
-    rs = data.map((v) => ({
-      data: v.data,
-      date: format(v.date, "yyyy"),
-    }));
-  } else if (interval === "month") {
-    rs = data.map((v) => ({
-      data: v.data,
-      date: format(v.date, "yyyy-MM"),
-    }));
-  } else if (interval === "week" || interval === "day") {
-    rs = data.map((v) => ({
-      data: v.data,
-      date: format(v.date, "yyyy-MM-dd"),
-    }));
-  } else {
-    rs = data.map((v) => ({
-      data: v.data,
-      date: format(v.date, "yyyy-MM-dd"),
-    }));
-  }
-  return rs;
+  return data.map((v) => ({
+    ...v,
+    date: convertDate(v.date, req.groupInterval),
+  }));
 }

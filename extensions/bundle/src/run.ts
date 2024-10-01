@@ -5,6 +5,7 @@ import {
   type Target,
   type ProductVariantTarget,
   DiscountApplicationStrategy,
+  Value,
 } from "../generated/api";
 
 const EMPTY_DISCOUNT: FunctionRunResult = {
@@ -14,21 +15,16 @@ const EMPTY_DISCOUNT: FunctionRunResult = {
 
 type DVT = "percent" | "fix";
 
-type ODApplyType = "total" | "bundle";
+type ODApplyType = "total" | "bundle" | "bundle_attach";
 
 type DiscountValue = {
   value: number;
   type: DVT;
 };
 
-export type RewardStep = {
+type RewardStep = {
   require: number; // Condition
   value: DiscountValue; // Reward
-};
-
-export type ProductCondition = {
-  id: string; // Product id
-  quantity: number; // Atleast 1
 };
 
 type ODTotalConfig = {
@@ -37,7 +33,7 @@ type ODTotalConfig = {
 
 type ODBundleConfig = {
   value: DiscountValue;
-  allOrder: boolean | undefined;
+  allOrder?: boolean;
   productIds: string[];
   numRequires: number[];
 };
@@ -47,6 +43,7 @@ type ODConfig = {
   applyType: ODApplyType;
   total?: ODTotalConfig;
   bundle?: ODBundleConfig;
+  // bxgy?: ODBXGY;
 };
 
 interface ProductSum {
@@ -62,30 +59,33 @@ export function run(input: RunInput): FunctionRunResult {
   );
   // console.log("Config: ", JSON.stringify(config));
 
+  if (config.applyType === "total") {
+    return config.total
+      ? onTotal(input, config.label, config.total)
+      : EMPTY_DISCOUNT;
+  }
+
   if (config.applyType === "bundle") {
     return onBundle(input, config);
   }
 
-  if (config.applyType === "total") {
-    return onTotal(input, config);
-  }
   console.log(`[OD] Apply type [${config.applyType}] is not support `);
 
   return EMPTY_DISCOUNT;
 }
 
-function onTotal(input: RunInput, config: ODConfig): FunctionRunResult {
-  if (!config.total) {
-    return EMPTY_DISCOUNT;
-  }
-
+function onTotal(
+  input: RunInput,
+  label: string,
+  configTotal: ODTotalConfig,
+): FunctionRunResult {
   var total = 0;
   input.cart.lines.forEach((line) => {
     total += line.cost.amountPerQuantity.amount * line.quantity;
   });
 
-  for (let i = config.total.steps.length - 1; i >= 0; i--) {
-    const s = config.total.steps[i];
+  for (let i = configTotal.steps.length - 1; i >= 0; i--) {
+    const s = configTotal.steps[i];
     if (total > s.require) {
       return {
         discountApplicationStrategy: DiscountApplicationStrategy.First,
@@ -98,19 +98,8 @@ function onTotal(input: RunInput, config: ODConfig): FunctionRunResult {
                 },
               },
             ],
-            message: config.label || "BUNDLE_DISCOUNT",
-            value:
-              s.value.type === "percent"
-                ? {
-                    percentage: {
-                      value: s.value.value,
-                    },
-                  }
-                : {
-                    fixedAmount: {
-                      amount: s.value.value,
-                    },
-                  },
+            message: label || "BUNDLE_DISCOUNT",
+            value: calcValue(s.value),
           },
         ],
       };
@@ -199,20 +188,23 @@ function onBundle(input: RunInput, config: ODConfig): FunctionRunResult {
     discounts: [
       {
         targets: targets,
-        value:
-          config.bundle.value.type === "percent"
-            ? {
-                percentage: {
-                  value: config.bundle.value.value,
-                },
-              }
-            : {
-                fixedAmount: {
-                  amount: config.bundle.value.value,
-                },
-              },
         message: config.label,
+        value: calcValue(config.bundle.value),
       },
     ],
   };
+}
+
+function calcValue(dt: DiscountValue): Value {
+  return dt.type === "percent"
+    ? {
+        percentage: {
+          value: dt.value,
+        },
+      }
+    : {
+        fixedAmount: {
+          amount: dt.value,
+        },
+      };
 }

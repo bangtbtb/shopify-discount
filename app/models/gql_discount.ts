@@ -1,8 +1,15 @@
 import { AdminOperations } from "@shopify/admin-api-client";
 import { GraphQLClient } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients/types";
-import { DiscountAutomaticAppInput, MetafieldInput } from "~/types/admin.types";
+import {
+  DiscountAutomaticApp,
+  DiscountAutomaticAppInput,
+  DiscountUserError,
+  Maybe,
+  MetafieldInput,
+} from "~/types/admin.types";
 import { dbCreateDiscount, dbUpdateDiscount } from "./db_discount";
-import { ADT } from "@prisma/client";
+import { ADT, DiscountTheme, Prisma } from "@prisma/client";
+import { splitGQLId } from "./utils_id";
 
 export type FuncType =
   | "product_discounts"
@@ -18,6 +25,17 @@ var mapFuncType = new Map<FuncType, ADT>([
   ["order_discounts", "Bundle"],
   ["shipping_discounts", "Shipping"],
 ]);
+
+export type GQLDiscountResponse = Maybe<
+  Pick<
+    DiscountAutomaticApp,
+    "discountId" | "status" | "startsAt" | "endsAt" | "title"
+  >
+>;
+
+export type GQLDiscountError = Array<
+  Pick<DiscountUserError, "code" | "message" | "field">
+>;
 
 export async function gqlGetFunction(
   graphql: GraphQLClient<AdminOperations>,
@@ -57,6 +75,7 @@ export type GqlCreateDiscountRequest = {
   shop: string;
   theme: string;
   content: string;
+  setting: string;
 };
 
 export async function gqlCreateDiscount(
@@ -116,7 +135,7 @@ export async function gqlCreateDiscount(
     respJson?.data?.discountAutomaticAppCreate?.automaticAppDiscount;
   if (rsDiscount) {
     await dbCreateDiscount({
-      id: rsDiscount.discountId,
+      id: splitGQLId(rsDiscount.discountId),
       shop: req.shop,
       metafield: req.metafield.value ?? "",
       status: rsDiscount.status,
@@ -129,6 +148,14 @@ export async function gqlCreateDiscount(
       createdAt: new Date(),
       productIds: req.productIds ? req.productIds : [],
       collectionIds: req.collIds ? req.collIds : [],
+      Theme: {
+        create: {
+          shop: req.shop,
+          theme: req.theme,
+          content: req.content,
+          setting: req.setting,
+        },
+      },
     });
   }
   return respJson.data?.discountAutomaticAppCreate;
@@ -299,6 +326,7 @@ export async function gqlDelDiscount(
   var respJson = await resp.json();
   return respJson.data;
 }
+
 type GetDiscount = {
   limit: number;
   namespace: string;
