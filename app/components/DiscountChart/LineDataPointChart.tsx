@@ -25,9 +25,10 @@ const LineDataPointChart = ({ title, data }: LineDataPointChartProps) => {
 
   return (
     <InlineGrid>
-      <Text as="p" variant="bodyLg">
+      <Text as="p" variant="bodyMd">
         {title}
       </Text>
+
       <LineChart
         data={{
           labels: labels,

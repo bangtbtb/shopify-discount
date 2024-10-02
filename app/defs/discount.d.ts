@@ -64,16 +64,17 @@ export type SDConfig = {
 
 // ------------------------------ Volume discount -----------------
 
-export type PDApplyType = "collection" | "products"; // | "attach";
-// export type VDApplyType = "volume" | "attached"; // | "attach";
+// export type PDApplyType = "collection" | "products"; // | "attach";
+export type PDApplyType = "volume" | "attached"; // | "attach";
 
 export type AttachedProduct = {
   product: string;
+  maxProduct: number;
   value: DiscountValue;
 };
 
 export type AttachedConfig = {
-  productTarget: string;
+  productRequire: string;
   attachedProduct: AttachedProduct[];
 };
 
@@ -86,11 +87,12 @@ export type VolumeConfig = {
 export type PDConfig = {
   label: string;
   applyType: PDApplyType;
-  steps: RewardStep[];
-  collIds?: string[];
-  productIds?: string[];
-  // volume?: VolumeConfig;
-  // attached?: AttachedConfig;
+  volume?: VolumeConfig;
+  attached?: AttachedConfig;
+
+  // steps: RewardStep[];
+  // collIds?: string[];
+  // productIds?: string[];
 };
 
 // -----------------------------------------------------

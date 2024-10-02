@@ -514,7 +514,7 @@ function VolumeBreakOffer({
 //   startDate: Field<DateTime>;
 //   endDate: Field<DateTime | null>;
 //   combines: Field<CombinableDiscountTypes>;
-//   applyType: Field<VDApplyType>;
+//   applyType: Field<PDApplyType>;
 //   steps: Field<Array<StepData>>;
 //   products: Field<ProductInfo[]>;
 //   colls: Field<Array<CollectionInfo>>;
@@ -548,7 +548,7 @@ function VolumeBreakOffer({
 //         combines: useField<CombinableDiscountTypes>({
 //           ...discount.combinesWith,
 //         }),
-//         applyType: useField<VDApplyType>(config?.applyType ?? "products"),
+//         applyType: useField<PDApplyType>(config?.applyType ?? "products"),
 //         steps: useField<Array<StepData>>(
 //           config?.steps
 //             ? config?.steps.map((v) => ({
@@ -574,7 +574,7 @@ function VolumeBreakOffer({
 //           productDiscounts: false,
 //           shippingDiscounts: true,
 //         }),
-//         applyType: useField<VDApplyType>("products"),
+//         applyType: useField<PDApplyType>("products"),
 //         steps: useField<Array<StepData>>([
 //           { type: "percent", value: 5, require: 2 },
 //           { type: "percent", value: 10, require: 3 },

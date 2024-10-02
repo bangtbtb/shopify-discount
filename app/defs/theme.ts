@@ -70,6 +70,10 @@ export type BundleTotalConfig = {
   comparePrice: FontConfig;
 };
 
+// --------------------------------- Attach theme -----------------------------
+
+export interface GUIAttach {}
+
 // --------------------------------- Volume theme -----------------------------
 
 export interface GUIVolume {
@@ -105,6 +109,7 @@ export interface VolumeTheme {
   button: ButtonConfig;
 }
 
+export interface GUIVolume {}
 // --------------------------------- Shipping theme -----------------------------
 
 export interface SDTotalTheme {

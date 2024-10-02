@@ -15,6 +15,9 @@ import {
   Box,
   InlineStack,
   Button,
+  BlockStack,
+  CalloutCard,
+  Icon,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { dbGetDiscounts } from "~/models/db_discount";
@@ -31,6 +34,10 @@ import { getOrdersReport } from "~/models/db_applied";
 import { dayDuration } from "~/models/utils";
 import { format as dateFormat } from "date-fns";
 import { dbGetShopDiscountView } from "~/models/db_dc_view";
+
+import EasyIcon from "public/assets/easy.svg";
+import { StatusActiveIcon, StatusIcon } from "@shopify/polaris-icons";
+import { SeriesDP } from "~/defs/gui";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -83,7 +90,6 @@ export default function Index() {
   //   ["loading", "submitting"].includes(fetcher.state) &&
   //   fetcher.formMethod === "POST";
 
-  const [loadSuccess, setLoadSuccess] = useState(false);
   const [orderReportParsed, setOrderReportParsed] =
     useState<OrderReportParsed | null>(null);
 
@@ -92,18 +98,17 @@ export default function Index() {
   };
 
   useEffect(() => {
-    !loadSuccess && setLoadSuccess(true);
-  }, [loadSuccess]);
-
-  useEffect(() => {
     orderReport && setOrderReportParsed(parseOrderReports(orderReport));
   }, [orderReport]);
 
   return (
-    <Page title="Home">
+    <Page title="BootsSell">
       {/* Overview discount status was applied */}
       <Layout.Section variant="fullWidth">
-        <Box paddingBlockEnd={"400"}>
+        <Box paddingBlockEnd={"600"}>
+          {/* <WelcomCard />
+          <FunnelOverview view={discountView} /> */}
+
           <Text as="h2" variant="headingLg">
             Overview
           </Text>
@@ -162,5 +167,99 @@ export default function Index() {
         <DiscountTable discounts={discounts ?? []} onClick={onClickDiscount} />
       </Layout.Section>
     </Page>
+  );
+}
+
+type WelcomCardProps = {};
+
+function WelcomCard({}: WelcomCardProps) {
+  return (
+    <Card>
+      <BlockStack gap={"400"}>
+        <BlockStack gap={"200"}>
+          <Text as="h2" variant="headingSm">
+            Welcome to Your Sales Boosting Journey!
+          </Text>
+
+          <Text as="p" variant="bodyMd">
+            Easily create your first funnel to boost sales in just a few clicks.
+            Follow these steps to get started:
+          </Text>
+        </BlockStack>
+
+        <InlineStack align="start" aria-colcount={2} gap={"100"}>
+          <Box width="28">
+            <Icon source={StatusActiveIcon} tone="success" />
+          </Box>
+          <Text as="p" variant="bodyMd">
+            Create your first funnel
+          </Text>
+        </InlineStack>
+
+        <InlineStack align="start" aria-colcount={2} gap={"100"}>
+          <Box width="20">
+            <Icon source={StatusIcon} tone="base" />
+          </Box>
+
+          <BlockStack gap={"200"}>
+            <Text as="p" variant="bodyMd">
+              Customize the Design
+            </Text>
+
+            <Text as="p" variant="bodyMd">
+              Adjust the design to match your store's color scheme and branding.
+            </Text>
+            <Box>
+              <Button>Customize</Button>
+            </Box>
+          </BlockStack>
+        </InlineStack>
+
+        <InlineStack>
+          <Box>
+            <Icon source={StatusIcon} tone="base" />
+          </Box>
+          <Text as="p" variant="bodyMd">
+            Preview in Your Store
+          </Text>
+        </InlineStack>
+
+        {/* </CalloutCard> */}
+      </BlockStack>
+    </Card>
+  );
+}
+
+type FunnelOverviewProps = {
+  view: SerializeFrom<SeriesDP[]>;
+};
+
+function FunnelOverview({ view }: FunnelOverviewProps) {
+  return (
+    <BlockStack gap={"300"}>
+      <Text as="h2" variant="headingSm">
+        Funnel Overview
+      </Text>
+
+      <InlineGrid>
+        <Button>Today</Button>
+        <Button>Compare to: Yesterday</Button>
+      </InlineGrid>
+
+      <InlineGrid gap={"400"} columns={{ xs: 1, sm: 1, md: 3, lg: 3, xl: 3 }}>
+        <Card>
+          <LineDataPointChart data={view} title="Funnel View" />
+          {/* <Text as="p">dfdf</Text> */}
+        </Card>
+        <Card>
+          <LineDataPointChart data={view} title="Funnel click" />
+          {/* <Text as="p">dfdf</Text> */}
+        </Card>
+        <Card>
+          <LineDataPointChart data={view} title="Total sales  values" />
+          {/* <Text as="p">dfdf</Text> */}
+        </Card>
+      </InlineGrid>
+    </BlockStack>
   );
 }

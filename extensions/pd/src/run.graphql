@@ -4,12 +4,6 @@ query RunInput($collIds: [ID!]) {
     lines {
       id
       quantity
-      cost {
-        amountPerQuantity {
-          amount
-          currencyCode
-        }
-      }
       merchandise {
         ... on ProductVariant {
           id
@@ -19,10 +13,16 @@ query RunInput($collIds: [ID!]) {
           }
         }
       }
+      # cost {
+      #   amountPerQuantity {
+      #     amount
+      #     currencyCode
+      #   }
+      # }
     }
   }
   discountNode {
-    metafield(namespace: "$app:vd", key: "vd_config") {
+    metafield(namespace: "$app:pd", key: "pd_config") {
       value
     }
   }

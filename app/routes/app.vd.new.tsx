@@ -118,7 +118,9 @@ export default function VolDiscountCreate() {
           { type: "percent", value: 10, require: 3 },
           { type: "percent", value: 15, require: 4 },
         ]),
-        applyType: useField<PDApplyType>("collection"),
+        applyType: useField<PDApplyType>("volume"),
+        isSelectProduct: useField(true),
+
         colls: useField<Array<CollectionInfo>>([]),
         products: useField<Array<ProductInfo>>([]),
       },
@@ -133,22 +135,22 @@ export default function VolDiscountCreate() {
 
       var fcg: PDConfig = {
         label: form.config.label,
-        steps: form.config.steps.map((v) => ({
-          require: v.require,
-          value: {
-            type: v.type,
-            value: v.value,
-          },
-        })),
         applyType: form.config.applyType,
-        collIds:
-          form.config.applyType == "collection"
+        volume: {
+          steps: form.config.steps.map((v) => ({
+            require: v.require,
+            value: {
+              type: v.type,
+              value: v.value,
+            },
+          })),
+          collIds: !form.config.isSelectProduct
             ? form.config.colls.map((v) => v.id)
             : [],
-        productIds:
-          form.config.applyType == "products"
+          productIds: form.config.isSelectProduct
             ? form.config.products.map((v) => v.id)
             : [],
+        },
       };
       console.log("Form config: ", fcg);
       console.log("Discount: ", discount);

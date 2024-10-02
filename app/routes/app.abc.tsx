@@ -91,13 +91,16 @@ export default function ABCIndex() {
         size={40}
         srcs={[
           {
-            src: "https://cdn.shopify.com/s/files/1/0619/9325/4985/files/S913f93dfdecd45ab932762aaff2c5ce5m_200x200.webp",
+            image:
+              "https://cdn.shopify.com/s/files/1/0619/9325/4985/files/S913f93dfdecd45ab932762aaff2c5ce5m_200x200.webp",
           },
           {
-            src: "https://cdn.shopify.com/s/files/1/0619/9325/4985/files/S913f93dfdecd45ab932762aaff2c5ce5m_200x200.webp",
+            image:
+              "https://cdn.shopify.com/s/files/1/0619/9325/4985/files/S913f93dfdecd45ab932762aaff2c5ce5m_200x200.webp",
           },
           {
-            src: "https://cdn.shopify.com/s/files/1/0619/9325/4985/files/S913f93dfdecd45ab932762aaff2c5ce5m_200x200.webp",
+            image:
+              "https://cdn.shopify.com/s/files/1/0619/9325/4985/files/S913f93dfdecd45ab932762aaff2c5ce5m_200x200.webp",
           },
         ]}
       ></OverlayImage>

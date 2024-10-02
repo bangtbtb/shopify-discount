@@ -52,8 +52,8 @@ export async function createVolumeDiscount(
   var resp = await gqlCreateDiscount(graphql, {
     discount: req.discount,
     metafield: {
-      namespace: "$app:vd",
-      key: "vd_config",
+      namespace: "$app:pd",
+      key: "pd_config",
       type: "json",
       value: JSON.stringify(req.config),
     },
@@ -94,7 +94,7 @@ export async function getVolumeDiscount(
   graphql: GraphQLClient<AdminOperations>,
   { discountId }: GetVDRequest,
 ) {
-  var discount = await gqlGetDiscount(graphql, discountId, "$app:vd");
+  var discount = await gqlGetDiscount(graphql, discountId, "$app:pd");
 
   var metafield = discount?.metafields?.nodes[0];
   var config: PDConfigExt = {

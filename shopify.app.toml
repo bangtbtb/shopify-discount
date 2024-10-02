@@ -3,7 +3,7 @@
 client_id = "59c7dbfbeefd1f11ba1aa85228d3700a"
 name = "Simple Discount"
 handle = "sd-xxyy"
-application_url = "https://agency-palmer-vocational-joins.trycloudflare.com"
+application_url = "https://programmers-underwear-desirable-conduct.trycloudflare.com"
 embedded = true
 
 [build]
@@ -21,9 +21,9 @@ scopes = "read_orders,read_products,unauthenticated_read_checkouts,unauthenticat
 
 [auth]
 redirect_urls = [
-  "https://agency-palmer-vocational-joins.trycloudflare.com/auth/callback",
-  "https://agency-palmer-vocational-joins.trycloudflare.com/auth/shopify/callback",
-  "https://agency-palmer-vocational-joins.trycloudflare.com/api/auth/callback"
+  "https://programmers-underwear-desirable-conduct.trycloudflare.com/auth/callback",
+  "https://programmers-underwear-desirable-conduct.trycloudflare.com/auth/shopify/callback",
+  "https://programmers-underwear-desirable-conduct.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

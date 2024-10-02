@@ -12,8 +12,8 @@ input_query = "src/run.graphql"
 export = "run"
 
 [extensions.input.variables]
-namespace = "$app:vd"
-key = "vd_config"
+namespace = "$app:pd"
+key = "pd_config"
 
 [extensions.build]
 command = ""
