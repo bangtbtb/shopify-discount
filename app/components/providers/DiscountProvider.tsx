@@ -6,13 +6,14 @@ import "@shopify/discount-app-components/build/esm/styles.css";
 
 export function DiscountProvider({ children }: PropsWithChildren) {
   const [bridge, setBridge] = useState<ShopifyGlobal | null>(null);
-  const [tz, setTZ] = useState("America/Toronto");
+  const [tz, setTZ] = useState(
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  );
 
   useEffect(() => {
     if (!bridge) {
       var curBridge = useAppBridge();
       setBridge(curBridge);
-      setTZ(Intl.DateTimeFormat().resolvedOptions().timeZone);
     }
   }, []);
 

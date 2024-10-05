@@ -20,10 +20,13 @@ type GetFuncRequest = {
   apiType?: FuncType;
 };
 
-var mapFuncType = new Map<FuncType, ADT>([
-  ["product_discounts", "Volume"],
-  ["order_discounts", "Bundle"],
-  ["shipping_discounts", "Shipping"],
+var mapFuncType = new Map<ADT, FuncType>([
+  ["Volume", "product_discounts"],
+  ["Recommend", "product_discounts"],
+  ["Total", "order_discounts"],
+  ["Bundle", "order_discounts"],
+  ["ShippingVolume", "shipping_discounts"],
+  ["ShippingTotal", "shipping_discounts"],
 ]);
 
 export type GQLDiscountResponse = Maybe<
@@ -68,8 +71,7 @@ export type GqlCreateDiscountRequest = {
   discount: DiscountAutomaticAppInput;
   metafield: MetafieldInput;
   label: string;
-  ftype: FuncType;
-  subType: string;
+  type: ADT;
   productIds: string[];
   collIds: string[];
   shop: string;
@@ -82,8 +84,13 @@ export async function gqlCreateDiscount(
   graphql: GraphQLClient<AdminOperations>,
   req: GqlCreateDiscountRequest,
 ) {
+  const fType = mapFuncType.get(req.type);
+  if (!fType) {
+    return null;
+  }
+
   var funcs = await gqlGetFunction(graphql, {
-    apiType: req.ftype,
+    apiType: fType,
   });
 
   if (!funcs?.length) {
@@ -141,8 +148,7 @@ export async function gqlCreateDiscount(
       status: rsDiscount.status,
       title: rsDiscount.title ?? "",
       label: req.label,
-      type: mapFuncType.get(req.ftype) ?? "None",
-      subType: req.subType,
+      type: req.type,
       startAt: new Date(rsDiscount.startsAt),
       endAt: rsDiscount.endsAt ? new Date(rsDiscount.endsAt) : null,
       createdAt: new Date(),
@@ -235,7 +241,6 @@ export async function gqlUpdateDiscount(
     await dbUpdateDiscount(rsDiscount.discountId, {
       title: rsDiscount.title,
       status: rsDiscount.status,
-      subType: req.subType,
       metafield: req.config.value ?? undefined,
       collectionIds: req.collIds ? req.collIds : [],
       productIds: req.productIds ? req.productIds : [],
@@ -246,10 +251,82 @@ export async function gqlUpdateDiscount(
   return rs;
 }
 
+export type GqlDiscountChangeStatusRequest = {
+  discountId: string; // Not gql id
+  shop: string;
+  isActive: boolean;
+  startsAt: string;
+  endsAt?: string;
+};
+
+export async function gqlDiscountChangeStatus(
+  graphql: GraphQLClient<AdminOperations>,
+  req: GqlDiscountChangeStatusRequest,
+) {
+  var now = new Date();
+  var nowTime = now.getTime();
+  var startsAtDate = new Date(req.startsAt);
+  var endsAtDate = req.endsAt ? new Date(req.endsAt) : null;
+
+  if (req.isActive) {
+    if (startsAtDate.getTime() > nowTime) startsAtDate = now;
+    if (endsAtDate && endsAtDate?.getTime() <= nowTime) {
+      endsAtDate = null;
+    }
+  } else {
+    endsAtDate = now;
+  }
+
+  const resp = await graphql(
+    `
+      #graphql
+      mutation gqlDiscountChangeStatus(
+        $id: ID!
+        $data: DiscountAutomaticAppInput!
+      ) {
+        discountAutomaticAppUpdate(id: $id, automaticAppDiscount: $data) {
+          automaticAppDiscount {
+            discountId
+            startsAt
+            endsAt
+            status
+          }
+          userErrors {
+            code
+            field
+            message
+            extraInfo
+          }
+        }
+      }
+    `,
+    {
+      variables: {
+        id: `gid://shopify/DiscountAutomaticNode/${req.discountId}`,
+        data: {
+          startsAt: startsAtDate,
+          endsAt: endsAtDate,
+        } as DiscountAutomaticAppInput,
+      },
+    },
+  );
+
+  const respJson = await resp.json();
+  var rs = respJson.data?.discountAutomaticAppUpdate;
+  const rsDiscount = rs?.automaticAppDiscount;
+  if (!rs?.userErrors.length && rsDiscount) {
+    await dbUpdateDiscount(rsDiscount.discountId, {
+      status: rsDiscount.status,
+      startAt: new Date(rsDiscount.startsAt),
+      endAt: rsDiscount.endsAt ? new Date(rsDiscount.endsAt) : null,
+    });
+  }
+  return rs;
+}
+
 export async function gqlGetDiscount(
   graphql: GraphQLClient<AdminOperations>,
   discountId: string,
-  namespace: string | undefined,
 ) {
   var resp = await graphql(
     `
@@ -291,7 +368,7 @@ export async function gqlGetDiscount(
     {
       variables: {
         id: `gid://shopify/DiscountAutomaticNode/${discountId}`,
-        namespace: namespace,
+        namespace: "$app:beepify",
       },
     },
   );

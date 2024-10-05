@@ -7,24 +7,28 @@ import { DiscountAutomaticAppInput } from "~/types/admin.types";
 import { ODConfigExt } from "~/models/od_models";
 import { Button } from "@shopify/polaris";
 import {
-  AttachedProductThemeEditor,
-  AttachedProductThemePreview,
-  defaultAttacedBundleTheme,
-} from "./AttachedProductTheme";
+  defaultRecommendedTheme,
+  RecommendedThemeEditor,
+  RecommendedThemePreview,
+} from "./RecommendedTheme";
 import { useField } from "@shopify/react-form";
 import {
   CombinableDiscountTypes,
   DateTime,
 } from "@shopify/discount-app-components";
-import { checkFormArray, checkFormNumber, checkFormString } from "../Common";
 import { DiscountValue, ODConfig } from "~/defs/discount";
 import { ProductInfo } from "../Shopify/SelectProduct";
 import { useState } from "react";
+import {
+  checkFormArray,
+  checkFormNumber,
+  checkFormString,
+} from "../Common/FormChecker";
 
 type AttachedProductDetailProps = {
   isCreate?: boolean;
   disableSetting?: boolean;
-  discount?: SerializeFrom<DiscountAutomaticAppInput>;
+  discount?: SerializeFrom<DiscountAutomaticAppInput> | null;
   config?: SerializeFrom<ODConfigExt>;
   onSubmit?: (
     discount: DiscountAutomaticAppInput,
@@ -36,14 +40,16 @@ type AttachedProductDetailProps = {
   // errors?: BundleComponentErrors;
 };
 
-export function AttachedProductDetail({
+export function RecommendedDetail({
   isCreate,
   disableSetting,
   discount,
   config,
   onSubmit,
 }: AttachedProductDetailProps) {
-  const title = useField<string>(discount?.title || "Bund product offer");
+  const title = useField<string>(
+    discount?.title || "Recommended product offer",
+  );
   const startDate = useField<DateTime>(
     discount?.startsAt || new Date().toString(),
   );
@@ -60,7 +66,7 @@ export function AttachedProductDetail({
     value: 10,
   }); // Discount value
 
-  const [theme, setTheme] = useState(defaultAttacedBundleTheme);
+  const [theme, setTheme] = useState(defaultRecommendedTheme);
   const onChangeTheme = (k: string, v: any) => {
     setTheme({
       ...theme,
@@ -145,7 +151,7 @@ export function AttachedProductDetail({
   return (
     <DiscountEditorPreviewLayout
       preview={
-        <AttachedProductThemePreview
+        <RecommendedThemePreview
         // titleContent={title.value}
         // content={{
         //   button: buttonContent.value,
@@ -184,7 +190,7 @@ export function AttachedProductDetail({
         />
       )}
 
-      <AttachedProductThemeEditor
+      <RecommendedThemeEditor
       //  onChangeTheme={onChangeTheme} {...theme}
       />
     </DiscountEditorPreviewLayout>

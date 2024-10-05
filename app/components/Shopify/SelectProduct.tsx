@@ -131,6 +131,7 @@ export function SelectMultipleProducts({
     var ids = products.map((v) => ({
       id: v.id,
     }));
+    // console.log("Open resource picker");
 
     const selecteds = await shopify.resourcePicker({
       type: "product",

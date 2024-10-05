@@ -3,6 +3,7 @@ import shajs from "sha.js";
 import { SeriesDateDP, SeriesDP } from "../defs/gui";
 import { format } from "date-fns";
 import { convertDate } from "./utils";
+import { DiscountAnalytics } from "@prisma/client";
 
 type DateGroup = "day" | "week" | "month" | "annual";
 
@@ -43,6 +44,43 @@ export async function dbIncreaseView(req: RDbIncreaseView) {
   return resp;
 }
 
+type RDbIncreaseClick = {
+  shop: string;
+  discountId: string;
+  createdAt?: Date;
+};
+
+export async function dbIncreaseClick(req: RDbIncreaseClick) {
+  var ca = req.createdAt || new Date();
+  var id = shajs("SHA")
+    .update(`${req.discountId}-${format(ca, "yyyy-MM-dd")}`)
+    .digest("base64");
+
+  var resp = await db.discountAnalytics.upsert({
+    update: {
+      id: id,
+      discountId: req.discountId,
+      views: {
+        increment: 1,
+      },
+    },
+    create: {
+      id: id,
+      shop: req.shop,
+      discountId: req.discountId,
+      views: 0,
+      addCart: 1,
+      createdAt: ca,
+    },
+
+    where: {
+      id: id,
+      discountId: req.discountId,
+    },
+  });
+  return resp;
+}
+
 type RDbGetDiscountView = {
   groupInterval: DateGroup;
   discountId: string;
@@ -51,10 +89,18 @@ type RDbGetDiscountView = {
   to: Date; // yyyy-mm-dd
 };
 
-export async function dbGetDiscountView(req: RDbGetDiscountView) {
-  var data: SeriesDateDP[] = await db.$queryRaw`
+export type Analytics = {
+  views: bigint;
+  addCart: bigint;
+  date: string;
+};
+
+export async function dbGetDiscountAnalytics(
+  req: RDbGetDiscountView,
+): Promise<Analytics[]> {
+  var data: DiscountAnalytics[] = await db.$queryRaw`
     WITH tbl AS (
-          SELECT "views",
+          SELECT "views", "addCart",
                 DATE_TRUNC(${req.groupInterval}, "createdAt") as "createdAt"
           FROM "DiscountAnalytics"
           WHERE "shop" = ${req.shop} AND
@@ -63,15 +109,17 @@ export async function dbGetDiscountView(req: RDbGetDiscountView) {
                 "discountId" = ${req.discountId}
     )
 
-    SELECT  SUM("views") as "data", 
-           "createdAt" as "date"
+    SELECT  SUM("views") as "views", 
+            SUM("addCart") as "addCart", 
+           "createdAt" 
     FROM tbl
     GROUP BY "createdAt"
     ORDER BY "createdAt"`;
 
   return data.map((v) => ({
-    ...v,
-    date: convertDate(v.date, req.groupInterval),
+    views: v.views,
+    addCart: v.addCart,
+    date: convertDate(v.createdAt, req.groupInterval),
   }));
 }
 
@@ -82,10 +130,12 @@ type RDbGetShopDiscountView = {
   to: Date; // yyyy-mm-dd
 };
 
-export async function dbGetShopDiscountView(req: RDbGetShopDiscountView) {
-  var data: SeriesDateDP[] = await db.$queryRaw`
+export async function dbGetShopDiscountAnalytics(
+  req: RDbGetShopDiscountView,
+): Promise<Analytics[]> {
+  var data: DiscountAnalytics[] = await db.$queryRaw`
     WITH tbl AS (
-          SELECT "views",
+          SELECT "views", "addCart",
                 DATE_TRUNC(${req.groupInterval}, "createdAt") as "createdAt"
           FROM "DiscountAnalytics"
           WHERE "shop" = ${req.shop} AND
@@ -93,14 +143,19 @@ export async function dbGetShopDiscountView(req: RDbGetShopDiscountView) {
                 "createdAt" < ${req.to}
     )
 
-    SELECT  SUM("views") as "data", 
-           "createdAt" as "date"
+    SELECT  SUM("views") as "views", 
+            SUM("addCart") as "addCart", 
+           "createdAt"
     FROM tbl
     GROUP BY "createdAt"
     ORDER BY "createdAt"`;
 
-  return data.map((v) => ({
-    ...v,
-    date: convertDate(v.date, req.groupInterval),
-  }));
+  return data.map(
+    (v) =>
+      ({
+        views: v.views,
+        addCart: v.addCart,
+        date: convertDate(v.createdAt, req.groupInterval),
+      }) as Analytics,
+  );
 }

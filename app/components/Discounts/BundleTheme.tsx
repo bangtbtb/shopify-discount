@@ -27,6 +27,8 @@ import {
 } from "~/defs/theme";
 import { initArray } from "~/models/utils";
 import { BoxBorderBound, CardCollapse } from "~/components/Common";
+import { CountdownTimer } from "../Common/CountDown";
+import { ClientOnly } from "remix-utils/client-only";
 
 export type ProductInfoBundle = ProductInfo & { requireVol: number };
 
@@ -34,7 +36,7 @@ export const defaultBundleTheme: BundleThemeConfig = {
   title: {
     color: "#1B1B1B",
     size: 16,
-    weight: "700",
+    weight: "600",
   },
   product: {
     frame: {
@@ -44,12 +46,12 @@ export const defaultBundleTheme: BundleThemeConfig = {
     name: {
       color: "#1B1B1B",
       size: 14,
-      weight: "400",
+      weight: "600",
     },
     price: {
       color: "#1B1B1B",
-      size: 16,
-      weight: "700",
+      size: 18,
+      weight: "600",
     },
   },
   total: {
@@ -64,12 +66,12 @@ export const defaultBundleTheme: BundleThemeConfig = {
     },
     price: {
       color: "#008060",
-      size: 18,
+      size: 20,
       weight: "700",
     },
     comparePrice: {
-      color: "#e93636",
-      size: 14,
+      color: "#616161",
+      size: 13,
       weight: "400",
     },
   },
@@ -288,41 +290,55 @@ export function BundleThemePreview({
         padding: "20px",
         borderRadius: "0.5rem",
         backgroundColor: "#fff",
+        overflow: "hidden",
       }}
     >
+      <div className="diagonal">
+        <span>
+          {`${discount.value}${discount.type === "percent" ? "%" : "$"}`} OFF
+        </span>
+      </div>
+
       {/* Header */}
       <RenderTextTheme
         as="h3"
-        align="center"
+        align="left"
         children={titleContent}
         {...title}
       />
 
+      <ClientOnly fallback={null}>
+        {() => (
+          <div className="flex_row" style={{ alignItems: "center" }}>
+            <span
+              style={{
+                width: "fit-content",
+                fontSize: "20px",
+                fontWeight: 600,
+              }}
+            >
+              Expires in
+            </span>
+
+            <CountdownTimer
+              // style={{ flexGrow: 1 }}
+              initTime={1728197362 * 1000}
+            />
+          </div>
+        )}
+      </ClientOnly>
+
       {/* Products */}
       {products?.length ? (
-        products.map((pinfo, idx) =>
-          idx === products.length - 1 ? (
-            <BundleProductPreview
-              key={idx}
-              price={prices[idx]}
-              priceDiscount={discountPrices[idx]}
-              product={pinfo}
-              productTheme={product}
-              onChangePricing={(newPrice) => onPriceChange(newPrice, idx)}
-            />
-          ) : (
-            <div key={idx}>
-              <BundleProductPreview
-                price={prices[idx]}
-                priceDiscount={discountPrices[idx]}
-                product={pinfo}
-                productTheme={product}
-                onChangePricing={(newPrice) => onPriceChange(newPrice, idx)}
-              />
-              <Icon source={PlusIcon} />
-            </div>
-          ),
-        )
+        products.map((pinfo, idx) => (
+          <BundleProductPreview
+            price={prices[idx]}
+            priceDiscount={discountPrices[idx]}
+            product={pinfo}
+            productTheme={product}
+            onChangePricing={(newPrice) => onPriceChange(newPrice, idx)}
+          />
+        ))
       ) : (
         <Box>
           <Box minHeight="80px"></Box>
@@ -352,7 +368,6 @@ export function BundleThemePreview({
           </div>
         </div>
       </RenderFrame>
-
       {/* Add to cart button */}
       <RenderBundleButton
         content={content.button}
@@ -404,7 +419,10 @@ export function BundleProductPreview({
 
   return (
     <RenderFrame {...productTheme.frame}>
-      <div className="flex_row" style={{ padding: "0.75rem", gap: "1rem" }}>
+      <div
+        className="flex_row"
+        style={{ padding: "0.75rem", gap: "1rem", flexWrap: "nowrap" }}
+      >
         {/* Image */}
         <div style={{ minWidth: "92px", height: "71px" }}>
           <img className="fit_img" src={product.image} alt="" />
@@ -423,10 +441,31 @@ export function BundleProductPreview({
 
           <div
             className="flex_row"
-            style={{ justifyContent: "start", flexWrap: "wrap" }}
+            style={{
+              justifyContent: "start",
+              alignItems: "flex-end",
+              flexWrap: "wrap",
+            }}
           >
-            <span className="product_title">{`x ${product.requireVol}`}</span>
+            {product.variants.length > 1 && (
+              <span className="product_title">{`x ${product.requireVol}`}</span>
+            )}
 
+            {/* Price */}
+            <div
+              className="flex_column"
+              style={{
+                width: "fit-content",
+                textAlign: "right",
+              }}
+            >
+              <RenderTextTheme as="p" {...productTheme.price}>
+                {priceDiscount}
+              </RenderTextTheme>
+            </div>
+          </div>
+
+          <div className="flex_row" style={{ justifyContent: "start" }}>
             {product.variants.length > 1 &&
               variants.map((vari, idx) => (
                 <Select
@@ -456,19 +495,6 @@ export function BundleProductPreview({
                 />
               ))}
           </div>
-        </div>
-
-        {/* Price */}
-        <div
-          className="flex_column"
-          style={{ width: "fit-content", height: "71px", textAlign: "right" }}
-        >
-          <RenderTextTheme
-            as="p"
-            children={priceDiscount}
-            {...productTheme.price}
-          />
-          <span className="old_price">{price}</span>
         </div>
       </div>
     </RenderFrame>

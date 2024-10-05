@@ -14,18 +14,15 @@ import { ProductInfo, SelectMultipleProducts } from "../Shopify/SelectProduct";
 import { PDApplyType } from "~/defs/discount";
 import { StepComponent, StepData } from "./ConfigStep";
 import { CardCollapse } from "~/components/Common";
+import { useState } from "react";
 
 interface VBConfigCardProps {
-  applyType: Field<PDApplyType>;
   colls: Field<Array<CollectionInfo>>;
   products: Field<Array<ProductInfo>>;
 }
 
-export function PDConfigCard({
-  applyType,
-  colls,
-  products,
-}: VBConfigCardProps) {
+export function PDConfigCard({ colls, products }: VBConfigCardProps) {
+  const [useProduct, setUseProduct] = useState(products.value.length == 0);
   return (
     <Card>
       <Text as="h3" fontWeight="bold">
@@ -36,16 +33,24 @@ export function PDConfigCard({
         <InlineStack aria-rowcount={2}>
           <Select
             label="Apply for"
-            value={applyType.value}
+            value={useProduct ? "p" : "c"}
             options={[
-              { label: "Products", value: "products" },
-              { label: "Collections", value: "collection" },
+              { label: "Products", value: "p" },
+              { label: "Collections", value: "c" },
             ]}
-            onChange={(v) => applyType.onChange(v as PDApplyType)}
+            onChange={(v) => {
+              if (v === "products") {
+                colls.onChange([]);
+                setUseProduct(true);
+              } else {
+                products.onChange([]);
+                setUseProduct(false);
+              }
+            }}
           />
           <Box minWidth="16px" />
 
-          {applyType.value === "products" ? (
+          {useProduct ? (
             <SelectMultipleProducts
               label="Select target"
               products={products.value}

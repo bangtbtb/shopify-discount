@@ -9,6 +9,7 @@ import {
   gqlUpdateDiscount,
 } from "./gql_discount";
 import { ProductInfoBundle } from "~/components/Discounts/BundleTheme";
+import { splitGQLId } from "./utils_id";
 
 export type ODConfigExt = ODConfig & {
   id: string;
@@ -35,17 +36,16 @@ export async function createBundleDiscount(
   var resp = await gqlCreateDiscount(graphql, {
     discount: req.discount,
     metafield: {
-      namespace: "$app:od",
+      namespace: "$app:beepify",
       key: "od_config",
       type: "json",
       value: JSON.stringify(req.config),
     },
-    ftype: "order_discounts",
+    type: req.config.applyType === "bundle" ? "Bundle" : "Total",
     label: req.config.label,
-    subType: req.config.applyType,
     shop: req.shop,
     productIds: req.config.bundle?.productIds
-      ? req.config.bundle?.productIds
+      ? req.config.bundle?.productIds.map((v) => splitGQLId(v))
       : [],
     collIds: [],
     theme: req.theme,
@@ -72,7 +72,7 @@ export async function updateBundleDiscount(
     label: req.config.label,
     subType: req.config.applyType,
     productIds: req.config.bundle?.productIds
-      ? req.config.bundle?.productIds
+      ? req.config.bundle?.productIds.map((v) => splitGQLId(v))
       : [],
     collIds: [],
   });
@@ -84,7 +84,7 @@ export async function getBundleDiscount(
   graphql: GraphQLClient<AdminOperations>,
   { discountId }: GetODRequest,
 ) {
-  var discount = await gqlGetDiscount(graphql, discountId, "$app:od");
+  var discount = await gqlGetDiscount(graphql, discountId);
 
   var metafield = discount?.metafields?.nodes[0];
   var config: ODConfigExt = {

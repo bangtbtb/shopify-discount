@@ -37,7 +37,7 @@ import { EasyTab } from "../Common/Tab";
 type VolumeDiscountComponentProps = {
   isCreate?: boolean;
   disableSetting?: boolean;
-  discount?: SerializeFrom<DiscountAutomaticAppInput>;
+  discount?: SerializeFrom<DiscountAutomaticAppInput> | null;
   rawConfig?: string;
   onSubmit?: (
     discount: DiscountAutomaticAppInput,
@@ -47,7 +47,7 @@ type VolumeDiscountComponentProps = {
   ) => void;
 };
 
-export function VolumeDiscountComponent(props: VolumeDiscountComponentProps) {
+export function VolumeDiscountDetail(props: VolumeDiscountComponentProps) {
   const title = useField<string>("Volume Discount Offer");
   const buttonContent = useField<string>("Add To Cart");
   const startDate = useField<DateTime>(new Date().toString());

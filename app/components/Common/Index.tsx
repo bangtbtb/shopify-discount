@@ -10,7 +10,7 @@ import {
   Text,
 } from "@shopify/polaris";
 import { XIcon } from "@shopify/polaris-icons";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { BsChevronDown, BsChevronUp } from "react-icons/bs";
 import { randomDigit } from "~/models/utils";
 import { DiscountValue } from "~/defs/discount";
@@ -125,21 +125,6 @@ export function Removeable({ index, children, onRemove }: RemoveableProps) {
   );
 }
 
-interface ActionComponentProps {
-  children?: React.ReactNode;
-  actions?: React.ReactElement[];
-}
-
-export function ActionComponent({ children, actions }: ActionComponentProps) {
-  return (
-    <InlineStack align="space-between" gap={"200"}>
-      {children}
-
-      <InlineGrid alignItems="center">{actions}</InlineGrid>
-    </InlineStack>
-  );
-}
-
 type MidlineProps = React.CSSProperties & {
   content?: string | React.ReactElement;
 };
@@ -154,72 +139,18 @@ export function Midline(props: MidlineProps) {
   );
 }
 
-export function checkFormString(label: string, value?: string | null) {
-  if (!value) {
-    shopify.toast.show(`${label} is required`, {
-      duration: 5000,
-      isError: true,
-    });
-    return false;
-  }
-  return true;
-}
-
-export function checkFormNumber(
-  label: string,
-  value?: number | null,
-  min?: number,
-  max?: number,
-) {
-  if ((value || 0) < (min || 1)) {
-    shopify.toast.show(`${label}`, {
-      duration: 5000,
-      isError: true,
-    });
-    return false;
-  }
-  if (max && (value ?? 0) > max) {
-    shopify.toast.show(`${label}`, {
-      duration: 5000,
-      isError: true,
-    });
-    return false;
-  }
-
-  return true;
-}
-
-export function checkFormArray<T extends any>(
-  label: string,
-  value?: Array<T> | null,
-  min?: number,
-  max?: number,
-) {
-  if ((value?.length || 0) < (min || 1)) {
-    shopify.toast.show(`${label}`, {
-      duration: 5000,
-      isError: true,
-    });
-    return false;
-  }
-
-  if (max && (value?.length ?? 0) > max) {
-    shopify.toast.show(`${label}`, {
-      duration: 5000,
-      isError: true,
-    });
-    return false;
-  }
-  return true;
-}
-
-export function checkDiscountValue(label: string, dval: DiscountValue) {
-  if (dval.type === "fix") {
-    return checkFormNumber(label, dval.value);
-  }
-  return checkFormNumber(label, dval.value);
-}
-
 // export function BlockIcon(params:type) {
 
 // }
+
+type ActionListProps = {
+  children?: React.ReactElement[];
+};
+
+export function IconActionList(props: ActionListProps) {
+  return (
+    <InlineStack gap={"200"} aria-colcount={props.children?.length}>
+      {props.children}
+    </InlineStack>
+  );
+}

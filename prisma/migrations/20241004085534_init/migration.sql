@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Discount" ADD COLUMN     "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP;

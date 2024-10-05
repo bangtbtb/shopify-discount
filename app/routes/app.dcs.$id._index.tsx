@@ -37,7 +37,7 @@ import {
   getAggregateApplied,
   getDiscountApplieds,
 } from "~/models/db_applied";
-import { dbGetDiscountView } from "~/models/db_dc_view";
+import { dbGetShopDiscountAnalytics } from "~/models/db_dc_analytics";
 import { dbGetDiscount } from "~/models/db_discount";
 import { dayDuration, defaultPageSize } from "~/models/utils";
 import { authenticate } from "~/shopify.server";
@@ -70,8 +70,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     wTheme: true,
   });
 
-  const discountView = await dbGetDiscountView({
-    discountId: id,
+  const discountView = await dbGetShopDiscountAnalytics({
     from: from,
     to: now,
     groupInterval: "day",
@@ -226,10 +225,10 @@ export default function DiscountDetailPage(props: any) {
             columns={{ xs: 1, sm: 1, md: 3, lg: 3, xl: 3 }}
           >
             <Card>
-              <LineDataPointChart
+              {/* <LineDataPointChart
                 data={discountView || []}
                 title="Discount View"
-              />
+              /> */}
             </Card>
 
             <Card>

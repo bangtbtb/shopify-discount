@@ -1,3 +1,4 @@
+import { ADT } from "@prisma/client";
 import { format } from "date-fns";
 
 (BigInt.prototype as any).toJSON = function () {

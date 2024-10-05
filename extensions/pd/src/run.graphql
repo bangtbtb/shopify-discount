@@ -22,7 +22,7 @@ query RunInput($collIds: [ID!]) {
     }
   }
   discountNode {
-    metafield(namespace: "$app:pd", key: "pd_config") {
+    metafield(namespace: "$app:beepify", key: "pd_config") {
       value
     }
   }

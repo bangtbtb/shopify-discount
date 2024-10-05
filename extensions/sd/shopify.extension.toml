@@ -8,7 +8,7 @@ type = "function"
 
 
 [extensions.input.variables]
-namespace = "$app:sd"
+namespace = "$app:beepify"
 key = "sd_config"
 
 [[extensions.targeting]]

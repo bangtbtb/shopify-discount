@@ -10,6 +10,7 @@ import {
 } from "./gql_discount";
 import { ProductInfo } from "~/components/Shopify/SelectProduct";
 import { CollectionInfo } from "~/components/Shopify/SelectCollection";
+import { splitGQLId } from "./utils_id";
 
 export type SDConfigExt = SDConfig & {
   id: string;
@@ -43,17 +44,20 @@ export async function createShippingDiscount(
   var resp = await gqlCreateDiscount(graphql, {
     discount: req.discount,
     metafield: {
-      namespace: "$app:sd",
+      namespace: "$app:beepify",
       key: "sd_config",
       type: "json",
       value: JSON.stringify(req.config),
     },
-    ftype: "shipping_discounts",
+    type: req.config.applyType == "total" ? "ShippingTotal" : "ShippingVolume",
     shop: req.shop,
     label: req.config.label,
-    subType: req.config.applyType,
-    productIds: req.config.productIds ? req.config.productIds : [],
-    collIds: req.config.collIds ? req.config.collIds : [],
+    productIds: req.config.productIds
+      ? req.config.productIds.map((v) => splitGQLId(v))
+      : [],
+    collIds: req.config.collIds
+      ? req.config.collIds.map((v) => splitGQLId(v))
+      : [],
     theme: req.theme,
     content: req.content,
     setting: req.setting,
@@ -71,8 +75,12 @@ export async function updateShippingDiscount(
     config: req.config,
     label: req.config.label,
     subType: req.config.applyType,
-    productIds: req.config.productIds ? req.config.productIds : [],
-    collIds: req.config.collIds ? req.config.collIds : [],
+    productIds: req.config.productIds
+      ? req.config.productIds.map((v) => splitGQLId(v))
+      : [],
+    collIds: req.config.collIds
+      ? req.config.collIds.map((v) => splitGQLId(v))
+      : [],
   });
   // console.log("Config value: ", req.config);
   console.log("Response update shipping discount: ", respJson);
@@ -83,7 +91,7 @@ export async function getShippingDiscount(
   graphql: GraphQLClient<AdminOperations>,
   { discountId }: GetSDRequest,
 ) {
-  var discount = await gqlGetDiscount(graphql, discountId, "$app:sd");
+  var discount = await gqlGetDiscount(graphql, discountId);
   var metafield = discount?.metafields?.nodes[0];
   var config: SDConfigExt = {
     id: metafield?.id,
@@ -91,6 +99,7 @@ export async function getShippingDiscount(
     collections: [],
     ...JSON.parse(metafield?.value ?? "{}"),
   };
+
   for (const pid of config.productIds ?? []) {
     var pinfo = await getSimleProductInfo(graphql, pid);
     pinfo && config.products.push(pinfo);

@@ -9,7 +9,7 @@ import { DiscountAutomaticAppInput } from "~/types/admin.types";
 type SDVolumeDetailProps = {
   isCreate?: boolean;
   disableSetting?: boolean;
-  discount?: SerializeFrom<DiscountAutomaticAppInput>;
+  discount?: SerializeFrom<DiscountAutomaticAppInput> | null;
   onSubmit?: (
     discount: DiscountAutomaticAppInput,
     config: any,

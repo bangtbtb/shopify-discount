@@ -19,6 +19,7 @@ export async function createOrder(
     db.orders.create({
       data: {
         ...data,
+        wasApplied: !!dApplieds?.length,
         applied: dApplieds
           ? {
               create: dApplieds,
@@ -26,7 +27,6 @@ export async function createOrder(
           : undefined,
       },
     }),
-
     db.billCheckpoint.upsert({
       update: {
         shop: data.shop,
@@ -47,6 +47,7 @@ export async function createOrder(
       },
     }),
   ]);
+
   return { order: resp[0], billCheckpoint: resp[1] };
 }
 
@@ -72,7 +73,7 @@ export type OrdersReport = {
 };
 
 export async function getOrdersReport(req: OrdersReportRequest) {
-  var resp: RawOrdersReport[] = await db.$queryRaw`
+  var data: RawOrdersReport[] = await db.$queryRaw`
   WITH tbl AS (
         SELECT "subTotal", "wasApplied",
               DATE_TRUNC(${req.groupInterval}, "createdAt") as "createdAt"
@@ -90,7 +91,12 @@ export async function getOrdersReport(req: OrdersReportRequest) {
   GROUP BY "createdAt", "wasApplied" 
   ORDER BY "createdAt"`;
 
-  return convertOrderReport(resp, req.groupInterval);
+  var rs: OrdersReport[] = data.map((v) => ({
+    ...v,
+    date: convertDate(v.date, req.groupInterval),
+  }));
+
+  return rs;
 }
 
 type GetOrdersRequest = {
@@ -215,12 +221,4 @@ export async function getDiscountApplieds(
   ]);
 
   return { total: data[0], applies: data[1] };
-}
-
-function convertOrderReport(data: RawOrdersReport[], interval: DateGroup) {
-  var rs: OrdersReport[] = data.map((v) => ({
-    ...v,
-    date: convertDate(v.date, interval),
-  }));
-  return rs;
 }

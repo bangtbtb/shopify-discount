@@ -119,22 +119,6 @@ export function ColorPickerField(props: ColorPickerFieldProps) {
         />
       </Box>
 
-      {/* <Modal
-        open={showEditor}
-        title="Select color"
-        onClose={() => setShowEditor(false)}
-      >
-        <ColorPickerExtend
-          allowAlpha
-          hex={props.hexColor.value}
-          color={color}
-          onChangeColor={(newColor, newHex) => {
-            setColor(newColor);
-            props.hexColor.onChange(newHex);
-          }}
-        />
-      </Modal> */}
-
       {showEditor && (
         <div
           style={{

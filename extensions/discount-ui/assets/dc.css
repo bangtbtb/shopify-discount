@@ -15,22 +15,15 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.5rem;
+}
 
-  .remain {
-    flex-grow: 1;
-  }
+.flex_row .remain {
+  flex-grow: 1;
 }
 
 .frame {
   border-width: 1px;
   border-radius: 6px;
-}
-
-.flex_row.elm {
-  gap: 12px;
-  padding: "20px";
-  border-radius: 0.5rem;
-  background-color: #fff;
 }
 
 .card_grey {

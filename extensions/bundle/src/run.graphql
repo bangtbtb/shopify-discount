@@ -20,7 +20,7 @@ query RunInput {
     }
   }
   discountNode {
-    metafield(namespace: "$app:od", key: "od_config") {
+    metafield(namespace: "$app:beepify", key: "od_config") {
       value
     }
   }

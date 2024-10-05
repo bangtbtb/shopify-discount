@@ -2,15 +2,17 @@ import {
   BlockStack,
   Box,
   Button,
+  CalloutCard,
   Card,
   Collapsible,
   Grid,
   Icon,
+  IconSource,
   InlineGrid,
   InlineStack,
   Text,
 } from "@shopify/polaris";
-import { DeliveryIcon } from "@shopify/polaris-icons";
+import { CheckSmallIcon, DeliveryIcon } from "@shopify/polaris-icons";
 import { TShirt } from "../Common/Icons";
 import { useNavigate } from "@remix-run/react";
 import { DiscountUseCaseDesc } from "~/defs/discount";
@@ -66,6 +68,52 @@ export function CreateDiscountCard(props: CreateDiscountCardProps) {
           </ColumnRevert>
         </InlineGrid>
       </BlockStack>
+    </Card>
+  );
+}
+
+type FunnelDiscountDescCardProps = {
+  title: string;
+
+  example?: string;
+  children?: React.ReactNode;
+  onPrimary?: () => void;
+  onSecondary?: () => void;
+};
+
+export function FunnelDiscountDescCard({
+  title,
+  example,
+  children,
+  onPrimary,
+  onSecondary,
+}: FunnelDiscountDescCardProps) {
+  return (
+    <Card>
+      <div className="Polaris-CalloutCard__Content">
+        <BlockStack gap={"200"}>
+          <Text as="h2" variant="headingSm">
+            {title}
+          </Text>
+          {children}
+
+          <p
+            className="Polaris-Text--root Polaris-Text--bodyMd"
+            style={{ fontStyle: "italic" }}
+          >
+            {example}
+          </p>
+
+          <InlineStack gap={"200"}>
+            <Button variant="primary" onClick={onPrimary}>
+              Creat Funnel
+            </Button>
+            {/* <Button variant="tertiary" onClick={onSecondary}>
+              Select Template
+            </Button> */}
+          </InlineStack>
+        </BlockStack>
+      </div>
     </Card>
   );
 }
@@ -260,5 +308,25 @@ export function ShippingVolumeBreakIllustratrion() {
         ]}
       />
     </BlockStack>
+  );
+}
+
+type TickedTextProps = {
+  text: string;
+};
+
+export function TickedText(props: TickedTextProps) {
+  return (
+    <InlineStack gap={"200"} align="start">
+      <Box>
+        <Icon source={CheckSmallIcon} tone="success" />
+      </Box>
+      <p
+        className="Polaris-Text--root Polaris-Text--bodyMd"
+        style={{ fontWeight: "550" }}
+      >
+        {props.text}
+      </p>
+    </InlineStack>
   );
 }

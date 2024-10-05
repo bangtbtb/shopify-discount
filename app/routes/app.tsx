@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 import { AppContextType } from "~/defs/fe";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
-import beepifyCss from "~/styles/beepify.scss?url";
+import beepifyCss from "~/styles/beepify.css?url";
 // import polarisStyles from "~/styles/polaris.css?url";
 
 export const links = () => [

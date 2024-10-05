@@ -1,4 +1,4 @@
-import { Discount } from "@prisma/client";
+import { ADT, Discount } from "@prisma/client";
 import {
   ActionFunctionArgs,
   json,
@@ -10,29 +10,40 @@ import { Page } from "@shopify/polaris";
 import { useState } from "react";
 import { BundleDetail } from "~/components/Discounts/Bundle";
 import { BundleTotalDetail } from "~/components/Discounts/BundleTotal";
+import { RecommendedDetail } from "~/components/Discounts/Recommended";
+import { SDTotalDetail } from "~/components/Discounts/SDTotal";
 import { SDVolumeDetail } from "~/components/Discounts/SDVolume";
-import { VolumeDiscountComponent } from "~/components/Discounts/Volume";
-import { DiscountTypeGUI } from "~/defs/discount";
+import { VolumeDiscountDetail } from "~/components/Discounts/Volume";
 import { dbGetDiscount } from "~/models/db_discount";
+import { gqlGetDiscount } from "~/models/gql_discount";
+import { getGraphqlDiscountId } from "~/models/utils_id";
 import { authenticate } from "~/shopify.server";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
   const id = params.id;
   if (!id) {
     return json(
-      { discount: null, theme: null },
+      { discount: null, theme: null, dType: "None" as ADT },
       { status: 400, statusText: "Bad request" },
     );
   }
-  var discount = await dbGetDiscount({
+  var orgDiscount = await dbGetDiscount({
     id: id,
     shop: session.shop,
     wTheme: true,
   });
 
-  return json({ discount, theme: discount?.Theme });
+  var gDiscount = orgDiscount
+    ? await gqlGetDiscount(admin.graphql, getGraphqlDiscountId(orgDiscount.id))
+    : null;
+
+  return json({
+    discount: gDiscount,
+    theme: orgDiscount?.Theme,
+    dType: orgDiscount?.type,
+  });
 };
 
 export const action = async ({}: ActionFunctionArgs) => {
@@ -40,8 +51,8 @@ export const action = async ({}: ActionFunctionArgs) => {
 };
 
 export default function DiscountEditThemePage() {
-  const { discount, theme } = useLoaderData<typeof loader>();
-  const [dcType] = useState(getDiscountGUIType(discount));
+  const { discount, theme, dType } = useLoaderData<typeof loader>();
+  const [dcType] = useState<ADT>(dType || "None");
 
   const [themeParsed, setThemeParsed] = useState(
     JSON.parse(theme?.content ?? "{}"),
@@ -56,7 +67,7 @@ export default function DiscountEditThemePage() {
 
   return (
     <Page title={`Edit Theme ${discount?.title}`}>
-      {dcType === "bundle" && (
+      {dcType === "Bundle" && (
         <BundleDetail
           isCreate={false}
           disableSetting={true}
@@ -64,31 +75,41 @@ export default function DiscountEditThemePage() {
           discount={{
             title: discount?.title,
           }}
+          gui={{
+            content: theme?.content ? JSON.parse(theme.content) : undefined,
+            theme: theme?.theme ? JSON.parse(theme.theme) : undefined,
+            setting: theme?.setting ? JSON.parse(theme.setting) : undefined,
+          }}
         />
       )}
-      {dcType === "total_order" && (
+      {dcType === "Total" && (
         <BundleTotalDetail
           isCreate={false}
           disableSetting={true}
           onSubmit={onSubmit}
         />
       )}
-      {dcType === "volume" && (
-        <VolumeDiscountComponent
+      {dcType === "Recommend" && (
+        <RecommendedDetail isCreate={true} onSubmit={onSubmit} />
+      )}
+
+      {dcType === "Volume" && (
+        <VolumeDiscountDetail
           isCreate={false}
           disableSetting={true}
           onSubmit={onSubmit}
         />
       )}
-      {dcType === "shipping_volume" && (
+
+      {dcType === "ShippingVolume" && (
         <SDVolumeDetail
           isCreate={false}
           disableSetting={true}
           onSubmit={onSubmit}
         />
       )}
-      {dcType === "shipping_total" && (
-        <VolumeDiscountComponent
+      {dcType === "ShippingTotal" && (
+        <SDTotalDetail
           isCreate={false}
           disableSetting={true}
           onSubmit={onSubmit}
@@ -96,24 +117,4 @@ export default function DiscountEditThemePage() {
       )}
     </Page>
   );
-}
-
-function getDiscountGUIType(
-  discount?: SerializeFrom<Discount> | null,
-): DiscountTypeGUI {
-  if (discount) {
-    switch (discount.type) {
-      case "Bundle":
-        return discount.subType == "bundle" ? "bundle" : "total_order";
-
-      case "Volume":
-        break;
-      case "Shipping":
-        break;
-      case "Bundle":
-        break;
-    }
-  }
-
-  return "bundle";
 }

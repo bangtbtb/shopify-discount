@@ -9,8 +9,7 @@ import {
   gqlGetDiscount,
   gqlUpdateDiscount,
 } from "./gql_discount";
-
-import { getSimleProductInfo, getSimpleCollection } from "./gql_resource";
+import { splitGQLId } from "./utils_id";
 
 export type PDConfigExt = PDConfig & {
   id: string;
@@ -49,20 +48,27 @@ export async function createVolumeDiscount(
   graphql: GraphQLClient<AdminOperations>,
   req: CreateVDRequest,
 ) {
+  if (!req.config.volume) {
+    throw new Error("Missing volume discount config in PDConfig", {});
+  }
+
   var resp = await gqlCreateDiscount(graphql, {
     discount: req.discount,
     metafield: {
-      namespace: "$app:pd",
+      namespace: "$app:beepify",
       key: "pd_config",
       type: "json",
       value: JSON.stringify(req.config),
     },
     label: req.config.label,
-    ftype: "product_discounts",
+    type: "Volume",
     shop: req.shop,
-    subType: req.config.applyType,
-    productIds: req.config.productIds ? req.config.productIds : [],
-    collIds: req.config.collIds ? req.config.collIds : [],
+    productIds: req.config.volume.productIds
+      ? req.config.volume.productIds.map((v) => splitGQLId(v))
+      : [],
+    collIds: req.config.volume.collIds
+      ? req.config.volume.collIds.map((v) => splitGQLId(v))
+      : [],
     theme: req.theme,
     content: req.content,
     setting: req.setting,
@@ -74,6 +80,9 @@ export async function updateVolumeDiscount(
   graphql: GraphQLClient<AdminOperations>,
   req: UpdateVDRequest,
 ) {
+  if (!req.config.volume) {
+    throw new Error("Missing volume discount config in PDConfig", {});
+  }
   const respJson = await gqlUpdateDiscount(graphql, {
     discountId: req.discountId,
     discount: req.discount,
@@ -83,8 +92,12 @@ export async function updateVolumeDiscount(
     },
     label: req.config.label,
     subType: req.config.applyType,
-    productIds: req.config.productIds ? req.config.productIds : [],
-    collIds: req.config.collIds ? req.config.collIds : [],
+    productIds: req.config.volume.productIds
+      ? req.config.volume.productIds.map((v) => splitGQLId(v))
+      : [],
+    collIds: req.config.volume.collIds
+      ? req.config.volume.collIds.map((v) => splitGQLId(v))
+      : [],
   });
   console.log("Response update volume discount: ", respJson);
   return respJson;
@@ -94,7 +107,7 @@ export async function getVolumeDiscount(
   graphql: GraphQLClient<AdminOperations>,
   { discountId }: GetVDRequest,
 ) {
-  var discount = await gqlGetDiscount(graphql, discountId, "$app:pd");
+  var discount = await gqlGetDiscount(graphql, discountId);
 
   var metafield = discount?.metafields?.nodes[0];
   var config: PDConfigExt = {
@@ -104,21 +117,21 @@ export async function getVolumeDiscount(
     ...JSON.parse(discount?.metafields?.nodes[0].value ?? "{}"),
   };
 
-  if (config.applyType === "collection" && config.collIds?.length) {
-    for (let i = 0; i < config.collIds?.length; i++) {
-      const collId = config.collIds[i];
-      var coll = await getSimpleCollection(graphql, collId);
-      coll && config.colls.push(coll);
-    }
-  }
+  // if (config.applyType === "collection" && config.collIds?.length) {
+  //   for (let i = 0; i < config.collIds?.length; i++) {
+  //     const collId = config.collIds[i];
+  //     var coll = await getSimpleCollection(graphql, collId);
+  //     coll && config.colls.push(coll);
+  //   }
+  // }
 
-  if (config.applyType === "products" && config.productIds?.length) {
-    for (let i = 0; i < config.productIds.length; i++) {
-      const pid = config.productIds[i];
-      var product = await getSimleProductInfo(graphql, pid);
-      product && config.products.push(product);
-    }
-  }
+  // if (config.applyType === "products" && config.productIds?.length) {
+  //   for (let i = 0; i < config.productIds.length; i++) {
+  //     const pid = config.productIds[i];
+  //     var product = await getSimleProductInfo(graphql, pid);
+  //     product && config.products.push(product);
+  //   }
+  // }
 
   return {
     config: config,

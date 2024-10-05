@@ -21,7 +21,7 @@ import { DiscountAutomaticAppInput } from "~/types/admin.types";
 type SDTotalDetailProps = {
   isCreate?: boolean;
   disableSetting?: boolean;
-  discount?: SerializeFrom<DiscountAutomaticAppInput>;
+  discount?: SerializeFrom<DiscountAutomaticAppInput> | null;
   onSubmit?: (
     discount: DiscountAutomaticAppInput,
     config: any,

@@ -12,7 +12,7 @@ input_query = "src/run.graphql"
 export = "run"
 
 [extensions.input.variables]
-namespace = "$app:pd"
+namespace = "$app:beepify"
 key = "pd_config"
 
 [extensions.build]

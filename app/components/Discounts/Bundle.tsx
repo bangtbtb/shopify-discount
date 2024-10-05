@@ -5,8 +5,9 @@ import {
   Tooltip,
   InlineGrid,
   Button,
+  InlineStack,
 } from "@shopify/polaris";
-import { DiscountValue, ODConfig } from "~/defs/discount";
+import { DiscountValue, DStatus, ODConfig } from "~/defs/discount";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
 import {
   BundleThemeEditor,
@@ -23,6 +24,7 @@ import {
   DiscountCommonEditor,
   DiscountEditorPreviewLayout,
   DiscountTypeSelect,
+  SelectDiscountStatus,
 } from "./DiscountCommon";
 import {
   CombinableDiscountTypes,
@@ -30,21 +32,21 @@ import {
 } from "@shopify/discount-app-components";
 import { Field, useField } from "@shopify/react-form";
 import {
-  CardCollapse,
   checkFormArray,
   checkFormNumber,
   checkFormString,
-} from "~/components/Common";
+} from "~/components/Common/FormChecker";
 import { SerializeFrom } from "@remix-run/node";
 import { BundleContent, GUIBundle } from "~/defs/theme";
 import { ODConfigExt } from "~/models/od_models";
+import { CardCollapse } from "../Common";
 
 // export type BundleComponentErrors = {};
 
 type BundleDetailProps = {
   isCreate?: boolean;
   disableSetting?: boolean;
-  discount?: SerializeFrom<DiscountAutomaticAppInput>;
+  discount?: SerializeFrom<DiscountAutomaticAppInput> | null;
   config?: SerializeFrom<ODConfigExt>;
   gui?: GUIBundle;
   onSubmit?: (
@@ -66,8 +68,9 @@ export function BundleDetail({
   onSubmit,
 }: BundleDetailProps) {
   const title = useField<string>(discount?.title || "Bund product offer");
-  const buttonContent = useField<string>(gui?.content.button || "Add To Cart");
-  const totalContent = useField<string>(gui?.content.total || "Total");
+  const status = useField<DStatus>("active");
+  const buttonContent = useField<string>(gui?.content?.button || "Add To Cart");
+  const totalContent = useField<string>(gui?.content?.total || "Total");
   const startDate = useField<DateTime>(
     discount?.startsAt || new Date().toString(),
   );
@@ -84,7 +87,7 @@ export function BundleDetail({
     value: 10,
   }); // Discount value
 
-  const [theme, setTheme] = useState(defaultBundleTheme);
+  const [theme, setTheme] = useState(gui?.theme || defaultBundleTheme);
   const onChangeTheme = (k: string, v: any) => {
     setTheme({
       ...theme,
@@ -149,6 +152,7 @@ export function BundleDetail({
     var themeContent: BundleContent = {
       button: buttonContent.value,
       total: totalContent.value,
+      shortDesc: "",
     };
 
     if (!checkFormString("Button Text is required", themeContent.button)) {
@@ -160,7 +164,6 @@ export function BundleDetail({
     }
 
     console.log("Check pass all");
-
     if (onSubmit) {
       onSubmit(discount, formConfig, themeConfig, JSON.stringify(themeContent));
     }
@@ -174,6 +177,7 @@ export function BundleDetail({
           content={{
             button: buttonContent.value,
             total: totalContent.value,
+            shortDesc: "",
           }}
           discount={dVal.value}
           theme={theme}
@@ -192,12 +196,16 @@ export function BundleDetail({
       {!disableSetting && (
         <BundleSettingCard
           title={title}
-          buttonContent={buttonContent}
-          totalContent={totalContent}
+          status={status}
           discount={dVal}
           products={products}
         />
       )}
+
+      <BundleThemeContentSetting
+        buttonContent={buttonContent}
+        totalContent={totalContent}
+      />
 
       {!disableSetting && (
         <DiscountCommonEditor
@@ -215,32 +223,28 @@ export function BundleDetail({
 
 type BundleSettingCardProps = {
   title: Field<string>;
-  buttonContent: Field<string>;
-  totalContent: Field<string>;
+  status: Field<DStatus>;
   discount: Field<DiscountValue>;
   products: Field<ProductInfoBundle[]>;
 };
 
 function BundleSettingCard({
   title,
-  buttonContent,
-  totalContent,
+  status,
   discount,
   products,
 }: BundleSettingCardProps) {
   return (
     <CardCollapse title="Bundle information" collapse>
       <BlockStack gap={"400"}>
-        <TextField label="Title" autoComplete="off" {...title} />
-
-        <InlineGrid columns={2} gap={"200"}>
-          <TextField
-            label="Button Text"
-            autoComplete="off"
-            {...buttonContent}
+        <InlineStack gap={"200"}>
+          <TextField label="Title" autoComplete="off" {...title} />
+          <SelectDiscountStatus
+            label="Status"
+            value={status.value}
+            onChange={status.onChange}
           />
-          <TextField label="Total text" autoComplete="off" {...totalContent} />
-        </InlineGrid>
+        </InlineStack>
 
         <DiscountTypeSelect
           label="Discount value"
@@ -255,7 +259,7 @@ function BundleSettingCard({
         />
 
         <SelectMultipleProducts
-          label="Bundle products"
+          label="Select products you want to sell together"
           products={products.value}
           onChange={(newPs) =>
             products.onChange(newPs.map((p) => ({ ...p, requireVol: 1 })))
@@ -300,6 +304,31 @@ function BundleSettingCard({
             ))}
           </BlockStack>
         </SelectMultipleProducts>
+      </BlockStack>
+    </CardCollapse>
+  );
+}
+
+type BundleThemeContentSettingProps = {
+  buttonContent: Field<string>;
+  totalContent: Field<string>;
+};
+
+function BundleThemeContentSetting({
+  buttonContent,
+  totalContent,
+}: BundleThemeContentSettingProps) {
+  return (
+    <CardCollapse title="Widget content" collapse>
+      <BlockStack gap={"400"}>
+        <InlineGrid columns={2} gap={"200"}>
+          <TextField
+            label="Button Text"
+            autoComplete="off"
+            {...buttonContent}
+          />
+          <TextField label="Total text" autoComplete="off" {...totalContent} />
+        </InlineGrid>
       </BlockStack>
     </CardCollapse>
   );

@@ -1,3 +1,4 @@
+import { getGraphqlProductId, splitGQLId } from "~/models/utils_id";
 import { ProductInfo } from "./SelectProduct";
 
 // Example:      loadProduct(["7256919801929", "7265339179081"]);
@@ -5,6 +6,11 @@ export async function bridgeLoadProduct(
   productIds: string[],
   nVariant?: number,
 ) {
+  var ids = productIds.map((v) => {
+    var idx = v.indexOf("gid:/");
+    return idx >= 0 ? splitGQLId(v) : v;
+  });
+
   const res = await fetch("shopify:admin/api/graphql.json", {
     method: "POST",
     body: JSON.stringify({

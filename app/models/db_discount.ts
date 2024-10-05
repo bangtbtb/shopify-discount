@@ -34,6 +34,30 @@ export async function dbUpdateThemeDiscount(
   });
 }
 
+export async function dbIncreaseTotalDiscount(id: string, total: number) {
+  return db.discount.update({
+    where: {
+      id: id,
+    },
+    data: {
+      total: {
+        increment: total,
+      },
+      updatedAt: new Date(),
+    },
+  });
+}
+
+export async function dbDiscountChangeStatus(
+  id: string,
+  shop: string,
+  isActive: boolean,
+) {
+  if (isActive) {
+  } else {
+  }
+}
+
 type RGetDiscountByLabel = {
   shop: string;
   label: string;
@@ -103,24 +127,36 @@ export async function dbFindBundleDiscount(req: RFindBunbleDiscount) {
       status: "ACTIVE",
       OR: [
         {
-          subType: "total",
+          productIds: {
+            has: req.productId,
+          },
         },
         {
-          subType: "contain",
-          OR: [
-            {
-              productIds: {
-                has: req.productId,
-              },
-            },
-            {
-              collectionIds: {
-                hasSome: req.collectionIds,
-              },
-            },
-          ],
+          collectionIds: {
+            hasSome: req.collectionIds,
+          },
         },
       ],
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 3,
+  });
+}
+
+type RFindTotalDiscount = {
+  shop: string;
+  productId: string;
+  collectionIds: string[];
+};
+
+export async function dbFindTotalDiscount(req: RFindBunbleDiscount) {
+  return await db.discount.findMany({
+    where: {
+      shop: req.shop,
+      type: "Total",
+      status: "ACTIVE",
     },
     orderBy: {
       createdAt: "desc",
@@ -135,30 +171,42 @@ type RFindShippingDiscount = {
   collectionIds: string[];
 };
 
-export async function dbFindShippingDiscount(req: RFindShippingDiscount) {
+export async function dbFindShippingTotalDiscount(req: RFindShippingDiscount) {
   return await db.discount.findMany({
     where: {
       shop: req.shop,
-      type: "Shipping",
+      type: "ShippingTotal",
+      status: "ACTIVE",
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 3,
+  });
+}
+
+type RFindShippingVolumeDiscount = {
+  shop: string;
+  productId: string;
+  collectionIds: string[];
+};
+
+export async function dbFindShippingVolumeDiscount(req: RFindShippingDiscount) {
+  return await db.discount.findMany({
+    where: {
+      shop: req.shop,
+      type: "ShippingVolume",
       status: "ACTIVE",
       OR: [
         {
-          subType: "total",
+          productIds: {
+            has: req.productId,
+          },
         },
         {
-          subType: "volume",
-          OR: [
-            {
-              productIds: {
-                has: req.productId,
-              },
-            },
-            {
-              collectionIds: {
-                hasSome: req.collectionIds,
-              },
-            },
-          ],
+          collectionIds: {
+            hasSome: req.collectionIds,
+          },
         },
       ],
     },

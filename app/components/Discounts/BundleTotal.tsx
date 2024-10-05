@@ -25,7 +25,7 @@ import { SerializeFrom } from "@remix-run/node";
 type BundleTotalDetailProps = {
   isCreate?: boolean;
   disableSetting?: boolean;
-  discount?: SerializeFrom<DiscountAutomaticAppInput>;
+  discount?: SerializeFrom<DiscountAutomaticAppInput> | null;
   onSubmit?: (
     discount: DiscountAutomaticAppInput,
     config: any,

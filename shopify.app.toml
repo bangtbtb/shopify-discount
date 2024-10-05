@@ -1,9 +1,9 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "59c7dbfbeefd1f11ba1aa85228d3700a"
-name = "Simple Discount"
+name = "Boostify Sell"
 handle = "sd-xxyy"
-application_url = "https://programmers-underwear-desirable-conduct.trycloudflare.com"
+application_url = "https://attending-howard-blacks-larry.trycloudflare.com"
 embedded = true
 
 [build]
@@ -21,9 +21,9 @@ scopes = "read_orders,read_products,unauthenticated_read_checkouts,unauthenticat
 
 [auth]
 redirect_urls = [
-  "https://programmers-underwear-desirable-conduct.trycloudflare.com/auth/callback",
-  "https://programmers-underwear-desirable-conduct.trycloudflare.com/auth/shopify/callback",
-  "https://programmers-underwear-desirable-conduct.trycloudflare.com/api/auth/callback"
+  "https://attending-howard-blacks-larry.trycloudflare.com/auth/callback",
+  "https://attending-howard-blacks-larry.trycloudflare.com/auth/shopify/callback",
+  "https://attending-howard-blacks-larry.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

@@ -8,7 +8,6 @@ import { json } from "@remix-run/node";
 import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
 import {
   Page,
-  Layout,
   Text,
   Card,
   InlineGrid,
@@ -16,40 +15,37 @@ import {
   InlineStack,
   Button,
   BlockStack,
-  CalloutCard,
   Icon,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { dbGetDiscounts } from "~/models/db_discount";
-import { DiscountTable } from "~/components/Discounts/DiscountTable";
+import { FunnelCustomTable } from "~/components/Discounts/FunnelTable";
 import { Discount } from "@prisma/client";
 import LineDataPointChart from "~/components/DiscountChart/LineDataPointChart";
 import {
-  OrderAppliedCounterChart,
   OrderAppliedValueChart,
   OrderReportParsed,
   parseOrderReports,
 } from "~/components/DiscountChart/OrderAppliedChart";
-import { getOrdersReport } from "~/models/db_applied";
+import { getOrdersReport, OrdersReport } from "~/models/db_applied";
 import { dayDuration } from "~/models/utils";
 import { format as dateFormat } from "date-fns";
-import { dbGetShopDiscountView } from "~/models/db_dc_view";
+import {
+  Analytics,
+  dbGetShopDiscountAnalytics,
+} from "~/models/db_dc_analytics";
 
-import EasyIcon from "public/assets/easy.svg";
 import { StatusActiveIcon, StatusIcon } from "@shopify/polaris-icons";
 import { SeriesDP } from "~/defs/gui";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
 
-  // const { searchParams } = new URL(request.url);
-  // const page = Number.parseInt(searchParams.get("page") || "") || 1;
-
   var now = new Date();
   var from = new Date();
   from.setTime(now.getTime() - 190 * dayDuration);
 
-  const discountView = await dbGetShopDiscountView({
+  const shopAnalytics = await dbGetShopDiscountAnalytics({
     from: from,
     to: now,
     groupInterval: "month",
@@ -71,7 +67,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return json({
     discounts,
     orderReport,
-    discountView,
+    shopAnalytics,
   });
 };
 
@@ -80,7 +76,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Index() {
-  const { discounts, discountView, orderReport } =
+  const { discounts, shopAnalytics, orderReport } =
     useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const nav = useNavigate();
@@ -90,82 +86,25 @@ export default function Index() {
   //   ["loading", "submitting"].includes(fetcher.state) &&
   //   fetcher.formMethod === "POST";
 
-  const [orderReportParsed, setOrderReportParsed] =
-    useState<OrderReportParsed | null>(null);
-
   const onClickDiscount = (d: SerializeFrom<Discount>) => {
     nav(`/app/dcs/${d.id}`);
   };
 
-  useEffect(() => {
-    orderReport && setOrderReportParsed(parseOrderReports(orderReport));
-  }, [orderReport]);
-
   return (
     <Page title="BootsSell">
-      {/* Overview discount status was applied */}
-      <Layout.Section variant="fullWidth">
-        <Box paddingBlockEnd={"600"}>
-          {/* <WelcomCard />
-          <FunnelOverview view={discountView} /> */}
-
-          <Text as="h2" variant="headingLg">
-            Overview
+      <BlockStack gap={"600"}>
+        <WelcomCard />
+        <FunnelOverview
+          orderReport={orderReport}
+          shopAnalytics={shopAnalytics}
+        />
+        <BlockStack gap={"300"}>
+          <Text as="h2" variant="headingSm">
+            Funnel dashboard
           </Text>
-        </Box>
-
-        <InlineGrid gap={"400"} columns={{ xs: 1, sm: 1, md: 3, lg: 3, xl: 3 }}>
-          <Card>
-            <LineDataPointChart
-              data={discountView}
-              title="Total Discount View"
-            />
-            {/* <Text as="p">dfdf</Text> */}
-          </Card>
-          <Card>
-            {orderReportParsed ? (
-              <OrderAppliedCounterChart
-                title="Order counter chart"
-                labels={orderReportParsed.labels}
-                appliedValue={orderReportParsed.appliedValue}
-                unappliedValue={orderReportParsed.unappliedValue}
-              />
-            ) : (
-              <></>
-            )}
-          </Card>
-          <Card>
-            {orderReportParsed ? (
-              <OrderAppliedValueChart
-                title="Order value chart"
-                labels={orderReportParsed.labels}
-                appliedValue={orderReportParsed.appliedValue}
-                unappliedValue={orderReportParsed.unappliedValue}
-              />
-            ) : (
-              <></>
-            )}
-          </Card>
-        </InlineGrid>
-      </Layout.Section>
-
-      <Layout.Section>
-        <Box paddingBlockEnd={"400"}>
-          <InlineStack align="space-between">
-            <Text as="h2" variant="headingLg">
-              Recent discount
-            </Text>
-
-            <Button
-              variant="primary"
-              onClick={() => nav("/app/dcs/create_select")}
-            >
-              Create new
-            </Button>
-          </InlineStack>
-        </Box>
-        <DiscountTable discounts={discounts ?? []} onClick={onClickDiscount} />
-      </Layout.Section>
+          <FunnelCustomTable discounts={discounts} />
+        </BlockStack>
+      </BlockStack>
     </Page>
   );
 }
@@ -231,33 +170,76 @@ function WelcomCard({}: WelcomCardProps) {
 }
 
 type FunnelOverviewProps = {
-  view: SerializeFrom<SeriesDP[]>;
+  orderReport?: OrdersReport[];
+  shopAnalytics: SerializeFrom<Analytics[]>;
+  // view: SerializeFrom<SeriesDP[]>;
 };
 
-function FunnelOverview({ view }: FunnelOverviewProps) {
+function FunnelOverview({ shopAnalytics, orderReport }: FunnelOverviewProps) {
+  const [views, setViews] = useState(
+    shopAnalytics.map(
+      (v) => ({ data: Number(v.views), date: v.date }) as SeriesDP,
+    ),
+  );
+
+  const [clicks, setClicks] = useState(
+    shopAnalytics.map(
+      (v) => ({ data: Number(v.addCart), date: v.date }) as SeriesDP,
+    ),
+  );
+
+  useEffect(() => {
+    orderReport && setOrderReportParsed(parseOrderReports(orderReport));
+  }, [orderReport]);
+
+  const [orderReportParsed, setOrderReportParsed] =
+    useState<OrderReportParsed | null>(null);
+
+  useEffect(() => {
+    setViews(
+      shopAnalytics.map(
+        (v) => ({ data: Number(v.views), date: v.date }) as SeriesDP,
+      ),
+    );
+
+    setClicks(
+      shopAnalytics.map(
+        (v) => ({ data: Number(v.addCart), date: v.date }) as SeriesDP,
+      ),
+    );
+  }, [shopAnalytics]);
+
   return (
     <BlockStack gap={"300"}>
       <Text as="h2" variant="headingSm">
         Funnel Overview
       </Text>
 
-      <InlineGrid>
+      <InlineStack gap={"300"}>
         <Button>Today</Button>
         <Button>Compare to: Yesterday</Button>
-      </InlineGrid>
+      </InlineStack>
 
       <InlineGrid gap={"400"} columns={{ xs: 1, sm: 1, md: 3, lg: 3, xl: 3 }}>
         <Card>
-          <LineDataPointChart data={view} title="Funnel View" />
-          {/* <Text as="p">dfdf</Text> */}
+          <LineDataPointChart data={views} title="Funnel View" />
         </Card>
+
         <Card>
-          <LineDataPointChart data={view} title="Funnel click" />
-          {/* <Text as="p">dfdf</Text> */}
+          <LineDataPointChart data={clicks} title="Funnel click" />
         </Card>
+
         <Card>
-          <LineDataPointChart data={view} title="Total sales  values" />
-          {/* <Text as="p">dfdf</Text> */}
+          {orderReportParsed ? (
+            <OrderAppliedValueChart
+              title="Order value chart"
+              labels={orderReportParsed.labels}
+              appliedValue={orderReportParsed.appliedValue}
+              unappliedValue={orderReportParsed.unappliedValue}
+            />
+          ) : (
+            <></>
+          )}
         </Card>
       </InlineGrid>
     </BlockStack>

@@ -22,6 +22,10 @@ export interface PriceTotal {
   priceDiscount: number;
 }
 
+export type DisplayPositon = "inline" | "popup";
+
+export type DisplayPage = "product";
+
 //  ------------------------------ Bundle ----------------------------------
 
 export interface BundleProductConfig {
@@ -33,6 +37,12 @@ export interface BundleProductConfig {
 export type BundleContent = {
   total: string;
   button: string;
+  shortDesc: string;
+};
+
+export type BundleSetting = {
+  position: DisplayPositon;
+  displayPage: DisplayPage;
 };
 
 export interface BundleThemeConfig {
@@ -47,8 +57,9 @@ export interface BundleThemeConfig {
 }
 
 export interface GUIBundle {
-  theme: BundleThemeConfig;
-  content: BundleContent;
+  theme?: BundleThemeConfig;
+  content?: BundleContent;
+  setting?: BundleSetting;
 }
 
 //  ------------------------------ Bundle total----------------------------------
@@ -70,9 +81,10 @@ export type BundleTotalConfig = {
   comparePrice: FontConfig;
 };
 
-// --------------------------------- Attach theme -----------------------------
+// --------------------------------- Recommendation theme -----------------------------
 
-export interface GUIAttach {}
+// Recommended products
+export interface GUIRecommended {}
 
 // --------------------------------- Volume theme -----------------------------
 
@@ -85,6 +97,11 @@ export interface GUIVolume {
 export interface VolumeThemeContent {
   button: string;
 }
+
+export type VolumeThemeSetting = {
+  position: DisplayPositon;
+  displayPage: DisplayPage;
+};
 
 // export interface VolumeThemeSetting {
 //   button: string;
@@ -110,6 +127,7 @@ export interface VolumeTheme {
 }
 
 export interface GUIVolume {}
+
 // --------------------------------- Shipping theme -----------------------------
 
 export interface SDTotalTheme {

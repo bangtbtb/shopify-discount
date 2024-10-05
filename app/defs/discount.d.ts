@@ -6,6 +6,9 @@ export type DiscountValue = {
   type: DVT;
 };
 
+//
+type DStatus = "active" | "draft";
+
 // ----------------------- Basic discount config ---------------------
 
 export type RewardStep = {
@@ -35,12 +38,6 @@ export type ODBundleConfig = {
   numRequires: number[];
 };
 
-// export type ODBXGY = {
-//   requireds: ProductCondition[]; // Require product ids
-//   rewards: ProductCondition[];
-//   rewardValue: DiscountValue;
-// };
-
 export type ODConfig = {
   label: string;
   applyType: ODApplyType;
@@ -65,7 +62,7 @@ export type SDConfig = {
 // ------------------------------ Volume discount -----------------
 
 // export type PDApplyType = "collection" | "products"; // | "attach";
-export type PDApplyType = "volume" | "attached"; // | "attach";
+export type PDApplyType = "volume" | "recommended";
 
 export type AttachedProduct = {
   product: string;
@@ -141,14 +138,14 @@ export interface LineItem {
 
 // --------------------- DIscount GUI ---------------------
 
-type DiscountTypeGUI =
-  | "attached"
-  | "bundle"
-  | "total_order"
-  | "volume"
-  | "shipping_volume"
-  | "shipping_total"
-  | "none";
+// type DiscountTypeGUI =
+//   | "attached"
+//   | "bundle"
+//   | "total_order"
+//   | "volume"
+//   | "shipping_volume"
+//   | "shipping_total"
+//   | "none";
 
 export interface DiscountUseCaseDesc {
   id: string;

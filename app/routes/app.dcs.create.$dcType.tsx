@@ -10,41 +10,66 @@ import { useEffect, useMemo, useState } from "react";
 import { BundleDetail } from "~/components/Discounts/Bundle";
 import { BundleTotalDetail } from "~/components/Discounts/BundleTotal";
 import { SDVolumeDetail } from "~/components/Discounts/SDVolume";
-import { VolumeDiscountComponent } from "~/components/Discounts/Volume";
+import { VolumeDiscountDetail } from "~/components/Discounts/Volume";
 import { ActionStatus, ActionType } from "~/defs";
 import { ODConfig, SDConfig, PDConfig } from "~/defs/discount";
-import { DiscountTypeGUI } from "~/defs/discount";
 import { createBundleDiscount } from "~/models/od_models";
-import { randomDigit } from "~/models/utils";
+import { JSONParse, randomDigit } from "~/models/utils";
 import { DiscountAutomaticAppInput } from "~/types/admin.types";
 import { authenticate } from "~/shopify.server";
-import { GQLDiscountError, GQLDiscountResponse } from "~/models/gql_discount";
+import {
+  GQLDiscountError,
+  GQLDiscountResponse,
+  gqlGetDiscount,
+} from "~/models/gql_discount";
 import { createVolumeDiscount } from "~/models/vd_model";
 import { createShippingDiscount } from "~/models/sd_models";
-import { AttachedProductDetail } from "~/components/Discounts/AttachedProduct";
+import { RecommendedDetail } from "~/components/Discounts/Recommended";
+import { dbGetDiscount } from "~/models/db_discount";
+import { getGraphqlDiscountId } from "~/models/utils_id";
+import { ADT } from "@prisma/client";
+import { SDTotalDetail } from "~/components/Discounts/SDTotal";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
 
   const url = new URL(request.url);
-  const cloneId = url.searchParams;
+  const cloneId = url.searchParams.get("cloneId");
   console.log("Clone id: ", cloneId);
 
-  const dcType = params.dcType as DiscountTypeGUI | undefined;
+  var orgDiscount = cloneId
+    ? await dbGetDiscount({
+        id: cloneId,
+        shop: session.shop,
+        wTheme: true,
+      })
+    : null;
+  var gDiscount = orgDiscount
+    ? await gqlGetDiscount(admin.graphql, getGraphqlDiscountId(orgDiscount.id))
+    : null;
+
+  const dcType = params.dcType as ADT | undefined;
   if (!dcType) {
     return json({
-      dcType: "none" as DiscountTypeGUI,
+      dcType: "none" as ADT,
+      origin: null,
+      theme: null,
       errors: { message: "Discount type is not support" },
     });
   }
 
-  return json({ dcType: dcType as DiscountTypeGUI });
+  return json({
+    dcType: dcType as ADT,
+    combines: gDiscount?.discount.combinesWith,
+    origin: gDiscount ? gDiscount.discount : null,
+    theme: orgDiscount?.Theme,
+  });
 };
 
 export const action = async ({ request, params }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
 
-  const dcType = params.dcType as DiscountTypeGUI | undefined;
+  const dcType = params.dcType as ADT | undefined;
   const formData = await request.formData();
   const discount: DiscountAutomaticAppInput = JSON.parse(
     formData.get("discount")?.toString() || "{}",
@@ -67,8 +92,8 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 
   switch (dcType) {
     // Bundle discount
-    case "bundle":
-    case "total_order":
+    case "Bundle":
+    case "Total":
       var configBundle: ODConfig = {
         ...JSON.parse(configStr || "{}"),
         label: `BUNDLE_${randomDigit()}`,
@@ -82,8 +107,8 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       errors = rs?.userErrors;
       break;
     // Volume discount
-    case "volume":
-    case "attached":
+    case "Volume":
+    case "Recommend":
       var configVD: PDConfig = {
         ...JSON.parse(configStr || "{}"),
         label: `VOLUME_${randomDigit()}`,
@@ -96,8 +121,8 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       rsDiscount = rs?.automaticAppDiscount;
       errors = rs?.userErrors;
       break;
-    case "shipping_total":
-    case "shipping_volume":
+    case "ShippingTotal":
+    case "ShippingVolume":
       var configSD: SDConfig = {
         ...JSON.parse(formData.get("config")?.toString() || "{}"),
         label: `SHIPPING_${randomDigit()}`,
@@ -123,12 +148,9 @@ export default function DiscountsCreatePage(props: any) {
   const submitForm = useSubmit();
   const navigation = useNavigation();
 
-  const { dcType } = useLoaderData<typeof loader>();
+  const { dcType, origin, theme } = useLoaderData<typeof loader>();
   const actData = useActionData<ActionType>();
   const [discountName] = useState(dcType.toUpperCase().replaceAll("_", " "));
-
-  const todaysDate = useMemo(() => new Date().toString(), []);
-  const isLoading = navigation.state == "submitting";
 
   useEffect(() => {
     if (!actData || !actData.status) {
@@ -166,28 +188,50 @@ export default function DiscountsCreatePage(props: any) {
   };
 
   return (
-    <Page title={`Create Discount ${discountName}`}>
-      {dcType === "attached" && (
-        <AttachedProductDetail isCreate={true} onSubmit={onSubmit} />
+    <Page title={`Create Discount ${dcType}`}>
+      {dcType === "Bundle" && (
+        <BundleDetail
+          isCreate={true}
+          onSubmit={onSubmit}
+          discount={origin}
+          gui={{
+            content: theme?.content ? JSON.parse(theme.content) : undefined,
+            theme: theme?.theme ? JSON.parse(theme.theme) : undefined,
+            setting: theme?.setting ? JSON.parse(theme.setting) : undefined,
+          }}
+        />
       )}
 
-      {dcType === "bundle" && (
-        <BundleDetail isCreate={true} onSubmit={onSubmit} />
+      {dcType === "Total" && (
+        <BundleTotalDetail
+          isCreate={true}
+          discount={origin}
+          onSubmit={onSubmit}
+        />
       )}
 
-      {dcType === "total_order" && (
-        <BundleTotalDetail isCreate={true} onSubmit={onSubmit} />
+      {dcType === "Recommend" && (
+        <RecommendedDetail
+          isCreate={true}
+          discount={origin}
+          onSubmit={onSubmit}
+        />
       )}
 
-      {dcType === "volume" && (
-        <VolumeDiscountComponent isCreate={true} onSubmit={onSubmit} />
+      {dcType === "Volume" && (
+        <VolumeDiscountDetail
+          isCreate={true}
+          discount={origin}
+          onSubmit={onSubmit}
+        />
       )}
 
-      {dcType === "shipping_volume" && (
-        <SDVolumeDetail isCreate={true} onSubmit={onSubmit} />
+      {dcType === "ShippingVolume" && (
+        <SDVolumeDetail isCreate={true} discount={origin} onSubmit={onSubmit} />
       )}
-      {dcType === "shipping_total" && (
-        <VolumeDiscountComponent isCreate={true} onSubmit={onSubmit} />
+
+      {dcType === "ShippingTotal" && (
+        <SDTotalDetail isCreate={true} discount={origin} onSubmit={onSubmit} />
       )}
     </Page>
   );
