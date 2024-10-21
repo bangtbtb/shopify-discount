@@ -3,7 +3,7 @@
 client_id = "59c7dbfbeefd1f11ba1aa85228d3700a"
 name = "Boostify Sell"
 handle = "sd-xxyy"
-application_url = "https://attending-howard-blacks-larry.trycloudflare.com"
+application_url = "https://lows-llp-belief-throughout.trycloudflare.com"
 embedded = true
 
 [build]
@@ -21,9 +21,9 @@ scopes = "read_orders,read_products,unauthenticated_read_checkouts,unauthenticat
 
 [auth]
 redirect_urls = [
-  "https://attending-howard-blacks-larry.trycloudflare.com/auth/callback",
-  "https://attending-howard-blacks-larry.trycloudflare.com/auth/shopify/callback",
-  "https://attending-howard-blacks-larry.trycloudflare.com/api/auth/callback"
+  "https://lows-llp-belief-throughout.trycloudflare.com/auth/callback",
+  "https://lows-llp-belief-throughout.trycloudflare.com/auth/shopify/callback",
+  "https://lows-llp-belief-throughout.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

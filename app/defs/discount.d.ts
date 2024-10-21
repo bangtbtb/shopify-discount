@@ -13,8 +13,9 @@ type DStatus = "active" | "draft";
 
 export type RewardStep = {
   require: number; // Condition
-  value: DiscountValue; // Reward
-  // label: string;
+  discount: DiscountValue; // Reward
+  label?: string;
+  badgeText?: string;
 };
 
 export type ProductCondition = {

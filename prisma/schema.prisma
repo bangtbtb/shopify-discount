@@ -58,6 +58,7 @@ model Discount {
   updatedAt     DateTime? @default(now())
   productIds    String[]
   collectionIds String[]
+  deletedAt     DateTime?
 
   DiscountApplied DiscountApplied[]
   Theme           DiscountTheme?
@@ -73,7 +74,7 @@ model DiscountTheme {
   content    String
   setting    String
   discountId String   @unique
-  discount   Discount @relation(fields: [discountId], references: [id])
+  discount   Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
   updatedAt  DateTime @default(now())
 }
 
@@ -104,13 +105,13 @@ model Orders {
 model DiscountApplied {
   id             String    @id @default(uuid())
   shop           String
-  discountId     String
+  discountId     String?
   discount       Float // Discount value
   total          Float // Total  
   orderAppliedId String?
   createdAt      DateTime  @default(now())
   OrderApplied   Orders?   @relation(fields: [orderAppliedId], references: [id])
-  Discount       Discount? @relation(fields: [discountId], references: [id])
+  Discount       Discount? @relation(fields: [discountId], references: [id], onDelete: SetNull)
 
   @@index([shop, createdAt, discountId])
 }

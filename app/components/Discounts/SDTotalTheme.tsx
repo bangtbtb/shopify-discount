@@ -96,7 +96,5 @@ export function SDTotalThemeEditor({
 }
 
 export function SDTotalThemePreview({}: SDTotalThemePreviewProps) {
-  return (
-    <div className="flex_row" style={{ padding: "0.75rem", gap: "1rem" }}></div>
-  );
+  return <div className="flex_row gap_lg" style={{ padding: "0.75rem" }}></div>;
 }

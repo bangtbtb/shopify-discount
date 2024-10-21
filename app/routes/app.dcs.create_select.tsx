@@ -69,7 +69,7 @@ export default function SelectDiscountsToCreate(props: any) {
         <FunnelDiscountDescCard
           title="Bundle"
           example="*Example: If a customer is purchasing a laptop, you can offer a bundle that includes the laptop, a laptop bag, a mouse, and an external hard drive at a discounted price."
-          onPrimary={() => nav("/app/dcs/create/bundle")}
+          onPrimary={() => nav("/app/dcs/create/Bundle")}
         >
           <Text as="p" variant="bodyMd">
             Offer a group of related products at a special price to encourage
@@ -83,7 +83,7 @@ export default function SelectDiscountsToCreate(props: any) {
         <FunnelDiscountDescCard
           title="Recommendation Product"
           example="*Example: Recommend a laptop stand, external hard drive, and laptop cooling pad with a 10% discount when bought together."
-          onPrimary={() => nav("/app/dcs/create/attached")}
+          onPrimary={() => nav("/app/dcs/create/Recommend")}
         >
           <Text as="p" variant="bodyMd">
             Complement the main item, encouraging customers to explore and buy
@@ -97,7 +97,7 @@ export default function SelectDiscountsToCreate(props: any) {
         <FunnelDiscountDescCard
           title="Up-sell volume"
           example="*Example: Offer “Buy 3, get 10% off the fourth” or “Buy 10 or more, get 20% off” for t-shirts."
-          onPrimary={() => nav("/app/dcs/create/volume")}
+          onPrimary={() => nav("/app/dcs/create/Volume")}
         >
           <Text as="p" variant="bodyMd">
             Provide discounts based on the quantity of products purchased to

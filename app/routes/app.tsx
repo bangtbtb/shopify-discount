@@ -18,11 +18,13 @@ import { AppContextType } from "~/defs/fe";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
 import beepifyCss from "~/styles/beepify.css?url";
+import previewCss from "~/styles/beepify.css?url";
 // import polarisStyles from "~/styles/polaris.css?url";
 
 export const links = () => [
   { rel: "stylesheet", href: polarisStyles },
   { rel: "stylesheet", href: beepifyCss },
+  { rel: "stylesheet", href: previewCss },
 ];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {

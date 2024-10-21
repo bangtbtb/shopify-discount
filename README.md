@@ -5,7 +5,7 @@ cloudflared.exe tunnel -url http://localhost:59602
 ```
 
 ```shell
-yarn dev --tunnel-url https://feet-partnerships-bacteria-flying.trycloudflare.com:59602
+yarn dev --tunnel-url https://final-timber-recall-stadium.trycloudflare.com:59602
 ```
 
 # Proxy config

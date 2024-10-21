@@ -1,18 +1,10 @@
-import { DVT } from "~/defs/discount";
+import { RewardStep } from "~/defs/discount";
 import { Box, InlineGrid, TextField } from "@shopify/polaris";
-import TextFieldSelect from "~/components/Shopify/TextFieldSelect";
 import { DiscountTypeSelect } from "./DiscountCommon";
 
-export type StepData = {
-  type: DVT;
-  value: number;
-  require: number;
-  label?: string;
+type StepComponentProps = RewardStep & {
+  onChange: (v: RewardStep) => void;
 };
-
-interface StepComponentProps extends StepData {
-  onChange: (v: StepComponentProps) => void;
-}
 
 export function StepComponent(props: StepComponentProps) {
   return (
@@ -34,10 +26,20 @@ export function StepComponent(props: StepComponentProps) {
       <Box width="6rem">
         <DiscountTypeSelect
           // label="Discount value"
-          dv={props.value}
-          dvt={props.type}
-          onChangeType={(v) => props.onChange({ ...props, type: v })}
-          onChangeValue={(v) => props.onChange({ ...props, value: v })}
+          dv={props.discount.value}
+          dvt={props.discount.type}
+          onChangeType={(v) =>
+            props.onChange({
+              ...props,
+              discount: { ...props.discount, type: v },
+            })
+          }
+          onChangeValue={(v) =>
+            props.onChange({
+              ...props,
+              discount: { ...props.discount, value: v },
+            })
+          }
         />
       </Box>
     </InlineGrid>

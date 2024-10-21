@@ -17,7 +17,8 @@
     "prisma": "prisma",
     "gqlgen": "graphql-codegen",
     "vite": "vite",
-    "prisma-gen": "npx prisma generate"
+    "prisma-gen": "npx prisma generate",
+    "render": "nodemon ./app/render.tsx"
   },
   "type": "module",
   "engines": {
@@ -58,6 +59,7 @@
     "@remix-run/eslint-config": "^2.7.1",
     "@shopify/api-codegen-preset": "^1.0.1",
     "@types/eslint": "^8.40.0",
+    "@types/jquery": "^3.5.31",
     "@types/node": "^20.6.3",
     "@types/react": "^18.2.31",
     "@types/react-dom": "^18.2.14",

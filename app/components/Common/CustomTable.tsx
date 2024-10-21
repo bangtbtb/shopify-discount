@@ -17,6 +17,7 @@ type CustomTableProps = {
   withs?: (CSS.Property.Width | undefined)[];
   headings?: React.ReactNode;
   children?: React.ReactNode;
+  // emptyState?: React.ReactNode
 };
 
 export function CustomTable({ children, headings, withs }: CustomTableProps) {

@@ -1,5 +1,24 @@
-import { Prisma } from "@prisma/client";
+import { ADT, Prisma } from "@prisma/client";
 import db from "../db.server";
+
+export function getADTFromString(dtIn: string): ADT {
+  switch (dtIn) {
+    // Bundle discount
+    case "Bundle".toLowerCase():
+      return "Bundle";
+    case "Total".toLowerCase():
+      return "Total";
+    case "Volume".toLocaleLowerCase():
+      return "Volume";
+    case "Recommend".toLocaleLowerCase():
+      return "Recommend";
+    case "ShippingTotal".toLocaleLowerCase():
+      return "ShippingTotal";
+    case "ShippingVolume".toLowerCase():
+      return "ShippingVolume";
+  }
+  return "None";
+}
 
 export async function dbCreateDiscount(discount: Prisma.DiscountCreateInput) {
   return db.discount.create({
@@ -69,7 +88,7 @@ export async function dbGetDiscountByLabel(req: RGetDiscountByLabel) {
     where: {
       shop: req.shop,
       label: req.label,
-      status: "ACTIVED",
+      status: "ACTIVE",
     },
     include: {
       Theme: req.wTheme,
@@ -77,8 +96,15 @@ export async function dbGetDiscountByLabel(req: RGetDiscountByLabel) {
   });
 }
 
-export async function dbDeleteDiscount(discountId: string) {
-  return db.discount.delete({ where: { id: discountId } });
+export async function dbDeleteDiscount(discountId: string, shop: string) {
+  return db.discount.delete({ where: { id: discountId, shop: shop } });
+  // return db.discount.update({
+  //   where: { id: discountId, shop: shop },
+  //   data: {
+  //     status: "DELETED",
+  //     deletedAt: new Date(),
+  //   },
+  // });
 }
 
 type RFindVolumeDiscount = {
@@ -117,10 +143,11 @@ type RFindBunbleDiscount = {
   shop: string;
   productId: string;
   collectionIds: string[];
+  wTheme: boolean;
 };
 
 export async function dbFindBundleDiscount(req: RFindBunbleDiscount) {
-  return await db.discount.findMany({
+  return await db.discount.findFirst({
     where: {
       shop: req.shop,
       type: "Bundle",
@@ -138,10 +165,13 @@ export async function dbFindBundleDiscount(req: RFindBunbleDiscount) {
         },
       ],
     },
+    include: {
+      Theme: req.wTheme,
+    },
     orderBy: {
       createdAt: "desc",
     },
-    take: 3,
+    // take: 3,
   });
 }
 
@@ -233,6 +263,7 @@ export async function dbGetDiscounts(req: RGetDiscounts) {
       skip: (req.page - 1) * (req.limit ?? take),
       where: {
         shop: req.shop,
+        deletedAt: null,
       },
       orderBy: {
         createdAt: "desc",
@@ -252,7 +283,7 @@ type RGetDiscount = {
 
 export async function dbGetDiscount(req: RGetDiscount) {
   var data = await db.discount.findFirst({
-    where: { shop: req.shop, id: req.id },
+    where: { shop: req.shop, id: req.id, deletedAt: null },
     include: {
       Theme: req.wTheme,
       DiscountApplied: req.wApplied
@@ -270,14 +301,14 @@ export async function dbGetDiscount(req: RGetDiscount) {
 
 type RUpdateTheme = {
   shop: string;
-  id: string;
+  discountId: string;
   theme: Prisma.DiscountThemeUpdateInput;
 };
 
 export async function dbUpdateTheme(req: RUpdateTheme) {
   return db.discountTheme.update({
     where: {
-      id: req.id,
+      discountId: req.discountId,
       shop: req.shop,
     },
     data: { ...req.theme, updatedAt: new Date() },

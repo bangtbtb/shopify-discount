@@ -1,4 +1,3 @@
-import CSS from "csstype";
 import { useState, useEffect } from "react";
 
 type CountdownTimer = {
@@ -9,8 +8,6 @@ type CountdownTimer = {
 };
 
 export function CountdownTimer(props: CountdownTimer) {
-  // Initial time in seconds (1 hour)
-  //   const initialTime = 60 * 60;
   const [timeRemaining, setTimeRemaining] = useState(
     Math.floor(
       new Date(props.initTime).getTime() / 1000 - new Date().getTime() / 1000,
@@ -19,6 +16,10 @@ export function CountdownTimer(props: CountdownTimer) {
 
   useEffect(() => {
     console.log("Init time : ", new Date(props.initTime));
+    var newDate = Math.floor(
+      new Date(props.initTime).getTime() / 1000 - new Date().getTime() / 1000,
+    );
+    setTimeRemaining(newDate);
 
     const timerInterval = setInterval(() => {
       setTimeRemaining((prevTime) => {
@@ -45,7 +46,7 @@ export function CountdownTimer(props: CountdownTimer) {
 
   return (
     <div
-      className="flex_row_center cd "
+      className="flex_row_center cd gap_xm"
       style={{
         ...props.style,
         width: "fit-content",

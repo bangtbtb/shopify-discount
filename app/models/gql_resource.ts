@@ -99,3 +99,35 @@ export async function getSimpleCollection(
   }
   return null;
 }
+
+export async function getProductHandle(
+  graphql: GraphQLClient<AdminOperations>,
+  productIds: string[],
+) {
+  var resp = await graphql(
+    `
+      #graphql
+      query getProductHandle($first: Int!, $query: String!) {
+        products(first: $first, query: $query) {
+          edges {
+            node {
+              id
+              handle
+            }
+          }
+        }
+      }
+    `,
+    {
+      variables: {
+        first: productIds.length,
+        query: productIds.map((v) => `(id:${v})`).join(" OR "),
+      },
+    },
+  );
+
+  var respJson = await resp.json();
+  return respJson.data?.products.edges
+    ? respJson.data?.products.edges.map((v) => v.node)
+    : [];
+}

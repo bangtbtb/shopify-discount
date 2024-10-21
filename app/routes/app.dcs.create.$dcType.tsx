@@ -5,7 +5,7 @@ import {
   useNavigation,
   useSubmit,
 } from "@remix-run/react";
-import { Page } from "@shopify/polaris";
+import { Page, Text } from "@shopify/polaris";
 import { useEffect, useMemo, useState } from "react";
 import { BundleDetail } from "~/components/Discounts/Bundle";
 import { BundleTotalDetail } from "~/components/Discounts/BundleTotal";
@@ -30,6 +30,27 @@ import { getGraphqlDiscountId } from "~/models/utils_id";
 import { ADT } from "@prisma/client";
 import { SDTotalDetail } from "~/components/Discounts/SDTotal";
 
+function getADTFromString(dtIn: string): ADT {
+  console.log("DC in: ", dtIn);
+
+  switch (dtIn.toLocaleLowerCase()) {
+    // Bundle discount
+    case "Bundle".toLowerCase():
+      return "Bundle";
+    case "Total".toLowerCase():
+      return "Total";
+    case "Volume".toLocaleLowerCase():
+      return "Volume";
+    case "Recommend".toLocaleLowerCase():
+      return "Recommend";
+    case "ShippingTotal".toLocaleLowerCase():
+      return "ShippingTotal";
+    case "ShippingVolume".toLowerCase():
+      return "ShippingVolume";
+  }
+  return "None";
+}
+
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
 
@@ -44,24 +65,29 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
         wTheme: true,
       })
     : null;
+
   var gDiscount = orgDiscount
-    ? await gqlGetDiscount(admin.graphql, getGraphqlDiscountId(orgDiscount.id))
+    ? await gqlGetDiscount(admin.graphql, orgDiscount.id)
     : null;
 
-  const dcType = params.dcType as ADT | undefined;
+  const dcType = getADTFromString(params.dcType || "");
+  // const dcType = params.dcType as ADT | undefined;
   if (!dcType) {
     return json({
       dcType: "none" as ADT,
       origin: null,
       theme: null,
+      combinesWith: null,
       errors: { message: "Discount type is not support" },
     });
   }
+  console.log("Dctype: ", dcType);
 
   return json({
     dcType: dcType as ADT,
     combines: gDiscount?.discount.combinesWith,
-    origin: gDiscount ? gDiscount.discount : null,
+    origin: orgDiscount ? { ...orgDiscount, Theme: undefined } : null,
+    combinesWith: gDiscount?.discount.combinesWith,
     theme: orgDiscount?.Theme,
   });
 };
@@ -69,11 +95,12 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 export const action = async ({ request, params }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
 
-  const dcType = params.dcType as ADT | undefined;
+  const dcType = getADTFromString(params.dcType || "");
   const formData = await request.formData();
   const discount: DiscountAutomaticAppInput = JSON.parse(
     formData.get("discount")?.toString() || "{}",
   );
+
   const configStr = formData.get("config")?.toString();
   const theme = formData.get("theme")?.toString() || "";
   const themeContent = formData.get("themeContent")?.toString() ?? "";
@@ -86,7 +113,6 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     setting: "",
   };
 
-  // var config: ODConfig | SDConfig | PDConfig | null = null;
   var rsDiscount: GQLDiscountResponse | undefined = undefined;
   var errors: GQLDiscountError | undefined = undefined;
 
@@ -148,9 +174,12 @@ export default function DiscountsCreatePage(props: any) {
   const submitForm = useSubmit();
   const navigation = useNavigation();
 
-  const { dcType, origin, theme } = useLoaderData<typeof loader>();
+  const { dcType, origin, theme, combinesWith } =
+    useLoaderData<typeof loader>();
   const actData = useActionData<ActionType>();
-  const [discountName] = useState(dcType.toUpperCase().replaceAll("_", " "));
+  const [config, setConfig] = useState(
+    origin?.metafield ? JSON.parse(origin?.metafield) : null,
+  );
 
   useEffect(() => {
     if (!actData || !actData.status) {
@@ -158,7 +187,9 @@ export default function DiscountsCreatePage(props: any) {
     }
 
     if (actData.status === "success") {
-      window.shopify.toast.show("Create discount success", { duration: 5000 });
+      window.shopify.toast.show("Create discount success", {
+        duration: 5000,
+      });
     }
 
     if (actData.status === "failed") {
@@ -194,6 +225,8 @@ export default function DiscountsCreatePage(props: any) {
           isCreate={true}
           onSubmit={onSubmit}
           discount={origin}
+          config={config}
+          combinesWith={combinesWith}
           gui={{
             content: theme?.content ? JSON.parse(theme.content) : undefined,
             theme: theme?.theme ? JSON.parse(theme.theme) : undefined,
@@ -232,6 +265,10 @@ export default function DiscountsCreatePage(props: any) {
 
       {dcType === "ShippingTotal" && (
         <SDTotalDetail isCreate={true} discount={origin} onSubmit={onSubmit} />
+      )}
+
+      {dcType === "None" && (
+        <Text as="p"> Discount type ${dcType} is not support</Text>
       )}
     </Page>
   );

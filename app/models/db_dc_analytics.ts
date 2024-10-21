@@ -60,7 +60,7 @@ export async function dbIncreaseClick(req: RDbIncreaseClick) {
     update: {
       id: id,
       discountId: req.discountId,
-      views: {
+      addCart: {
         increment: 1,
       },
     },

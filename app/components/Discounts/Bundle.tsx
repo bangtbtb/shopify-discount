@@ -6,16 +6,21 @@ import {
   InlineGrid,
   Button,
   InlineStack,
+  Text,
+  ButtonGroup,
 } from "@shopify/polaris";
 import { DiscountValue, DStatus, ODConfig } from "~/defs/discount";
-import { DiscountAutomaticAppInput } from "~/types/admin.types";
+import {
+  DiscountAutomaticAppInput,
+  DiscountCombinesWith,
+} from "~/types/admin.types";
 import {
   BundleThemeEditor,
   BundleThemePreview,
   defaultBundleTheme,
   ProductInfoBundle,
 } from "./BundleTheme";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   SelectedProduct,
   SelectMultipleProducts,
@@ -38,16 +43,18 @@ import {
 } from "~/components/Common/FormChecker";
 import { SerializeFrom } from "@remix-run/node";
 import { BundleContent, GUIBundle } from "~/defs/theme";
-import { ODConfigExt } from "~/models/od_models";
-import { CardCollapse } from "../Common";
+import { CardCollapse, Heading2 } from "../Common";
+import { Discount } from "@prisma/client";
+import { bridgeLoadProduct } from "../Shopify/shopify_func";
 
 // export type BundleComponentErrors = {};
 
 type BundleDetailProps = {
   isCreate?: boolean;
   disableSetting?: boolean;
-  discount?: SerializeFrom<DiscountAutomaticAppInput> | null;
-  config?: SerializeFrom<ODConfigExt>;
+  discount?: SerializeFrom<Discount> | null;
+  config?: SerializeFrom<ODConfig> | null;
+  combinesWith?: DiscountCombinesWith | null;
   gui?: GUIBundle;
   onSubmit?: (
     discount: DiscountAutomaticAppInput,
@@ -63,29 +70,37 @@ export function BundleDetail({
   isCreate,
   disableSetting,
   discount,
+  combinesWith,
   gui,
   config,
   onSubmit,
 }: BundleDetailProps) {
-  const title = useField<string>(discount?.title || "Bund product offer");
-  const status = useField<DStatus>("active");
-  const buttonContent = useField<string>(gui?.content?.button || "Add To Cart");
-  const totalContent = useField<string>(gui?.content?.total || "Total");
-  const startDate = useField<DateTime>(
-    discount?.startsAt || new Date().toString(),
-  );
-  const endDate = useField<DateTime | null>(discount?.endsAt || null);
-  const combines = useField<CombinableDiscountTypes>({
-    orderDiscounts: discount?.combinesWith?.orderDiscounts || false,
-    productDiscounts: discount?.combinesWith?.productDiscounts || false,
-    shippingDiscounts: discount?.combinesWith?.shippingDiscounts || true,
-  });
+  const title = useField<string>(discount?.title || "Bundle product offer");
 
-  const products = useField<ProductInfoBundle[]>(config?.products || []);
-  const dVal = useField<DiscountValue>({
-    type: "percent",
-    value: 10,
-  }); // Discount value
+  const status = useField<DStatus>("active");
+  const startDate = useField<DateTime>(
+    discount?.startAt || new Date().toString(),
+  );
+  const endDate = useField<DateTime | null>(discount?.endAt || null);
+  const combines = useField<CombinableDiscountTypes>(
+    combinesWith || {
+      orderDiscounts: false,
+      productDiscounts: false,
+      shippingDiscounts: true,
+    },
+  );
+
+  const products = useField<ProductInfoBundle[]>([]);
+  const dVal = useField<DiscountValue>(
+    config?.bundle?.value || {
+      type: "percent",
+      value: 10,
+    },
+  ); // Discount value
+
+  // const buttonContent = useField<string>(gui?.content?.button || "Add To Cart");
+  // const totalContent = useField<string>(gui?.content?.total || "Total");
+  const showOnPage = useField<boolean>(gui?.content?.showOnPage || true);
 
   const [theme, setTheme] = useState(gui?.theme || defaultBundleTheme);
   const onChangeTheme = (k: string, v: any) => {
@@ -95,10 +110,44 @@ export function BundleDetail({
     });
   };
 
+  useEffect(() => {
+    console.log("Load bundle config: ", config);
+    // if (config?.bundle?.productIds && config?.bundle?.numRequires) {
+    if (
+      discount?.productIds &&
+      config?.bundle?.productIds &&
+      config?.bundle?.numRequires
+    ) {
+      const ids = config?.bundle?.productIds;
+      const requireVols = config?.bundle?.numRequires;
+
+      bridgeLoadProduct(discount?.productIds).then((pInfos) => {
+        let mRequires: { [key: string]: number } = {};
+        ids.forEach((p, idx) => {
+          mRequires[p] = requireVols[idx] || 0;
+        });
+
+        let bundles = pInfos.map(
+          (p) =>
+            ({
+              ...p,
+              requireVol: mRequires[p.id] || 1,
+            }) as ProductInfoBundle,
+        );
+
+        products.onChange(bundles);
+      });
+    }
+  }, []);
+
   const onClickPrimary = () => {
     var discount: DiscountAutomaticAppInput = {
       title: title.value,
-      combinesWith: combines.value,
+      combinesWith: {
+        orderDiscounts: false,
+        productDiscounts: false,
+        shippingDiscounts: true,
+      },
       startsAt: startDate.value,
       endsAt: endDate.value,
     };
@@ -149,19 +198,28 @@ export function BundleDetail({
     }
 
     var themeConfig = JSON.stringify(theme);
+    if (
+      !checkFormString(
+        "Button Text is required",
+        theme.button.font.content.toString(),
+      )
+    ) {
+      return;
+    }
+
+    if (
+      !checkFormString(
+        "Summary text is required",
+        theme.summary.label.content?.toString(),
+      )
+    ) {
+      return;
+    }
+
     var themeContent: BundleContent = {
-      button: buttonContent.value,
-      total: totalContent.value,
       shortDesc: "",
+      showOnPage: showOnPage.value,
     };
-
-    if (!checkFormString("Button Text is required", themeContent.button)) {
-      return;
-    }
-
-    if (!checkFormString("Total text is required", themeContent.total)) {
-      return;
-    }
 
     console.log("Check pass all");
     if (onSubmit) {
@@ -173,15 +231,14 @@ export function BundleDetail({
     <DiscountEditorPreviewLayout
       preview={
         <BundleThemePreview
-          titleContent={title.value}
           content={{
-            button: buttonContent.value,
-            total: totalContent.value,
             shortDesc: "",
+            showOnPage: showOnPage.value,
           }}
           discount={dVal.value}
           theme={theme}
           products={products.value}
+          endAt={endDate.value}
         />
       }
       actions={[
@@ -202,10 +259,13 @@ export function BundleDetail({
         />
       )}
 
-      <BundleThemeContentSetting
-        buttonContent={buttonContent}
-        totalContent={totalContent}
-      />
+      {/* <Heading2 title="GUI Content">
+        <BundleThemeContentSetting
+          buttonContent={buttonContent}
+          totalContent={totalContent}
+          showOnPage={showOnPage}
+        />
+      </Heading2> */}
 
       {!disableSetting && (
         <DiscountCommonEditor
@@ -237,14 +297,20 @@ function BundleSettingCard({
   return (
     <CardCollapse title="Bundle information" collapse>
       <BlockStack gap={"400"}>
-        <InlineStack gap={"200"}>
-          <TextField label="Title" autoComplete="off" {...title} />
+        <TextField
+          label="Title"
+          autoComplete="off"
+          helpText="This title is only used on the admin page."
+          {...title}
+        />
+        {/* <InlineStack gap={"200"}>
+
           <SelectDiscountStatus
             label="Status"
             value={status.value}
             onChange={status.onChange}
           />
-        </InlineStack>
+        </InlineStack> */}
 
         <DiscountTypeSelect
           label="Discount value"
@@ -312,14 +378,17 @@ function BundleSettingCard({
 type BundleThemeContentSettingProps = {
   buttonContent: Field<string>;
   totalContent: Field<string>;
+
+  showOnPage: Field<boolean>;
 };
 
 function BundleThemeContentSetting({
   buttonContent,
   totalContent,
+  showOnPage,
 }: BundleThemeContentSettingProps) {
   return (
-    <CardCollapse title="Widget content" collapse>
+    <CardCollapse title="Widget config" collapse>
       <BlockStack gap={"400"}>
         <InlineGrid columns={2} gap={"200"}>
           <TextField
@@ -329,7 +398,58 @@ function BundleThemeContentSetting({
           />
           <TextField label="Total text" autoComplete="off" {...totalContent} />
         </InlineGrid>
+
+        <InlineGrid gap={"200"}>
+          <Text as="h4" variant="bodyMd">
+            Select Display Position
+          </Text>
+
+          <Tooltip
+            content="Select the position where your bundle offer will be shown to
+            customers. You can choose between displaying it directly on a page
+            or as a pop-up."
+          >
+            <PositionSelector
+              showOnPage={showOnPage.value}
+              onChange={showOnPage.onChange}
+            />
+          </Tooltip>
+          {/* <Text as="p" variant="bodySm">
+            Select the position where your bundle offer will be shown to
+            customers. You can choose between displaying it directly on a page
+            or as a pop-up.
+          </Text> */}
+        </InlineGrid>
       </BlockStack>
     </CardCollapse>
+  );
+}
+
+type PositionSelectorProps = {
+  showOnPage: boolean;
+  onChange: (v: boolean) => void;
+};
+
+function PositionSelector(props: PositionSelectorProps) {
+  const handleShowOnPage = useCallback(() => {
+    if (props.showOnPage) return;
+    props.onChange(true);
+  }, [props.showOnPage]);
+
+  const handlePopup = useCallback(() => {
+    if (!props.showOnPage) return;
+    props.onChange(false);
+  }, [props.showOnPage]);
+
+  return (
+    <ButtonGroup variant="segmented">
+      <Button pressed={props.showOnPage} onClick={handleShowOnPage}>
+        Show on page
+      </Button>
+
+      <Button pressed={!props.showOnPage} onClick={handlePopup}>
+        Pop-up
+      </Button>
+    </ButtonGroup>
   );
 }

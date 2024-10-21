@@ -1,5 +1,3 @@
-import { Field, useField } from "@shopify/react-form";
-
 import { ProductInfo, ProductVariant } from "../Shopify/SelectProduct";
 import {
   BlockStack,
@@ -10,7 +8,6 @@ import {
   Text,
 } from "@shopify/polaris";
 import { useEffect, useState } from "react";
-import { StepData } from "./ConfigStep";
 import { initArray } from "~/models/utils";
 import { CardCollapse, Midline } from "~/components/Common";
 import {
@@ -22,6 +19,7 @@ import {
   RenderTextTheme,
 } from "./ThemeField";
 import { VolumeTheme } from "~/defs/theme";
+import { RewardStep } from "~/defs/discount";
 
 export const defaultVolumeTheme: VolumeTheme = {
   title: {
@@ -86,6 +84,7 @@ export const defaultVolumeTheme: VolumeTheme = {
       color: "#ffffff",
       size: 18,
       weight: "700",
+      content: "Add To Cart",
     },
     frame: { bgColor: "#4289ff", borderColor: "#008060" },
   },
@@ -189,7 +188,7 @@ export function VolumeThemeEditor({
 type VolumeDiscountPreviewProps = {
   popularIndex: number;
   products: ProductInfo[];
-  steps: StepData[];
+  steps: RewardStep[];
   theme: VolumeTheme;
   titleContent: string;
   buttonContent: string;
@@ -265,11 +264,7 @@ export function VolumeDiscountPreview({
       </RenderFrame> */}
 
       {/* Add to cart button */}
-      <RenderBundleButton
-        content={buttonContent}
-        font={theme.button.font}
-        frame={theme.button.frame}
-      />
+      <RenderBundleButton font={theme.button.font} frame={theme.button.frame} />
     </div>
   );
 }
@@ -277,7 +272,7 @@ export function VolumeDiscountPreview({
 type VolumeBreakOfferProps = {
   active: boolean;
   popular: boolean;
-  step: StepData;
+  step: RewardStep;
   theme: VolumeTheme;
   product?: ProductInfo;
   onSelect?: () => void;
@@ -312,9 +307,9 @@ function VolumeBreakOffer({
   );
 
   const [totalDiscount, setTotalDiscount] = useState(
-    step.type === "fix"
-      ? totalPrice - step.value
-      : totalPrice - (totalPrice * step.value) / 100.0,
+    step.discount.type === "fix"
+      ? totalPrice - step.discount.value
+      : totalPrice - (totalPrice * step.discount.value) / 100.0,
   );
 
   useEffect(() => {
@@ -327,9 +322,9 @@ function VolumeBreakOffer({
     );
 
     var newDiscount =
-      step.type === "fix"
-        ? newTotal - step.value
-        : newTotal - (newTotal * step.value) / 100.0;
+      step.discount.type === "fix"
+        ? totalPrice - step.discount.value
+        : totalPrice - (totalPrice * step.discount.value) / 100.0;
 
     setVariantOptions(
       product?.variants.map((v) => ({
@@ -362,9 +357,9 @@ function VolumeBreakOffer({
       );
 
       var newDiscount =
-        step.type === "fix"
-          ? newTotal - step.value
-          : newTotal - (newTotal * step.value) / 100.0;
+        step.discount.type === "fix"
+          ? newTotal - step.discount.value
+          : newTotal - (newTotal * step.discount.value) / 100.0;
 
       setVariants(newVariants);
       setTotalPrice(sumPrice);
@@ -381,7 +376,7 @@ function VolumeBreakOffer({
       >
         <RenderTextTheme
           as="p"
-          children={step.label ?? ""}
+          {...theme.selected.label}
           {...(active ? theme.selected.label : theme.unselected.label)}
         />
       </RenderFrame>
@@ -439,7 +434,7 @@ function VolumeBreakOffer({
               <RenderFrame {...unselected.frame} padding={"0.1rem 0.25rem"}>
                 <RenderTextTheme
                   as="p"
-                  children={`${step.value} ${step.type == "fix" ? "" : "%"}`}
+                  children={`${step.discount.value} ${step.discount.type == "fix" ? "" : "%"}`}
                   style={{
                     flexBasis: "fit-content",
                   }}

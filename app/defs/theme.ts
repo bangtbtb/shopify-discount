@@ -2,9 +2,13 @@
 export type FontWeight = "700" | "600" | "500" | "400" | "300";
 
 export type FontConfig = {
-  size: number;
   color: string;
+  size: number;
   weight: FontWeight;
+};
+
+export type TextConfig = FontConfig & {
+  content: string | number;
 };
 
 export type FrameConfig = {
@@ -14,7 +18,7 @@ export type FrameConfig = {
 
 export type ButtonConfig = {
   frame: FrameConfig;
-  font: FontConfig;
+  font: TextConfig;
 };
 
 export interface PriceTotal {
@@ -35,9 +39,10 @@ export interface BundleProductConfig {
 }
 
 export type BundleContent = {
-  total: string;
-  button: string;
+  // total: string;
+  // button: string;
   shortDesc: string;
+  showOnPage: boolean;
 };
 
 export type BundleSetting = {
@@ -45,14 +50,28 @@ export type BundleSetting = {
   displayPage: DisplayPage;
 };
 
+export type BundleSummaryConfig = {
+  label: TextConfig;
+  frame: FrameConfig;
+  price: FontConfig; // Discount price
+  comparePrice: FontConfig; // Old price
+};
+
+export interface BundleProductThemeConfig {
+  frame: FrameConfig;
+  name: FontConfig;
+  price: FontConfig;
+}
+
 export interface BundleThemeConfig {
-  title: FontConfig;
-  product: {
-    frame: FrameConfig;
-    name: FontConfig;
-    price: FontConfig;
+  container: FrameConfig;
+  banner: {
+    font: FontConfig;
+    bgColor: string;
   };
-  total: BundleTotalConfig;
+  title: TextConfig;
+  product: BundleProductThemeConfig;
+  summary: BundleSummaryConfig;
   button: ButtonConfig;
 }
 
@@ -73,13 +92,6 @@ export interface BundleTotalTheme {
     discount: FontConfig;
   };
 }
-
-export type BundleTotalConfig = {
-  frame: FrameConfig;
-  label: FontConfig;
-  price: FontConfig;
-  comparePrice: FontConfig;
-};
 
 // --------------------------------- Recommendation theme -----------------------------
 
@@ -116,7 +128,7 @@ export interface VolumeTheme {
   tagPopular: FontConfig;
   total: FontConfig;
   selected: {
-    label: FontConfig;
+    label: TextConfig;
     frame: FrameConfig;
   };
   unselected: {
@@ -126,7 +138,11 @@ export interface VolumeTheme {
   button: ButtonConfig;
 }
 
-export interface GUIVolume {}
+export interface GUIVolume {
+  theme?: VolumeTheme;
+  setting?: VolumeThemeSetting;
+  content?: VolumeThemeContent;
+}
 
 // --------------------------------- Shipping theme -----------------------------
 

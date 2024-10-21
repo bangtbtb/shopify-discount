@@ -66,10 +66,9 @@ export function StepCounter({
         ? children?.map((child, idx) => (
             <div key={idx} className={`step2 ${active >= idx ? "active" : ""}`}>
               <div
-                className="flex_cc step_cc"
+                className="flex_cc step_cc gap_sm"
                 style={{
                   // color: active ? highlightColor || "#fff" : "#000",
-                  gap: "8px",
                   width: size ?? "32px",
                   height: size ?? "32px",
                   border:

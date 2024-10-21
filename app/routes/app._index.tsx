@@ -5,7 +5,13 @@ import type {
   SerializeFrom,
 } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
+import {
+  useActionData,
+  useFetcher,
+  useLoaderData,
+  useNavigate,
+  useSubmit,
+} from "@remix-run/react";
 import {
   Page,
   Text,
@@ -18,9 +24,8 @@ import {
   Icon,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
-import { dbGetDiscounts } from "~/models/db_discount";
+import { dbDeleteDiscount, dbGetDiscounts } from "~/models/db_discount";
 import { FunnelCustomTable } from "~/components/Discounts/FunnelTable";
-import { Discount } from "@prisma/client";
 import LineDataPointChart from "~/components/DiscountChart/LineDataPointChart";
 import {
   OrderAppliedValueChart,
@@ -37,6 +42,8 @@ import {
 
 import { StatusActiveIcon, StatusIcon } from "@shopify/polaris-icons";
 import { SeriesDP } from "~/defs/gui";
+import { gqlDelDiscount } from "~/models/gql_discount";
+import { getGraphqlDiscountId } from "~/models/utils_id";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -72,23 +79,82 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  return json({});
+  const { session, admin } = await authenticate.admin(request);
+  var formData = await request.formData();
+  var actionLabel = formData.get("action")?.toString() || "";
+
+  switch (actionLabel) {
+    case "del_discount":
+      console.log("Handle delete discount");
+
+      var discountId = formData.get("discountId")?.toString() || "";
+      if (discountId) {
+        await dbDeleteDiscount(discountId, session.shop);
+      }
+      await gqlDelDiscount(admin.graphql, discountId)
+        .then((v) => {
+          console.log("Gql del discount success ", discountId, v);
+        })
+        .catch((err) => {
+          console.log("Gql del discount failed ", discountId, err);
+        });
+      break;
+    default:
+      break;
+  }
+
+  const { discounts } = await dbGetDiscounts({
+    shop: session.shop,
+    page: 1,
+  });
+  return json({ discounts });
 };
 
 export default function Index() {
   const { discounts, shopAnalytics, orderReport } =
     useLoaderData<typeof loader>();
-  const fetcher = useFetcher<typeof action>();
+  const actData = useActionData<typeof action>();
   const nav = useNavigate();
+  const submitForm = useSubmit();
 
   // const loc = useLocation();
   // const isLoading =
   //   ["loading", "submitting"].includes(fetcher.state) &&
   //   fetcher.formMethod === "POST";
 
-  const onClickDiscount = (d: SerializeFrom<Discount>) => {
-    nav(`/app/dcs/${d.id}`);
+  const [discountsState, setdiscountsState] = useState(discounts || []);
+
+  const onEditFunnel = (index: number) => {
+    if (discounts.length) {
+      nav(`/app/dcs/${discounts[index].id}`);
+    }
   };
+
+  const onDupFunnel = (index: number) => {
+    if (discounts.length) {
+      nav(
+        `/app/dcs/create/${discounts[index].type}?cloneId=${discounts[index].id}`,
+      );
+    }
+  };
+
+  const onDeleteFunnel = (index: number) => {
+    submitForm(
+      {
+        action: "del_discount",
+        discountId: discounts[index].id,
+      },
+      { method: "post" },
+    );
+  };
+
+  useEffect(() => {
+    if (actData?.discounts) {
+      console.log("Update discount");
+
+      setdiscountsState(actData.discounts);
+    }
+  }, [actData]);
 
   return (
     <Page title="BootsSell">
@@ -99,10 +165,24 @@ export default function Index() {
           shopAnalytics={shopAnalytics}
         />
         <BlockStack gap={"300"}>
-          <Text as="h2" variant="headingSm">
-            Funnel dashboard
-          </Text>
-          <FunnelCustomTable discounts={discounts} />
+          <InlineStack align="space-between">
+            <Text as="h2" variant="headingSm">
+              Funnel dashboard
+            </Text>
+            <Button
+              variant="primary"
+              tone="success"
+              onClick={() => nav("/app/dcs/create_select")}
+            >
+              Create funnel
+            </Button>
+          </InlineStack>
+          <FunnelCustomTable
+            discounts={discountsState}
+            onEdit={onEditFunnel}
+            onDupplicate={onDupFunnel}
+            onDelete={onDeleteFunnel}
+          />
         </BlockStack>
       </BlockStack>
     </Page>

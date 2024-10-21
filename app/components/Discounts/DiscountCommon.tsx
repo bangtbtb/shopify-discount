@@ -150,11 +150,18 @@ export function DiscountEditorPreviewLayout(
           />
         </Grid.Cell>
         <Grid.Cell columnSpan={{ sm: 6, md: 3, lg: 5 }}>
-          <Box paddingInlineEnd={"500"} paddingBlockEnd={"1000"}>
-            <Text as="h2" variant="headingMd">
-              Preview
-            </Text>
+          <Box paddingInlineEnd={"500"} paddingBlockEnd={"500"}>
+            <BlockStack gap={"400"}>
+              <Text as="h2" variant="headingLg">
+                Preview
+              </Text>
+              <Text as="p" variant="bodySm">
+                If you want to display a countdown offer, please set an end date
+                to enable the countdown offer display.
+              </Text>
+            </BlockStack>
           </Box>
+
           <div className="preview_ctn">{props.preview}</div>
         </Grid.Cell>
       </Grid>

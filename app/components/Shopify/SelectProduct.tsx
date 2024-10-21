@@ -59,6 +59,7 @@ export interface ProductInfo {
   title: string;
   image: string;
   imageAlt: string;
+  totalVariants: number;
   variants: Partial<ProductVariant>[];
 }
 
@@ -86,6 +87,8 @@ export function SelectProduct({
         title: products[0].title,
         image: products[0].images[0]?.originalSrc,
         imageAlt: products[0].images[0]?.altText ?? "",
+        totalVariants:
+          products[0].totalVariants || products[0].variants?.length,
         variants:
           products[0].variants?.map((variant) => ({
             ...variant,
@@ -155,6 +158,7 @@ export function SelectMultipleProducts({
         title: product.title,
         image: product.images[0]?.originalSrc,
         imageAlt: product.images[0]?.altText ?? "",
+        totalVariants: product.totalVariants || product.variants?.length,
         variants:
           product.variants?.map((variant) => ({
             ...variant,
@@ -222,7 +226,7 @@ export function SelectedProduct({
   onRemove,
 }: SelectedProductProps) {
   return (
-    <div className="flex_row card_grey" style={{ flexWrap: "nowrap" }}>
+    <div className="flex_row nowrap card_grey">
       <div style={{ minWidth: "92px", height: "71px" }}>
         <img className="fit_img" src={product.image} alt="" />
       </div>
@@ -233,7 +237,7 @@ export function SelectedProduct({
         </Text>
 
         <div
-          className="flex_row_center"
+          className="flex_row_center gap_xm"
           style={{
             padding: "0 0.5rem",
           }}

@@ -1,5 +1,6 @@
 import CSS from "csstype";
 import {
+  BlockStack,
   Box,
   Button,
   Card,
@@ -26,13 +27,13 @@ export function ColumnRevert(props: ColumnRevertProp) {
 type BoxBorderBoundProps = {
   headerAlign?: CSS.Property.TextAlign;
   header?: string | React.ReactElement;
-  children?: React.ReactElement;
+  children?: React.ReactNode;
   borderWidth?: CSS.Property.BorderWidth;
   borderColor?: CSS.Property.BorderColor;
 };
 
 export function BoxBorderBound(props: BoxBorderBoundProps) {
-  return (
+  return props.header ? (
     <fieldset
       style={{
         borderRadius: "8px",
@@ -51,6 +52,8 @@ export function BoxBorderBound(props: BoxBorderBoundProps) {
       </legend>
       {props.children}
     </fieldset>
+  ) : (
+    <> {props.children}</>
   );
 }
 
@@ -139,18 +142,18 @@ export function Midline(props: MidlineProps) {
   );
 }
 
-// export function BlockIcon(params:type) {
-
-// }
-
-type ActionListProps = {
-  children?: React.ReactElement[];
+type Heading2Props = {
+  title: string;
+  children?: React.ReactNode;
 };
 
-export function IconActionList(props: ActionListProps) {
+export function Heading2({ title, children }: Heading2Props) {
   return (
-    <InlineStack gap={"200"} aria-colcount={props.children?.length}>
-      {props.children}
-    </InlineStack>
+    <BlockStack gap={"400"}>
+      <Text as="h2" variant="headingLg">
+        {title}
+      </Text>
+      {children}
+    </BlockStack>
   );
 }

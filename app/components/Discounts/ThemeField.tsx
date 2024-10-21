@@ -1,4 +1,10 @@
-import { FontConfig, FontWeight, FrameConfig } from "~/defs/theme";
+import {
+  ButtonConfig,
+  FontConfig,
+  FontWeight,
+  FrameConfig,
+  TextConfig,
+} from "~/defs/theme";
 import { ColorPickerField } from "../Common/ColorPickerField";
 import {
   InlineStack,
@@ -7,31 +13,90 @@ import {
   Box,
   BlockStack,
   InlineGrid,
-  SelectOption,
 } from "@shopify/polaris";
 import { useEffect, useState } from "react";
 import CSS from "csstype";
 import { ProductVariant } from "../Shopify/SelectProduct";
-import { Product } from "~/types/admin.types";
+import { BoxBorderBound } from "../Common";
 
 type FontThemeProps = FontConfig & {
+  header?: string | React.ReactElement;
   onChange: (newConfig: FontConfig) => void;
 };
 
 // ---------------------------- Theme Editor ----------------------------
 
-export function FontTheme({ size, color, weight, onChange }: FontThemeProps) {
+export function FontTheme({
+  header,
+  size,
+  color,
+  weight,
+  onChange,
+}: FontThemeProps) {
   return (
-    <InlineStack aria-colcount={3} gap={"100"} align="space-between">
-      <Box width="150px">
-        <ColorPickerField
-          label="Color"
-          hexColor={color}
-          onChange={(newHex) => onChange({ size, color: newHex, weight })}
-        />
-      </Box>
+    <BoxBorderBound header={header}>
+      <InlineStack aria-colcount={3} gap={"100"} align="space-between">
+        <Box width="150px">
+          <ColorPickerField
+            label="Color"
+            hexColor={color}
+            onChange={(newHex) => onChange({ size, color: newHex, weight })}
+          />
+        </Box>
 
-      <Box maxWidth="75px">
+        <Box maxWidth="75px">
+          <TextField
+            label="Size (px)"
+            autoComplete="off"
+            type="number"
+            max={99}
+            min={0}
+            value={size.toString()}
+            onChange={(v) => {
+              console.log("Before Change size: ", { size, color, weight });
+              onChange({ size: Number.parseInt(v) || 0, color, weight });
+            }}
+          />
+        </Box>
+
+        <Box minWidth="80px">
+          <SelectFontWeight
+            label="Weight"
+            value={weight}
+            onChange={(v) => onChange({ size, color, weight: v })}
+          />
+        </Box>
+      </InlineStack>
+    </BoxBorderBound>
+  );
+}
+
+type TextConfigEditor = TextConfig & {
+  header?: string | React.ReactElement;
+  contentHelp?: string;
+  onChange: (newConfig: TextConfig) => void;
+};
+
+export function TextConfigEditor({
+  header,
+  content,
+  contentHelp,
+  size,
+  color,
+  weight,
+  onChange,
+}: TextConfigEditor) {
+  return (
+    <BoxBorderBound header={header}>
+      <InlineGrid gap={"600"} columns={2}>
+        <TextField
+          label="Text"
+          autoComplete="off"
+          value={content?.toString()}
+          helpText={contentHelp}
+          onChange={(v) => onChange({ content: v, size, color, weight })}
+        />
+
         <TextField
           label="Size (px)"
           autoComplete="off"
@@ -41,19 +106,32 @@ export function FontTheme({ size, color, weight, onChange }: FontThemeProps) {
           value={size.toString()}
           onChange={(v) => {
             console.log("Before Change size: ", { size, color, weight });
-            onChange({ size: Number.parseInt(v) || 0, color, weight });
+            onChange({
+              content,
+              size: Number.parseInt(v) || 0,
+              color,
+              weight,
+            });
           }}
         />
-      </Box>
 
-      <Box minWidth="80px">
-        <SelectFontWeight
-          label="Weight"
-          value={weight}
-          onChange={(v) => onChange({ size, color, weight: v })}
+        <ColorPickerField
+          label="Color"
+          hexColor={color}
+          onChange={(newHex) =>
+            onChange({ content, size, color: newHex, weight })
+          }
         />
-      </Box>
-    </InlineStack>
+
+        <Box minWidth="80px">
+          <SelectFontWeight
+            label="Weight"
+            value={weight}
+            onChange={(v) => onChange({ content, size, color, weight: v })}
+          />
+        </Box>
+      </InlineGrid>
+    </BoxBorderBound>
   );
 }
 
@@ -82,17 +160,15 @@ export function FrameTheme({
   );
 }
 
-type ButtonThemeProps = {
-  font: FontConfig;
-  frame: FrameConfig;
+type ButtonThemeProps = ButtonConfig & {
   onChangeFont: (newFont: FontConfig) => void;
   onChangeFrame: (newConfig: FrameConfig) => void;
 };
 
 export function ButtonThemeEditor(props: ButtonThemeProps) {
   return (
-    <BlockStack>
-      <FontTheme {...props.font} onChange={props.onChangeFont} />
+    <BlockStack gap={"400"}>
+      <TextConfigEditor {...props.font} onChange={props.onChangeFont} />
       <FrameTheme {...props.frame} onChange={props.onChangeFrame} />
     </BlockStack>
   );
@@ -153,13 +229,13 @@ export function SelectFlexDirection({
 
 // ------------------------- Preview -------------------------
 
-type RenderTextTheme = FontConfig & {
+type RenderTextTheme = TextConfig & {
   as: "span" | "p" | "h3";
   align?: CSS.Property.TextAlign;
   className?: string;
   // Property.TextAlign;
   style?: React.CSSProperties;
-  children: string | number | any;
+  // children: string | number | any;
 };
 
 export function RenderTextTheme({
@@ -170,7 +246,8 @@ export function RenderTextTheme({
   weight,
   align,
   style,
-  children,
+  content,
+  // children,
 }: RenderTextTheme) {
   const [stateStyle, setStateStyle] = useState<React.CSSProperties>({
     fontSize: size + "px",
@@ -193,29 +270,31 @@ export function RenderTextTheme({
   if (as === "h3") {
     return (
       <h3 className={className} style={stateStyle}>
-        {children}
+        {content}
       </h3>
     );
   }
   return as == "p" ? (
     <p className={className} style={stateStyle}>
-      {children}
+      {content}
     </p>
   ) : (
     <span className={className} style={stateStyle}>
-      {children}
+      {content}
     </span>
   );
 }
 
 type RenderFrameProps = Partial<FrameConfig> &
   React.CSSProperties & {
+    id?: string;
     className?: string;
     children?: React.ReactNode;
     onClick?: React.MouseEventHandler<HTMLDivElement>;
   };
 
 export function RenderFrame({
+  id,
   className,
   bgColor,
   borderColor,
@@ -238,6 +317,7 @@ export function RenderFrame({
 
   return (
     <div
+      itemID={id}
       className={`frame ${className || ""}`}
       style={{ ...style, ...rest }}
       onClick={onClick}
@@ -248,32 +328,23 @@ export function RenderFrame({
 }
 
 type RenderBundleButtonProps = {
-  font: FontConfig;
+  font: TextConfig;
   frame: FrameConfig;
-  content: string;
 };
 
-export function RenderBundleButton({
-  font,
-  frame,
-  content,
-}: RenderBundleButtonProps) {
+export function RenderBundleButton({ font, frame }: RenderBundleButtonProps) {
   const { bgColor, borderColor } = frame;
-  const { size, color, weight } = font;
+  const { content, size, color, weight } = font;
 
   return (
     <button
+      className="btn_add_cart"
       style={{
-        display: "block",
+        color: color,
+        fontSize: size + "px",
+        fontWeight: weight,
         backgroundColor: bgColor,
         borderColor: borderColor,
-        borderWidth: "1px",
-        borderRadius: "4px",
-        fontSize: size + "px",
-        color: color,
-        fontWeight: weight,
-        textAlign: "center",
-        padding: "10px 0",
       }}
     >
       {content}
@@ -294,8 +365,9 @@ export function SelectVariant({
   onChange,
 }: SelectVariantProps) {
   return (
-    <div className="custom-select">
+    <div className="select_ctn">
       <select
+        className="select variant"
         value={value.id}
         onChange={(ev: React.ChangeEvent<HTMLSelectElement>) => {
           var target = options.find((v) => v.id === ev.currentTarget.value);
@@ -305,7 +377,7 @@ export function SelectVariant({
         }}
       >
         {options.map((v, idx) => (
-          <option key={idx} value={v.id}>
+          <option key={idx} value={v.id} data-price={v.price || ""}>
             {v.title}
           </option>
         ))}

@@ -110,7 +110,7 @@ async function onDiscountDelete(
 ) {
   var discount = data as DiscountEvent;
   try {
-    await dbDeleteDiscount(discount.admin_graphql_api_id);
+    // await dbDeleteDiscount(discount.admin_graphql_api_id);
   } catch (error) {
     console.error("Handle event discount delete error: ", error);
   }

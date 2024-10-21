@@ -42,9 +42,9 @@ import { dbGetDiscount } from "~/models/db_discount";
 import { dayDuration, defaultPageSize } from "~/models/utils";
 import { authenticate } from "~/shopify.server";
 
-type AppliedExtend = DiscountAppliedRelation & {
-  Products?: ProductInfo[];
-};
+// type AppliedExtend = DiscountAppliedRelation & {
+//   Products?: ProductInfo[];
+// };
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -324,6 +324,7 @@ function DiscountAppliedTable({ applies }: DiscountAppliedTableProps) {
           />
         ))}
       </IndexTable>
+
       <Pagination
         onNext={() => {}}
         onPrevious={() => {}}

@@ -21,9 +21,10 @@ type DiscountValue = {
   type: DVT;
 };
 
-type RewardStep = {
+export type RewardStep = {
   require: number; // Condition
-  value: DiscountValue; // Reward
+  discount: DiscountValue; // Reward
+  label?: string;
 };
 
 export type PDApplyType = "volume" | "attached"; // | "attach";
@@ -116,7 +117,7 @@ function onVolume(input: RunInput, label: string, config: VolumeConfig) {
     discounts.push({
       targets: pSum.variants,
       message: label || `VOLUME_DISCOUNT`,
-      value: calcValue(step.value),
+      value: calcValue(step.discount),
     } as Discount);
   });
 

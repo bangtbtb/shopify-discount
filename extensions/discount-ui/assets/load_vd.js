@@ -1,5 +1,5 @@
 (function () {
-  var elmVD = document.getElementById("vd_09123hnf");
+  var elmVD = document.getElementById("volume_112dj2abbdf");
 
   function getVolumeDiscount() {
     var host = window.location.host;

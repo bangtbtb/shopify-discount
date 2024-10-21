@@ -2,7 +2,15 @@ import { Discount } from "@prisma/client";
 import { SerializeFrom } from "@remix-run/node";
 import { useNavigate } from "@remix-run/react";
 import { DateTime, DiscountStatus } from "@shopify/discount-app-components";
-import { Badge, InlineStack, Tooltip } from "@shopify/polaris";
+import {
+  Badge,
+  Box,
+  Button,
+  InlineGrid,
+  InlineStack,
+  Text,
+  Tooltip,
+} from "@shopify/polaris";
 import { DeleteIcon, DuplicateIcon, EditIcon } from "@shopify/polaris-icons";
 import { Progress, Tone } from "@shopify/polaris/build/ts/src/components/Badge";
 import { useEffect, useState } from "react";
@@ -10,6 +18,7 @@ import { CustomTable, TCell, TRow } from "../Common/CustomTable";
 import { OverlayImage } from "../Common/OverlayImage";
 import { ProductInfo } from "../Shopify/SelectProduct";
 import { bridgeLoadProduct } from "../Shopify/shopify_func";
+import { Modal, TitleBar } from "@shopify/app-bridge-react";
 
 type FunnelDataTableProps = {
   discounts: SerializeFrom<Discount>[];
@@ -24,24 +33,68 @@ export function FunnelCustomTable({
   onDupplicate,
   onDelete,
 }: FunnelDataTableProps) {
-  const nav = useNavigate();
+  const [waitDel, setWaitDel] = useState(-1);
+  const handleDelete = (index: number) => {
+    setWaitDel(index);
+    console.log("Show confirm del");
+  };
+
+  const handleConfirmDel = () => {
+    console.log("Handle confirm del");
+
+    if (waitDel >= 0 && onDelete) {
+      onDelete(waitDel);
+      setWaitDel(-1);
+    }
+  };
+
   return (
-    <CustomTable
-      headings={["Name", "Products", "Status", "SaleValue", "Actions"]}
-      withs={[undefined, undefined, "120px", "120px", "110px"]}
-    >
-      {discounts.map((d, idx) => (
-        <DiscountRow
-          key={d.id}
-          index={idx}
-          total={"100$"}
-          discount={d}
-          onEdit={onEdit}
-          onDupplicate={onEdit}
-          onDelete={onEdit}
-        />
-      ))}
-    </CustomTable>
+    <>
+      <CustomTable
+        headings={["Name", "Products", "Status", "SaleValue", "Actions"]}
+        withs={[undefined, undefined, "120px", "120px", "110px"]}
+      >
+        {discounts.map((d, idx) => (
+          <DiscountRow
+            key={d.id}
+            index={idx}
+            total={"100$"}
+            discount={d}
+            onEdit={onEdit}
+            onDupplicate={onDupplicate}
+            onDelete={handleDelete}
+          />
+        ))}
+      </CustomTable>
+
+      <Modal
+        id="del_funnel_confirm"
+        open={waitDel >= 0}
+        onHide={() => setWaitDel(-1)}
+        variant="small"
+      >
+        {/* <Text as="p">hello</Text> */}
+        <TitleBar
+          title={`Are you sure you want to delete funnel  ${discounts[waitDel]?.title || ""}?`}
+        ></TitleBar>
+        <Box padding={"100"}>
+          <InlineStack align="end">
+            <Button variant="tertiary" onClick={() => setWaitDel(-1)}>
+              Cancel
+            </Button>
+
+            <Button
+              variant="primary"
+              tone="critical"
+              icon={DeleteIcon}
+              onClick={handleConfirmDel}
+            >
+              Delete
+            </Button>
+          </InlineStack>
+        </Box>
+      </Modal>
+    </>
   );
 }
 
